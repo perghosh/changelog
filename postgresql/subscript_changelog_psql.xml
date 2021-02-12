@@ -1,0 +1,593 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!-- postgresql specific logic -->
+<DOCUMENT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="file:///C:/Program Files (x86)/Common Files/gorep/selection/select_subscript.xsd"
+          >
+          
+   <TABLETEMPLATE ID="application.activity">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TActivityCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TActivityUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FBeginD" ALIAS="Begin" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FBeginD" SIMPLENAME="~TActivityFBeginD Begin" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FEndD" ALIAS="End" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FEndD" SIMPLENAME="~TActivityFEndD End" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FAlertD" ALIAS="Alert" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FAlertD" SIMPLENAME="~TActivityFAlertD Alert" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FDeadlineD" ALIAS="Deadline" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FDeadlineD" SIMPLENAME="~TActivityFDeadlineD Deadline" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FDoneD" ALIAS="Done" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FDoneD" SIMPLENAME="~TActivityFDoneD Done" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD ID="TypeC-Indent" NAME="TypeC" ALIAS="Indented type" CONDITION="1" TYPE="STR" DESCRIPTION="Indent activity based on level in activity tree if it belongs to any and the type name, activity will almost allways have a type">
+         <FORMULA TYPE="HTML" />
+         <EXPRESSION>
+            ('&lt;span style="margin-left:' || CAST( COALESCE( (SELECT _t.FDepth FROM $Othread _t WHERE _t.FKey=$T.ActivityK AND _t."table_number" = 1110 LIMIT 1), 0 ) AS VARCHAR(10)) || 'em;"&gt;' || COALESCE((SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F), '_No type_') || '&lt;/span&gt;')
+         </EXPRESSION>
+      </FIELD>
+      <FIELD ID="Note" NAME="FDescription" ALIAS="Note" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT _n.FNote FROM $OTNote _n WHERE _n.RecordK=$T.ActivityK AND _n.table_number=1110 LIMIT 1)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="Hashtag.ActivityK" NAME="ActivityK" ALIAS="Hashtag" TYPE="STR" ALIGN="L" FF="v" CONDITION="expression">
+         <!-- TODO -->
+         <EXPRESSION>CAST( STUFF( (SELECT ' ' + _tn.FName FROM $OTTag _t JOIN $OTTagName _tn ON _tn.TagNameK= _t.TagNameK AND _t.table_number=1110 WHERE _t.ParentK=$T.ActivityK ORDER BY 1 FOR XML PATH(''))  ,1,1,'' ) AS NVARCHAR(MAX))</EXPRESSION>
+      </FIELD>
+      <FIELD ID="VersionName" NAME="ActivityK" ALIAS="Version" TYPE="I4" DISPLAYTYPE="STR" CONDITION="expression">
+         <EXPRESSION>
+(SELECT (SELECT s.FName FROM $OTSystem s WHERE s.SystemK=_sv.SystemK LIMIT 1) || ', ' || CAST(_sv.FVersion1 AS VARCHAR(5)) || ':' || CAST(_sv.FVersion2 AS VARCHAR(5)) || ':' || CAST(_sv.FVersion3 AS VARCHAR(5))
+FROM $OTrSystemVersionXActivity _r JOIN $OTSystemVersion _sv ON _r.SystemVersionK=_sv.SystemVersionK WHERE _r.ActivityK=$T.ActivityK LIMIT 1)
+         </EXPRESSION>
+      </FIELD>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.address">
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TAddressCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TAddressUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.article">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TArticleCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TArticleUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FValidFrom" ALIAS="Valid from" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FValidFrom" SIMPLENAME="~FValidFrom Valid from" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FValidTo" ALIAS="Valid to" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FValidTo" SIMPLENAME="~FValidTo Valid to" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD ID="VersionName" NAME="ArticleK" ALIAS="Version" TYPE="STR" CONDITION="expression" DESCRIPTION="If article is connected to version, then select the latest version">
+         <EXPRESSION>(
+SELECT (LPAD(_sv.FVersion1::text,2,'0') || ':' || LPAD(_sv.FVersion2::text,2,'0') || ':' || LPAD(_sv.FVersion3::text,3,'0'))
+FROM $OTSystemVersion _sv JOIN $OTrSystemVersionXArticle _r ON _sv.SystemVersionK=_r.SystemVersionK
+WHERE _r.ArticleK=$T.ArticleK
+ORDER BY _r.UpdateD DESC LIMIT 1)
+         </EXPRESSION>
+      </FIELD>
+      <FIELD ID="VersionNameMajor" NAME="ArticleK" ALIAS="Major version" TYPE="STR" CONDITION="expression" ALIGN="R" DESCRIPTION="If article is connected to version, then select the latest major version">
+         <EXPRESSION>(
+SELECT LPAD(_sv.FVersion1::text,2,'0')
+FROM $OTSystemVersion _sv JOIN $OTrSystemVersionXArticle _r ON _sv.SystemVersionK=_r.SystemVersionK
+WHERE _r.ArticleK=$T.ArticleK
+ORDER BY _r.UpdateD DESC LIMIT 1)
+         </EXPRESSION>
+      </FIELD>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.articlebook">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TArticleBookCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TArticleBookUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FReleased" ALIAS="Released" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FReleased" SIMPLENAME="~TArticleBookFReleased Released" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.customer">
+      <FIELD NAME="CreateD" ALIAS="Created" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~CreateD Created" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Updated" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~UpdateD Updated" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.customercontact">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TCustomerContactCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TCustomerContactUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.link">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TLinkCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TLinkUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.log">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TLogCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FTimeD" ALIAS="Time" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FTimeD" SIMPLENAME="~TLogFTimeD Time" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.note">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TNoteCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TNoteUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FTimeD" ALIAS="Time" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FTimeD" SIMPLENAME="~TNoteFTimeD FTime" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.number">
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TNumberCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TNumberUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.project">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TProjectCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TProjectUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FBeginD" ALIAS="Begin" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FBeginD" SIMPLENAME="~TProjectFBeginD FBegin" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FEndD" ALIAS="End" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FEndD" SIMPLENAME="~TProjectFEndD FEnd" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FDeadlineD" ALIAS="Deadline" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FDeadlineD" SIMPLENAME="~TProjectFDeadlineD FDeadline" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD ID="Note" NAME="FDescription" ALIAS="Note" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT _n.FNote FROM $OTNote _n WHERE _n.RecordK=$T.ProjectK AND _n.table_number=1050 LIMIT 1)</EXPRESSION>
+      </FIELD>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.property">
+      <FIELD NAME="FValueDate" ALIAS="Value date" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FValueDate" SIMPLENAME="Value date" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.sale">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TSaleCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}" NOMERGE="1" NOVALUE="1">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TSaleUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}" NOMERGE="1" NOVALUE="1">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FBeginD" ALIAS="Begin" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FBeginD" SIMPLENAME="~TSaleFBegin Begin" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}" NOMERGE="1" NOVALUE="1" DESCRIPTION="Start time for sale">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FEndD" ALIAS="End" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif((@this &gt; 0);date.datetimetext(float(@this) );'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FEndD" SIMPLENAME="~TSystemRequestFEnd FEnd" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}" NOMERGE="1" NOVALUE="1" DESCRIPTION="End time for sale">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FOrderD" ALIAS="OrderDate" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FOrderD" SIMPLENAME="~TSaleFOrderDate FOrderDate" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}" NOMERGE="1" NOVALUE="1" DESCRIPTION="When ordered">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FDeliverD" ALIAS="Deliver" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FDeliverD" SIMPLENAME="Deliver" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}" NOMERGE="1" NOVALUE="1" DESCRIPTION="When delivered">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FPayD" ALIAS="Pay" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FPayD" SIMPLENAME="~TSaleFPayD Pay" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.saleservice">
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TSaleServiceCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TSaleServiceUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FBeginD" ALIAS="Begin" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FBeginD" SIMPLENAME="~TSaleServiceFBeginD Begin" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FEndD" ALIAS="End" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FEndD" SIMPLENAME="~TSaleServiceFEndD End" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   
+          
+<!-- System table. Place the systems that you need to manage information about in this table -->
+   <TABLETEMPLATE ID="application.system">
+      <FIELD ID="Path" NAME="SystemK" ALIAS="Path" TYPE="STR" DESCRIPTION="View path for current system in tree">
+         <EXPRESSION>(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=$T.SystemK AND _t."table_number" = 1010 LIMIT 1)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="Depth" NAME="SystemK" ALIAS="Depth" TYPE="STR" CONDITION="expression" DESCRIPTION="The depth in tree system is located at">
+         <EXPRESSION>(SELECT _t.FDepth FROM $Othread _t WHERE _t.FKey=$T.SystemK AND _t."table_number" = 1010  LIMIT 1)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="ThreadNumber" NAME="SystemK" ALIAS="Thread ID" TYPE="INT" CONDITION="expression" DESCRIPTION="The thread number, same as key to system root">
+         <EXPRESSION>(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId JOIN WHERE _t.FKey=$T.SystemK AND _t."table_number" = 1010  LIMIT 1)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="ThreadName" NAME="SystemK" ALIAS="Thread Name" TYPE="STR" CONDITION="expression" INTELLISENSE="system_thread_name" DESCRIPTION="The thread name, same as code name to root system">
+         <EXPRESSION>(SELECT _s.FName FROM $OTSystem _s JOIN $Othread_header _th ON _s.SystemK = _th.FThreadId AND _th."table_number" = 1010 JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t."table_number" = 1010 WHERE _t.FKey=$T.SystemK  LIMIT 1)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="ThreadShortName" NAME="SystemK" ALIAS="Thread Name" TYPE="STR" CONDITION="expression" DESCRIPTION="The abbreviated name for thread">
+         <EXPRESSION>(SELECT CASE WHEN _s.FAbbreviation IS NOT NULL THEN _s.FAbbreviation ELSE _s.FName END FROM $OTSystem _s JOIN $Othread_header _th ON _s.SystemK = _th.FThreadId AND _th.table_number = 1010 JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number = 1010 WHERE _t.FKey=$T.SystemK LIMIT 1)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="FName-Indent" NAME="FName" ALIAS="Indented Name" CONDITION="1" TYPE="STR" DESCRIPTION="Indent name based on level in system tree if it belongs to any">
+         <FORMULA TYPE="HTML" />
+         <EXPRESSION>
+('&lt;span style="margin-left:' || CAST( COALESCE( (SELECT _t.FDepth FROM $Othread _t WHERE _t.FKey=$T.SystemK AND _t."table_number" = 1010 LIMIT 1), 0 ) AS VARCHAR(10)) || 'em;"&gt;' || $T.FName || '&lt;/span&gt;')
+         </EXPRESSION>
+      </FIELD>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.systemrequest">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TSystemRequestCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TSystemRequestUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FBegin" ALIAS="Begin" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>CASE WHEN $T.FBegin IS NOT NULL THEN (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ELSE NULL END</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FBegin" SIMPLENAME="~TSystemRequestFBegin FBegin" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FEnd" ALIAS="End" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif((@this &gt; 0);date.datetimetext(float(@this));'')</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FEnd" SIMPLENAME="~TSystemRequestFEnd FEnd" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FDoneD" ALIAS="Done at" TYPE="ODATE">
+         <FORMULA CODE="GD1">iif(is_true(@this);date.datetimetext(@this);'')</FORMULA>
+         <EXPRESSION>CASE WHEN $T.FDoneD IS NOT NULL THEN (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ELSE NULL END</EXPRESSION>
+         <EXPRESSION OUTPUT="outside">$T.$F</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FDoneD" SIMPLENAME="~TSystemRequestFDoneAt FDone at" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.systemversion">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TSystemVersionCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TSystemVersionUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FReleaseDate" ALIAS="Release date" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FReleaseDate" SIMPLENAME="~TSystemVersionFReleaseDate Release date" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FReleasedDate" ALIAS="Released date" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FReleasedDate" SIMPLENAME="~TSystemVersionFReleasedDate Released date" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.tag">
+      <FIELD NAME="FDate" ALIAS="Date" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FDate" SIMPLENAME="Date" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   
+   <TABLETEMPLATE ID="application.todo">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TTodoCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TTodoUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FReadyD" ALIAS="Ready at" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FReadyD" SIMPLENAME="~TTodoFReadyD Ready at" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FClosedD" ALIAS="ClosedAt" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FClosedD" SIMPLENAME="~TTodoFClosedD ClosedAt" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   <TABLETEMPLATE ID="application.todolist">
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TTodoListCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TTodoListUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="application.user">
+      <FIELD NAME="FLoginD" ALIAS="Login date" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) )</FORMULA>
+         <EXPRESSION>(EXTRACT(EPOCH FROM $T.$F)/86400 + 25569)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FLoginD" SIMPLENAME="~TUserFLoginD Login date" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( (EXTRACT(EPOCH FROM $T.$F)/86400 + 25569) ) $_operator FLOOR($_value)</EXPRESSION>
+      </CONDITION>
+   </TABLETEMPLATE>
+
+   <TABLE PREFIX="VChangelog1" NAME="Changelog">
+      <FIELD ID="VersionName" NAME="FName" ALIAS="Version" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(LPAD($T.FVersion1::text,2,'0') || ':' || LPAD($T.FVersion2::text,2,'0') || ':' || LPAD($T.FVersion3::text,3,'0'))</EXPRESSION>
+      </FIELD>
+   </TABLE>
+   
+   
+</DOCUMENT>

@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../queries.xsd"
+            TYPE="query" DESCRIPTION="Queries used to manage codes, Tables TGroup > TCode > [TProperty, TClosure] ">
+   <QUERY ID="Code groups" DESCRIPTION="Manage code groups" KEY="4C29CC9F529D984B8BE58F8975C2C4B4">
+      <FIELD ID="TGroup1GroupK" ALIAS="ID" TABLE="TGroup1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TGroup1FName" ALIAS="Name" TABLE="TGroup1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TGroup1FDescription" ALIAS="Description" TABLE="TGroup1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TGroup1FLabel" ALIAS="Label" TABLE="TGroup1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TGroup1FTable" ALIAS="Table" TABLE="TGroup1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TGroup1Count" ALIAS="Count" TABLE="TGroup1" DESCRIPTION="Number of codes connected" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "base codes","title":"Edit Base codes for group", "icon": "fa-edit", "table":"TGroup1", "link": ["89E6297EEF52994E906EEDDB1DF52F6C"]},' .. 
+   '{"id": "codes","title":"Edit codes for code group", "icon": "fa-edit", "table":"TGroup1", "link": ["C7E75AE82CBDCF4DB619914848C60A21"]},' .. 
+   -- '{"id": "codes","title":"Edit codes for code group", "icon": "fa-edit", "table":"TGroup1", "link": ["49BBF99F5D3E485A9C1C4DB6A9846282"]},' .. 
+   '{"id": "property names","title":"Property names to group", "icon": "fa-edit", "table":"TGroup1", "link": ["3B548ADAF5D04A88B404C7C21260D85D"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Codes"  DESCRIPTION="Base codes for group" KEY="89E6297EEF52994E906EEDDB1DF52F6C" EXPRESSION="SELECT GroupK AS value, 'GroupK' AS name, FName AS simple  FROM $OTGroup WHERE GroupK={{==TGroup1}}"/>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Codes"  DESCRIPTION="Codes for group" KEY="C7E75AE82CBDCF4DB619914848C60A21" EXPRESSION="SELECT GroupK AS value, 'GroupK' AS name, FName AS simple  FROM $OTGroup WHERE GroupK={{==TGroup1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Codes, all values"  DESCRIPTION="View and edit codes" KEY="C868292263A84D96B794A6760AEF3152" EXPRESSION="SELECT GroupK AS value, 'GroupK' AS name, FName AS simple  FROM $OTGroup WHERE GroupK={{==TGroup1}}"/>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Property names"  DESCRIPTION="Property names for code group" KEY="3B548ADAF5D04A88B404C7C21260D85D" EXPRESSION="SELECT GroupK AS value, 'GroupK' AS name, FName AS simple  FROM $OTGroup WHERE GroupK={{==TGroup1}}"/>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Change extra code values"  DESCRIPTION="Property names for code group" KEY="49BBF99F5D3E485A9C1C4DB6A9846282" EXPRESSION="SELECT AS GroupK AS value, 'GroupK' AS name, FName AS simple  FROM $OTGroup WHERE GroupK={{==TGroup1}}"/>
+      <ROWEDIT>
+         <EDIT NAME="new_group" SIMPLE="New code group" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $OTGroup (GroupK,FName, FDescription, FLabel, FTable) 
+VALUES({=GroupK},{=FName},{=FDescription"''"},{=FLabel"''"},{=FTable"''"})
+               </EXPRESSION>
+            </SQL>
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <!--
+    Base codes used to connect codes with similar attributes
+    -->
+   <QUERY ID="Base codes" DESCRIPTION="List base codes, codes that could be used to group other codes with some common thing" KEY="89E6297EEF52994E906EEDDB1DF52F6C" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TBaseCode1BaseCodeK" ALIAS="BaseCodeK" TABLE="TBaseCode1"/>
+      <FIELD ID="TBaseCode1FName" ALIAS="FName" TABLE="TBaseCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TBaseCode1FDescription" ALIAS="FDescription" TABLE="TBaseCode1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_basecode" SIMPLE="New Base code" TYPENAME="new_row" DESCRIPTION="Add new base code">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $OTBaseCode (GroupK, FName, FDescription, CreatedD) 
+VALUES({{=GroupK}},{=FName"''"},{=FDescription"''"}, GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('code.TBaseCode')" />
+         </EDIT>
+         <EDIT NAME="delete note" SIMPLE="Delete Note" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TBaseCode" WHERE "BaseCodeK"={{=BaseCodeK}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <!--
+    Property key for code group
+    -->
+   <QUERY ID="Property names to code group" DESCRIPTION="Manage valid property names for code group" KEY="3B548ADAF5D04A88B404C7C21260D85D" FLAGNAMES="NOTLISTED">
+      <FIELD ID="PropertyKeyK" ALIAS="ID" TABLE="TPropertyKey1"/>
+      <FIELD ID="FKey" ALIAS="Key" TABLE="TPropertyKey1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FDescription" ALIAS="Description" TABLE="TPropertyKey1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_property_name" SIMPLE="New property name" TYPENAME="new_row" DESCRIPTION="Adds new property name">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O"TPropertyKey" (GroupK, FKey, FDescription) 
+VALUES({{=GroupK}},{=FKey"''"},{=FDescription"''"})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('code.TPropertyKey')" />
+         </EDIT>
+         <EDIT NAME="delete note" SIMPLE="Delete Note" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TPropertyKey" WHERE "CodeK"={{=CodeK}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <!--
+    Used for adding codes to selected code group
+    -->
+   <QUERY ID="Edit codes" DESCRIPTION="View codes for changelog system, edit codes for selected code group" KEY="C7E75AE82CBDCF4DB619914848C60A21" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TCode1CodeK" ALIAS="ID" TABLE="TCode1"/>
+      <FIELD ID="TCode1SuperK" ALIAS="Parent" TABLE="TCode1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT 0 AS CodeK, '_ no parent _' AS FName UNION ALL SELECT CodeK, FName FROM $OTCode WHERE FDeleted = 0 AND GroupK={{=TGroup1GroupK}} ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="TCode1BaseCodeK" ALIAS="Base Code" TABLE="TCode1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT 0 AS BaseCodeK, '_ no base _' AS FName UNION ALL SELECT BaseCodeK, FName FROM $OTBaseCode WHERE FDeleted = 0 AND GroupK={{=TGroup1GroupK}} ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="TCode1FName" ALIAS="Name" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FAbbreviation" ALIAS="Abbreviation" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FDescription" ALIAS="Description" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1type" ALIAS="Type" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FRank" ALIAS="Rank" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_code" SIMPLE="New Code" TYPENAME="new_row" DESCRIPTION="Add new code">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DO $$
+DECLARE iSuper INTEGER;
+BEGIN
+   SELECT {{=SuperK}} INTO iSuper;
+   IF iSuper = 0 THEN
+      SELECT NULL INTO iSuper;   
+   END IF;
+   
+   INSERT INTO $OTCode (GroupK, SuperK, FName, FAbbreviation, FDescription, FRank, FIdle, FDeleted, CreatedD) 
+   VALUES({{=GroupK}},iSuper,{=FName"''"},{=FAbbreviation},{=FDescription"''"},{{=FRank"0"}},{{=FIdle"0"}},{{=FDeleted"0"}}, NOW());
+END $$;
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT CURRVAL(PG_GET_SERIAL_SEQUENCE('code.tcode','codek'))" />
+         </EDIT>
+         <EDIT NAME="delete note" SIMPLE="Delete Note" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTCode WHERE CodeK={{=CodeK}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Manage codes" DESCRIPTION="View codes for changelog system, add codes and select group if needed" KEY="C868292263A84D96B794A6760AEF3152">
+      <FIELD ID="TCode1CodeK" ALIAS="ID" TABLE="TCode1"/>
+      <FIELD ID="TCode1List.GroupK" ALIAS="Group" TABLE="TCode1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TCode1FName" ALIAS="Name" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FDescription" ALIAS="Description" TABLE="TCode1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TCode1FIdle" ALIAS="Idle" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FDeleted" ALIAS="Deleted" TABLE="TCode1" FIELDFLAGNAMES="edit"/>
+      <ROWEDIT>
+         <EDIT NAME="new_code" SIMPLE="New Code" TYPENAME="new_row" DESCRIPTION="Add new code">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O"TCode" (GroupK, FName, FDescription, FIdle, FDeleted, CreatedD) 
+VALUES({{=GroupK}},{=FName"''"},{=FDescription"''"},{{=FIdle}},{{=FDeleted}}, GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('code.TCode')" />
+         </EDIT>
+         <EDIT NAME="delete note" SIMPLE="Delete Note" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TCode" WHERE "CodeK"={{=CodeK}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Extended code values" DESCRIPTION="Edit extended values for code" KEY="49BBF99F5D3E485A9C1C4DB6A9846282">
+      <FIELD ID="TCode1CodeK" ALIAS="ID" TABLE="TCode1"/>
+      <FIELD ID="TCode1List.GroupK" ALIAS="Group" TABLE="TCode1" />
+      <FIELD ID="TCode1FName" ALIAS="Name" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FInteger0" ALIAS="Integer 0" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FInteger1" ALIAS="Integer 1" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FNumber0" ALIAS="Number 0" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCode1FText0" ALIAS="Text 0" TABLE="TCode1" FIELDFLAGNAMES="edit" />
+   </QUERY>
+   
+   
+   <QUERY ID="List codes">
+      <FIELD ID="TCode1CodeK" ALIAS="ID" TABLE="TCode1"/>
+      <FIELD ID="TCode1List.GroupK" ALIAS="Group" TABLE="TCode1" />
+      <FIELD ID="TCode1FName" ALIAS="Name" TABLE="TCode1" />
+      <FIELD ID="TCode1FDescription" ALIAS="Description" TABLE="TCode1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TCode1SuperK" ALIAS="Parent" TABLE="TCode1" />
+   </QUERY>
+   
+   <QUERY ID="Code tree" KEY="1F1427157D30DD4DA0055B8E20BFEC7C">
+      <FIELD ID="TCode1CodeK" ALIAS="CodeK" TABLE="TCode1"/>
+      <FIELD ID="TGroup1FName" ALIAS="Group" TABLE="TGroup1"/>
+      <FIELD ID="TCode1Indent.FName" ALIAS="Name" TABLE="TCode1"/>
+      <FIELD ID="TCode1Depth" ALIAS="Depth" TABLE="TCode1"/>
+      <FIELD ID="TCode1Path" ALIAS="Path" TABLE="TCode1"/>
+   </QUERY>
+   
+   
+</SELECTION>

@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="file:///C:/Program Files (x86)/Common Files/gorep/selection/select.xsd"
+           NAME="script for documenting changelog database tables"  DBID="CHANGELOG_DOCUMENTATION" DBSIMPLEID="CHANGELOG_DOCUMENTATION" KEY="CHANGELOG_DOCUMENTATION_001" OWNER="documentation." DBVERSION="1" VERSION="1" SAFE="1">
+
+      <SCRIPTS>
+      <SCRIPT ID="idLogin" VERSION="0" DBVERSION="1" TYPE="login" LANGUAGE="LUA">
+         <CODE>
+            <![CDATA[
+function main()
+   local app = Application.new()
+   local result = Result.new()
+   local alias = result:GetParam("alias", "guest")
+   
+   local user = app:GetUser( result:GetParam("user", ""), true )
+   if user == nil then
+      user = app:AddUser() 
+      user:SetName( alias )
+      user:LoadQueries()
+   end
+end
+main()         
+         ]]>
+         </CODE>
+      </SCRIPT>
+   </SCRIPTS>   
+
+   <TABLETEMPLATE ID="documentation.describe_schema">
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" DISPLAY="1" />
+   </TABLETEMPLATE>   
+   
+   <TABLETEMPLATE ID="documentation.describe_table">
+      
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" DISPLAY="1" />
+      <FIELD NAME="FSimpleName" ALIAS="Simple" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FBrief" ALIAS="Brief" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FTableNumber" ALIAS="Table number" TYPE="INT" CONDITION="1" />
+      
+      <FIELD ID="SchemaKName" NAME="SchemaK" ALIAS="Schema name" TYPE="STR">
+         <EXPRESSION>(SELECT _s.FName FROM $O.TSchema _s WHERE _s.SchemaK=$T.SchemaK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="SchemaKName" NAME="SchemaK" SIMPLENAME="Schema" TYPE="STR">
+         <EXPRESSION>(SELECT _s.FName FROM $Odescribe_schema _s WHERE _s.SchemaK=$T.SchemaK)</EXPRESSION>
+         <LOOKUP CACHE="schemas">SELECT DISTINCT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES ORDER BY 1</LOOKUP>
+      </CONDITION>
+
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="200" NULL="0" DEFAULT="''" />
+      <EDIT NAME="FSimpleName" ALIAS="Simple" TYPE="STR" MAX="200" NULL="0" DEFAULT="''" />
+      <EDIT NAME="FBrief" ALIAS="Brief" TYPE="STR" MAX="500" NULL="0" DEFAULT="''" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="0" NULL="0" DEFAULT="''" />
+      <EDIT NAME="FTableNumber" ALIAS="Table number" TYPE="INT" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="documentation.describe_column">
+      <FIELD NAME="TableK" ALIAS="Table id" TYPE="INT" CONDITION="1" FKEY="" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" DISPLAY="1" />
+      <FIELD NAME="FSimpleName" ALIAS="Simple" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FBrief" ALIAS="Brief" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FEdit" ALIAS="Edit" TYPE="INT" CONDITION="1" />
+      
+      <FIELD ID="TableKName" NAME="TableK" ALIAS="Table name" TYPE="STR">
+         <EXPRESSION>(SELECT _s.FName FROM $O.TSchema _s WHERE _s.SchemaK=$T.SchemaK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="TableKName" NAME="TableK" SIMPLENAME="Table" TYPE="STR">
+         <EXPRESSION>(SELECT _s.FName FROM $OTSchema _s WHERE _s.SchemaK=$T.SchemaK)</EXPRESSION>
+         <LOOKUP CACHE="schemas">SELECT DISTINCT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES ORDER BY 1</LOOKUP>
+      </CONDITION>
+      
+
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FSimpleName" ALIAS="Simple" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FBrief" ALIAS="Brief" TYPE="STR" MAX="500" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="0" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FEdit" ALIAS="Edit" TYPE="INT" />
+   </TABLETEMPLATE>
+   
+   <TABLE PREFIX="describe_schema1" NAME="describe_schema">
+      <FIELD NAME="SchemaK" ALIAS="ID" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.describe_table" />
+   </TABLE>
+   
+   <TABLE PREFIX="describe_table1" NAME="describe_table" PARENT="describe_schema1">
+      <JOIN TYPE="inner">[$parent].[SchemaK]=[$this].[SchemaK]</JOIN>
+      <FIELD NAME="TableK" ALIAS="ID" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.describe_table" />
+   </TABLE>
+   
+   <TABLE PREFIX="describe_column1" NAME="describe_column" PARENT="describe_table1">
+      <JOIN TYPE="inner">[$parent].[TableK]=[$this].[TableK]</JOIN>
+      <FIELD NAME="ColumnK" ALIAS="ColumnK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.describe_column" />
+   </TABLE>
+   
+   
+</SELECTION>   

@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Queries used to manage database documentation, how the database works">
+   <QUERY ID="schemas" KEY="602AC76FA1B0490185F20D853DCFA790">
+      <ATTRIBUTE NAME="LUA-GETRESULT"><![CDATA[
+return function( q )
+   print( q:GetName() ) 
+end
+      ]]></ATTRIBUTE>
+      <FIELD ID="ColumnK" ALIAS="ID" TABLE="describe_column1"/>
+      <FIELD ID="FName" ALIAS="Name" TABLE="describe_column1" />
+   </QUERY>
+   
+   <QUERY ID="columns" KEY="CDB87E5C00984B46AD2BC50FE0A8E4F3">
+      <FIELD ID="ColumnK" ALIAS="ID" TABLE="describe_column1"/>
+      <FIELD ID="FSimpleName" ALIAS="Alias" TABLE="describe_column1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FBrief" ALIAS="Brief" TABLE="describe_column1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FDescription" ALIAS="Description" TABLE="describe_column1" FIELDFLAGNAMES="edit" />
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="TTable1SchemaKName" TABLE="TTable1" />
+         <SELECTCONDITION ID="TTable1FName" TABLE="TTable1" />
+      </SELECTCONDITIONS>
+      <ROWEDIT>
+         <EDIT NAME="delete column" SIMPLE="Delete Column" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TColumn" WHERE "ColumnK"={{=[0]}}' />
+         </EDIT>
+         
+         <EDIT NAME="parse_table" SIMPLE="Scan table" TYPENAME="new_sheet" DESCRIPTION="Build information for selected table">
+            <SQL TYPENAME="insert" COMMAND="insert-sheet">
+               <EXPRESSION><![CDATA[
+SET NOCOUNT ON
+DECLARE @TableSchema NVARCHAR(100) = {=SchemaKName};
+DECLARE @TableName NVARCHAR(100) = {=FName};
+DECLARE @iDbTableCount INT = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=@TableSchema AND TABLE_NAME=@TableName);
+DECLARE @iTableCount INT = (SELECT COUNT(*) FROM $O"TTable" t JOIN $O"TSchema" s ON t.SchemaK=s.SchemaK  WHERE s."FName"=@TableSchema AND t."FName"=@TableName);
+DECLARE @Name NVARCHAR(100), @Type NVARCHAR(100), @Length INT, @Position INT, @Default NVARCHAR(100), @Nullable NVARCHAR(100);
+DECLARE @SchemaK INT -- Schema key to TSchema table
+DECLARE @TableK INT  -- Table key to TTable table
+DECLARE @NullableBit BIT  -- Bit if column i nullable or not
+
+
+IF @iDbTableCount = 1 AND @iTableCount = 0  -- If the table is missing
+BEGIN
+   BEGIN TRAN AddDescriptionForTable;
+   
+   -- Try to add table
+   SET @SchemaK = (SELECT SchemaK FROM $OTSchema WHERE FName = @TableSchema);
+   INSERT INTO $OTTable (SchemaK,FName) VALUES(@SchemaK,@TableName);
+   SET @TableK = (SELECT IDENT_CURRENT('$OTTable'));
+   
+   DECLARE cursorColumns CURSOR FAST_FORWARD FOR SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, ORDINAL_POSITION, COLUMN_DEFAULT, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @TableSchema AND TABLE_NAME = @TableName  ORDER BY 1;
+   OPEN cursorColumns;
+   FETCH NEXT FROM cursorColumns INTO @Name, @Type, @Length, @Position, @Default, @Nullable;
+   WHILE @@FETCH_STATUS = 0
+   BEGIN
+      SET @NullableBit = 0;
+      IF @Nullable = 'YES'
+         SET @NullableBit = 1;
+      INSERT INTO $O"TColumn" ( "TableK", "FName", "FType", "FSize", "FNullable" ) VALUES( @TableK, @Name, @Type, @Length, @NullableBit );
+      FETCH NEXT FROM cursorColumns INTO @Name, @Type, @Length, @Position, @Default, @Nullable;
+   END
+
+   CLOSE cursorColumns;
+   DEALLOCATE cursorColumns;
+   COMMIT TRAN AddDescriptionForTable;
+END
+            ]]></EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION='SELECT MAX("TableK") FROM $O"TTable"' />
+         </EDIT>
+         
+         
+      </ROWEDIT>
+   </QUERY>
+   
+   
+</SELECTION>

@@ -1,0 +1,1712 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+Queries:
+"Book pages", Book: Article hashtags
+"Functions", "Function: find", "Connect article to function"
+"Objects", "Objects: tree", "Object: Edit samples", "Object: View samples", "Object: Edit Chapters", "Object: View variables"
+"Parameter list", "Connect article to parameter"
+"System: tree"
+"Variables for object"
+
+regex: (\b\w+\b) -> {=$1}
+-->
+
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+
+   <QUERY ID="Chapters: Select pages" KEY="D789DF86FAC34562850121D27756C3CE" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TArticleChapter1ArticleChapterK" ALIAS="ID (Chapter)" TABLE="TArticleChapter1">
+         <ATTRIBUTES OUTPUT-FORMAT="html|div|font-weight: bold; color: green;|@html &lt;i class='fas fa-external-link-alt' title='Select chapter (key: {value})' data-column='{column}' data-value='{value}'&gt;&lt;/i&gt;" />         
+      </FIELD>
+      <FIELD ID="TArticleChapter1FName-Indent" ALIAS="Name" TABLE="TArticleChapter1">
+         <ATTRIBUTES OUTPUT-FORMAT="html|div|font-weight: bold; color: blue;" />
+      </FIELD>
+      <FIELD ID="TArticleChapter1CountArticle" ALIAS="Count" TABLE="TArticleChapter1" DESCRIPTION="Articles connected to chapter" />
+      <FIELD ID="TArticleChapter1FText" ALIAS="Desc" TABLE="TArticleChapter1" DESCRIPTION="Chapter description">
+         <ATTRIBUTES OUTPUT-FORMAT="html|div|margin: 0.1em 1em 0.5em; padding-left: 5px; max-width: 95%; border-left: 2px solid #CCC; color: #555; font-style: italic; overflow-x: auto;|[row]" 
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+      <ORDER FIELD="TArticleChapter1ArticleChapterK" SQL="TArticleChapter1.FIndex" />
+      <ORDERS NAME="Index" DESCRIPTION="Order on chapter index">
+         <ORDER FIELD="TArticleChapter1ArticleChapterK" SQL="TArticleChapter1.FIndex" />
+      </ORDERS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="5ebe2b4a-e657-4888-8377-995394948c59"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+   R:SetValue('url','{"link": ["977D109C27F74F5BBAD94FC6BC1B05F5result"],"table":"TArticle2"}' )
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <!-- "condition_id" in action column means that only condition with same id is removed -->
+      <QUERYLINK TYPENAME="children" KEY="977D109C27F74F5BBAD94FC6BC1B05F5" QUERY="AEA4B9753D454B6DAE0CDCE9922D6223">
+         <EXPRESSION>
+DECLARE @iChapter BIGINT = {{=[0]}}
+SELECT ArticleChapterK AS value, 'ChapterThreadPath' AS name,CONCAT( (SELECT b.FHeader FROM $OTArticleBook b WHERE b.ArticleBookK=TArticleChapter.ArticleBookK ), ': ', FName) AS simple, NULL AS table_id, 0 AS operator, 'condition_id' AS action FROM $OTArticleChapter WHERE ArticleChapterK=@iChapter
+         </EXPRESSION>
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Book: Article hashtags" FLAGNAMES="DISTINCT" KEY="E5CDC74AE4DA4E2B8F02F2B6CAFD9E7E">
+      <FIELD ID="TBadge2BadgeK" ALIAS="ID" TABLE="TBadge2"/>
+      <FIELD ID="TBadge2FName" ALIAS="Name" TABLE="TBadge2"/>
+      <ORDER INDEX="1"/>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="3282543f-6f2f-4492-b0d7-296b5f8c1d9c"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+   R:SetValue('url','{"link": ["D89E6C746BD24F328318D33EF33408DBresult"],"table":"TArticle2"}' )
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <!-- "condition_id" in action column means that only condition with same id is removed -->
+      <QUERYLINK TYPENAME="children" KEY="D89E6C746BD24F328318D33EF33408DB" QUERY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT BadgeK AS value, 'ArticleK-BadgeK' AS name, FName AS simple, NULL AS table_id, 0 AS operator, 'condition_id' AS action FROM $OTBadge WHERE BadgeK={{=[0]}}" />
+   </QUERY>
+   
+<!--  
+SELECT Badge1.*
+FROM application.TBadge Badge1
+WHERE Badge1.BadgeK IN (SELECT t1.BadgeK FROM application.TrXBadge t1 JOIN application.TrArticleBookXArticle t2 ON t1.ParentK=t2.ArticleK WHERE t2.ArticleBookK IN (7107))
+-->   
+   
+   
+   <QUERY ID="Object: Edit Chapters" KEY="6BC41FF1D1724E9B97BEEBF9B27326B1" FLAGNAMES="NOTLISTED">
+      <FIELD ID="ArticleChapterK" ALIAS="ID (Chapter)" TABLE="TArticleChapter10010"/>
+      <FIELD ID="SuperK" ALIAS="Parent" TABLE="TArticleChapter10010" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS ArticleChapterK, '_ no parent _' AS FName UNION ALL SELECT _ac.ArticleChapterK, COALESCE(_ac.FName,_ac.FHeader,'') FROM $OTArticleChapter _ac  WHERE _ac.ArticleBookK={{=TArticleBook1ArticleBookK}} ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="FName" ALIAS="Name" TABLE="TArticleChapter10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FIndex" ALIAS="Index" TABLE="TArticleChapter10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TypeC" ALIAS="Type" TABLE="TArticleChapter10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="StateC" ALIAS="State" TABLE="TArticleChapter10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FText" ALIAS="Description" TABLE="TArticleChapter10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FHelp" ALIAS="Help" TABLE="TArticleChapter10010" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_chapter" SIMPLE="Chapters" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION CACHE="00000000-0000-0000-0000-000000000000">
+DECLARE @iObject BIGINT = {{=ObjectK}};
+INSERT INTO $OTArticleChapter (ParentK,table_number,FName,TypeC,FText,FIndex,FHelp,CreateD,UpdateD) 
+VALUES(@iObject,10010,{=FName},{=TypeC"0"},{=FText},{=FIndex},{=FHelp},GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTArticleChapter')" />
+         </EDIT>
+         <EDIT NAME="delete chapter" SIMPLE="Delete Chapter" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTArticleChapter WHERE ArticleChapterK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   
+   <QUERY ID="Functions" FLAGNAMES="LEFT" KEY="E80A98AD4B0640B19141238F8DBD6DE3">
+      <FIELD ID="Function1FunctionK" ALIAS="Function" TABLE="Function1" GROUPBY="1" />
+      <FIELD ID="Function1TypeC" ALIAS="Type" TABLE="Function1" GROUPBY="1" />
+      <FIELD ID="Function1FName-Indent" ALIAS="Name" TABLE="Function1" GROUPBY="1" />
+      <FIELD ID="Function1Overload" ALIAS="Declaration" TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.declaration|max-height: 100px; overflow-y: auto; overflow-x: hidden;vertical-align:top;|[150 row]|raw`" />
+      </FIELD>
+      <FIELD ID="Function1StateC" ALIAS="State" TABLE="Function1" GROUPBY="1" />
+      <FIELD ID="Function1PriorityC" ALIAS="Priority" TABLE="Function1" GROUPBY="1" />
+      <FIELD ID="Function1CountParameter" ALIAS="#Args" TABLE="Function1" DESCRIPTION="Count number of documented args" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="Function1CountArticle" ALIAS="#Art" TABLE="Function1" DESCRIPTION="Count connected articles" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="Function1CountExample" ALIAS="#Ex" TABLE="Function1" DESCRIPTION="Count number text/samples" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+
+      <FIELD ID="Function1FDescription" ALIAS="Desc." TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Function1Note" ALIAS="Note" TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; max-height: 100px; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Example1FText" ALIAS="Text" TABLE="Example1Rank8" FORMAT="STRING_AGG( $T.$F, ' &lt;hr /&gt; ' + CHAR(10) + CHAR(13) )" FIELDFLAGNAMES="sql_format" DESCRIPTION="Information and samples for function">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: scroll; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Function1FunctionK-Chapter" ALIAS="Chapter" TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|b|color: rgb(70,130,180);font-size:160%;|[rowbefore one]`" />
+      </FIELD>
+      
+      
+      <ORDER FIELD="Function1FunctionK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $O{}thread_header _th JOIN $O{}thread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=10030 WHERE _t.FKey=Function1.FunctionK AND _th.table_number=10030)" />
+      <ORDER FIELD="Function1FunctionK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $O{}thread _t WHERE _t.FKey=Function1.FunctionK AND _t.table_number=10030)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="Function1FunctionK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $O{}thread_header _th JOIN $O{}thread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=10030 WHERE _t.FKey=Function1.FunctionK AND _th.table_number=10030)" />
+         <ORDER FIELD="Function1FunctionK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $O{}thread _t WHERE _t.FKey=Function1.FunctionK AND _t.table_number=10030)" />
+      </ORDERS>
+      <ORDERS NAME="Type">
+         <ORDER FIELD="Function1FunctionK" INDEX="0" SQL="(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.TypeC)" />
+      </ORDERS>
+      <ORDERS NAME="Priority">
+         <ORDER FIELD="Function1FunctionK" INDEX="0" DESC="1" SQL="(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)" />
+      </ORDERS>
+      
+<!--      
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="Example1TypeC" TABLE="Example1"/>
+         <SELECTCONDITION ID="Example1LevelC" TABLE="Example1"/>
+      </SELECTCONDITIONS>
+-->      
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="48ba8fff-018c-43f5-8119-e4ef9c106b06"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 3 then R:SetValue('url','{"link": ["FA27C8AE1630472B861C47A7ADBAB977zoom"],"table":"Function1"}' ) return
+      elseif iColumn == 6 then R:SetValue('url','{"link": ["DC246652BA30426C96A6751E4ADBCB05zoom"],"table":"Function1"}' ) return
+      elseif iColumn == 7 then R:SetValue('url','{"link": ["C6934A438F1A4E08B58A03DE4ED6F620zoom"],"table":"Function1"}' ) return
+      elseif iColumn == 8 then R:SetValue('url','{"link": ["1F5362908B4744A186AABADB956D0A14zoom"],"table":"Function1"}' ) return
+      end
+   else
+      if iColumn == 6 then R:SetValue('url','{"link": ["5815641C63374872908878C8406E93C3"],"table":"Function1"}' ) return
+      elseif iColumn == 8 then R:SetValue('url','{"link": ["A96B419865984D7687FDC3407B1AFB7B"],"table":"Function1"}' ) return
+      end
+   end
+end
+   R:SetValue('url','[' .. 
+   '{"id": "function_edit","title":"Edit", "icon": "fa-i-cursor", "table":"Function1", "link": ["EDC37C065D734A45BEB640E7D1E4A842"]},' ..   
+   '{"id": "function_view_parameter","title":"View parameters", "icon": "fa-align-justify", "table":"Function1", "link": ["DC246652BA30426C96A6751E4ADBCB05zoom"]},' ..   
+   '{"id": "function_add_parameter","title":"Edit parameters", "icon": "fa-edit", "table":"Function1", "link": ["5815641C63374872908878C8406E93C3"]},' ..   
+   '{"id": "function_view_text","title":"View text", "icon": "fa-align-justify", "table":"Function1", "link": ["1F5362908B4744A186AABADB956D0A14zoom"]},' ..
+   '{"id": "function_add_text","title":"Edit text parts", "icon": "fa-edit", "table":"Function1", "link": ["A96B419865984D7687FDC3407B1AFB7B"]},' ..   
+   '{"id": "function_add_child","title":"Function: Add child", "icon": "fa-edit", "table":"Function1", "link": ["94D11365C45B4B0B86EF34B54891E113"]},' ..   
+   '{"id": "function_view_overload","title":"Function: View overloads", "icon": "fa-align-justify", "table":"Function1", "link": ["FA27C8AE1630472B861C47A7ADBAB977zoom"]},' ..   
+   '{"id": "function_add_overload","title":"Function: Add overload", "icon": "fa-edit", "table":"Function1", "link": ["197A5FFDA53A4CDAA01008573D4CDDBF"]},' ..   
+   '{"id": "function_add_article","title":"Function: Add article", "icon": "fa-edit", "table":"Function1", "link": ["94ABA4E6590B4B98B121674EC4D6CC83"]}' ..   
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" NAME="Edit functions"  DESCRIPTION="Edit functions" KEY="EDC37C065D734A45BEB640E7D1E4A842" QUERY="BA30BC70815F8345A1123C53287F4AB0">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="500" OUTPUT-POSITION="center-bottom" />
+         <EXPRESSION>
+SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}
+UNION ALL
+SELECT f.ObjectK value, 'ObjectK' AS name, (SELECT o.FName FROM $O{API}TObject o WHERE o.ObjectK=f.ObjectK) AS simple FROM $O{API}TFunction f WHERE f.FunctionK={{==[0]}}
+         </EXPRESSION>
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="View parameters" KEY="DC246652BA30426C96A6751E4ADBCB05" QUERY="981C4D1BEC714AC4B518250561755655" EXPRESSION="SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="50%" OUTPUT-HEIGHT="40%" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="Edit parameters" KEY="5815641C63374872908878C8406E93C3" QUERY="E6233469CBC2E141A13FC325670D6B39" EXPRESSION="SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="300" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+
+      <QUERYLINK TYPENAME="children" NAME="View text" KEY="1F5362908B4744A186AABADB956D0A14">
+         <EXPRESSION>
+SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}
+UNION ALL
+SELECT f.ObjectK value, 'ObjectK' AS name, (SELECT o.FName FROM $O{API}TObject o WHERE o.ObjectK=f.ObjectK) AS simple FROM $O{API}TFunction f WHERE f.FunctionK={{==[0]}}
+         </EXPRESSION>
+         <PROPERTIES OUTPUT-WIDTH="700" OUTPUT-HEIGHT="800" OUTPUT-POSITION="center-top" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="Add text" KEY="A96B419865984D7687FDC3407B1AFB7B" EXPRESSION="SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="center-bottom" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="Add child function" KEY="94D11365C45B4B0B86EF34B54891E113" QUERY="BA30BC70815F8345A1123C53287F4AB0" EXPRESSION="SELECT FunctionK value, 'SuperK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="600" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="View overload" KEY="FA27C8AE1630472B861C47A7ADBAB977" EXPRESSION="SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="250" OUTPUT-POSITION="right-top|0,100" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="View overload" KEY="C6934A438F1A4E08B58A03DE4ED6F620" EXPRESSION="SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="700" OUTPUT-HEIGHT="400" OUTPUT-POSITION="right-top|0,100" />
+      </QUERYLINK>
+      
+      
+      <QUERYLINK TYPENAME="children" NAME="Add overload" KEY="197A5FFDA53A4CDAA01008573D4CDDBF" EXPRESSION="SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="250" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup function" KEY="CA76DE29C4434B1A8F7257E6293566CD" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Function1' FROM $O{API}TFunction WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|20,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup parameter" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Parameter2' FROM $O{API}TParameter WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top|0,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Add overload" KEY="94ABA4E6590B4B98B121674EC4D6CC83" EXPRESSION="SELECT FunctionK value, 'FunctionK' AS name, FName AS simple FROM $O{API}TFunction WHERE FunctionK={{==[0]}}" />
+      
+   </QUERY>
+   
+   <QUERY ID="Connect article to function" DESCRIPTION="Connect articles with functions" KEY="94ABA4E6590B4B98B121674EC4D6CC83" FLAGNAMES="NOTLISTED">
+      <FIELD ID="rArticleXApiFunctionK" ALIAS="ID" TABLE="TrArticleXApiFunction1"/>
+      <FIELD ID="ArticleK" ALIAS="Article" TABLE="TrArticleXApiFunction1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="FDescription" ALIAS="Description" TABLE="TrArticleXApiFunction1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: scroll; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <ROWEDIT>
+         <EDIT NAME="new_article-function" SIMPLE="Article-Function" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TrArticleXApiFunction
+DECLARE @iFunction BIGINT = {{=FunctionK}};
+INSERT INTO $OTrArticleXApiFunction (FunctionK,ArticleK,FDescription) VALUES(@iFunction,{=ArticleK},{=FDescription});
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTrArticleXApiFunction')" />
+         </EDIT>
+         <EDIT NAME="delete" SIMPLE="Delete article-function connection" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTrArticleXApiFunction WHERE rArticleXApiFunctionK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Function: find" FLAGNAMES="LEFT" KEY="CA76DE29C4434B1A8F7257E6293566CD">
+      <PROPERTY NAME="LINKS_FROM">E80A98AD4B0640B19141238F8DBD6DE3</PROPERTY>
+      <FIELD ID="Function1FunctionK" ALIAS="Function" TABLE="Function1" GROUPBY="1" />
+      <FIELD ID="Function1FName" ALIAS="Name" TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.container`" />
+      </FIELD>
+      <FIELD ID="Function1TypeC" ALIAS="Type" TABLE="Function1" GROUPBY="1" />
+      <FIELD ID="Function1FName" ALIAS="Object" TABLE="Function1" GROUPBY="TreeName" FORMAT="OT.TreeName" FIELDFLAGNAMES="sql_format">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.function`" />
+         <EXPRESSION PART="cte">-- CTE_ObjectTree 
+WITH CTE_ObjectTree( Id, TreeName )
+AS (
+SELECT o.ObjectK Id, CAST(o.FName AS NVARCHAR(1024)) TreeName
+FROM api.TObject o 
+WHERE o.SuperK IS NULL
+UNION ALL
+SELECT _o.ObjectK Id, CAST( CONCAT( CTE_ObjectTree.TreeName, ' / ', _o.FName ) AS NVARCHAR(1024))
+FROM $O{API}TObject _o JOIN CTE_ObjectTree ON CTE_ObjectTree.Id = _o.SuperK)         
+         </EXPRESSION>
+         <EXPRESSION PART="from">
+LEFT JOIN CTE_ObjectTree OT ON $T.ObjectK = OT.Id            
+         </EXPRESSION>         
+      </FIELD>
+      <FIELD ID="Function1Overload" ALIAS="Declaration" TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.declaration||[100 row]|raw`" />
+      </FIELD>
+      <FIELD ID="Object1CountParameter" ALIAS="#Args" TABLE="Function1" DESCRIPTION="Count number of documented args" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="Function1FDescription" ALIAS="Desc." TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Function1Note" ALIAS="Note" TABLE="Function1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Example1FText" ALIAS="Text" TABLE="Example1" FORMAT="STRING_AGG( $T.$F, '&lt;hr /&gt;' + CHAR(10) + CHAR(13) )" FIELDFLAGNAMES="sql_format" DESCRIPTION="Information and samples for function">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: scroll; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="b99e01e0-88ae-4da9-8832-94649a008e75"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 5 then R:SetValue('url','{"link": ["DC246652BA30426C96A6751E4ADBCB05zoom"],"table":"Function1"}' ) return
+      end
+   else
+   end
+end
+   R:SetValue('url','[' .. 
+   '{"id": "function_view_text","title":"View text", "icon": "fa-align-justify", "table":"Function1", "link": ["1F5362908B4744A186AABADB956D0A14zoom"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+   
+   </QUERY>
+   
+   <QUERY ID="Function: View text" KEY="1F5362908B4744A186AABADB956D0A14">
+      <FIELD ID="Function1FName" ALIAS="Name" TABLE="Function1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|b|color: rgb(70,130,180);|[rowbefore one]`" />
+      </FIELD>
+      <FIELD ID="Example1TypeC" ALIAS="Type" TABLE="Example1" />
+      <FIELD ID="Example1LevelC" ALIAS="Level" TABLE="Example1" />
+      <FIELD ID="Example1FText" ALIAS="Text" TABLE="Example1">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@`  `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: scroll; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <CONDITIONS ID="All" SELECTED="1" />
+      <CONDITIONS ID="Vital documentation">
+         <CONDITION ID="Example1TypeC" TABLE="Example1" OPERATORNAME="GREATER" SIMPLEVALUE="Vital documentation" VALUE="7">
+            <EXPRESSION>(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.TypeC)</EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Samples, tutorial and code">
+         <CONDITION ID="Example1TypeC" TABLE="Example1" OPERATORNAME="GREATER" SIMPLEVALUE="Samples and more..." VALUE="2">
+            <EXPRESSION>(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.TypeC)</EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <ORDER FIELD="Example1FName" SQL="$T.FIndex" />
+      <ORDERS NAME="Index">
+         <ORDER FIELD="Example1FName" SQL="$T.FIndex" />
+      </ORDERS>
+      <QUERYLINK TYPENAME="children" NAME="Lookup function" KEY="CA76DE29C4434B1A8F7257E6293566CD" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Function1' FROM $O{API}TFunction WHERE Fname={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|20,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup parameter" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Parameter2' FROM $O{API}TParameter WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top|0,100" />
+      </QUERYLINK>
+   </QUERY>
+
+   <QUERY ID="Function: Edit text" KEY="A96B419865984D7687FDC3407B1AFB7B">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,200]|25</ATTRIBUTE>
+      <FIELD ID="Example1ExampleK" ALIAS="ID" TABLE="Example1"/>
+      <FIELD ID="Example1FText" ALIAS="Text" TABLE="Example1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Example1TypeC" ALIAS="Type" TABLE="Example1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Example1LevelC" ALIAS="Level" TABLE="Example1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Example1FIndex" ALIAS="Index" TABLE="Example1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_sample" SIMPLE="Example" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iFunction BIGINT = {{=FunctionK}};
+INSERT INTO $O{API}TExample(RepositoryK,ParentK,table_number,TypeC,LevelC,FBrief,FText,FIndex,CreateD,UpdateD)
+VALUES({=RepositoryK},@iFunction,10030,{=TypeC},{=LevelC},{=FBrief},{=FText},{=FIndex},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TExample')" />
+         </EDIT>
+         <EDIT NAME="delete sample" SIMPLE="Delete function sample" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TExample WHERE ExampleK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+   <QUERY ID="Example: edit notes" KEY="BDC6390849A347888B0A0E511BDA55FA">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,200]|25</ATTRIBUTE>
+      <FIELD ID="ExampleRemark2ExampleRemarkK" ALIAS="ID" TABLE="ExampleRemark2"/>
+      <FIELD ID="ExampleRemark2TypeC" ALIAS="Type" TABLE="ExampleRemark2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="ExampleRemark2FRemark" ALIAS="Remark" TABLE="ExampleRemark2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="ExampleRemark2FList" ALIAS="List" TABLE="ExampleRemark2" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_remark" SIMPLE="Remark" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iExample BIGINT = {{=ExampleK}};
+INSERT INTO $O{API}TExampleRemark(ExampleK,TypeC,FRemark,FList,FRank,UpdateD)
+VALUES(@iExample,{=TypeC},{=FRemark},{=FList"0"},{=FRank"0"},GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TExampleRemark')" />
+         </EDIT>
+         <EDIT NAME="delete remark" SIMPLE="Delete remark" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TExampleRemark WHERE ExampleRemarkK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Object: View samples" KEY="A5F8B42ED9E54FE4B193BA942E580436">
+      <FIELD ID="Example2ExampleK" ALIAS="ID" TABLE="Example2"/>
+      <FIELD ID="Example2TypeC" ALIAS="Type" TABLE="Example2" />
+      <FIELD ID="Example2FBrief-Indent" ALIAS="Indented Brief" TABLE="Example2" >
+         <ATTRIBUTES OUTPUT-FORMAT="hashtag|Example2.Hashtag" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='font-weight: bold;'" /> 
+      </FIELD>
+      <FIELD ID="Example2LevelC" ALIAS="Level" TABLE="Example2" />
+      <FIELD ID="Remarks" ALIAS="!" TABLE="Example2">
+         <ATTRIBUTES OUTPUT-FORMAT="`markdown||[row]|padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 15px;" />
+      </FIELD>
+      <FIELD ID="Example2FText" ALIAS="Text" TABLE="Example2">
+         <ATTRIBUTES OUTPUT-FORMAT="`markdown||[row]|padding: 0px; opacity: 0.7; max-height: 100px; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Example2FExampleK-Chapter" ALIAS="Chapter" TABLE="Example2">
+         <ATTRIBUTES OUTPUT-FORMAT="html|b|font-size:150%; color: #777;|[rowbefore one]" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="4d6cfca7-2c13-4862-895d-a4dd71cace86"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+   else
+   end
+end
+   R:SetValue('url','[' .. 
+   '{"id": "example_edit","title":"Edit", "icon": "fa-i-cursor", "table":"Example2", "link": ["D904936D9DFC48BEBF5DE8C033E1D219"]},' ..
+   '{"id": "example_add_child","title":"Add child", "icon": "fa-edit", "table":"Object1", "link": ["63188813F87B40F3AC65827ECEE019BA"]},' ..
+   '{"id": "example_add_remark","title":"Add remark", "icon": "fa-edit", "table":"Example2", "link": ["BDC6390849A347888B0A0E511BDA55FA"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" NAME="Add samples" KEY="D904936D9DFC48BEBF5DE8C033E1D219" QUERY="DE5098CDBC8D401E956FDAD715291D75">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="700" OUTPUT-POSITION="center-bottom" />
+         <EXPRESSION>
+SELECT ExampleK value, 'ExampleK' AS name, COALESCE( FBrief, 'no simple name' ) AS simple, 'Example2' AS "table" FROM $O{API}TExample WHERE ExampleK={{==[0]}}
+UNION ALL
+SELECT o.ObjectK value, 'ObjectK', o.FName, 'Object1' FROM $O{API}TObject o WHERE o.ObjectK=(SELECT ParentK FROM $O{API}TExample WHERE ExampleK={{==[0]}})
+         </EXPRESSION>
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Add samples" KEY="63188813F87B40F3AC65827ECEE019BA" QUERY="DE5098CDBC8D401E956FDAD715291D75" 
+                 EXPRESSION="SELECT ExampleK value, 'SuperK' AS name, COALESCE( FBrief, 'no simple name' ) AS simple, 'Example2' AS &quot;table&quot; FROM $O{API}TExample WHERE ExampleK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="700" OUTPUT-POSITION="center-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Edit remarks" KEY="BDC6390849A347888B0A0E511BDA55FA"
+                 EXPRESSION="SELECT ExampleK value, 'ExampleK' AS name, COALESCE( FBrief, SUBSTRING(FText,1,30), 'no simple name' ) AS simple FROM $O{API}TExample WHERE ExampleK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="500" OUTPUT-POSITION="left-top" />
+      </QUERYLINK>
+   </QUERY>
+
+
+   <QUERY ID="Object: Edit samples" KEY="DE5098CDBC8D401E956FDAD715291D75">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,200]|25</ATTRIBUTE>
+      <FIELD ID="Example2ExampleK" ALIAS="ID" TABLE="Example2"/>
+      
+      <FIELD ID="Example2ExampleK-Chapter" ALIAS="Chapter" TABLE="Example2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTE NAME="SERVER-CONDITIONLIST">
+DECLARE @iBook BIGINT = {=TArticleBook1ArticleBookK};
+IF @iBook IS NULL
+   SET @iBook = (SELECT TOP 1 x.ArticleBookK FROM $OTrArticleChapterXApiExample x WHERE x.ArticleK={=TArticle2ArticleK})
+SELECT TOP 200 t.FName _id, t.FName _name FROM $OTArticleChapter t WHERE t.ArticleBookK=@iBook ORDER BY 2 DESC            
+         </ATTRIBUTE>
+         <ATTRIBUTE NAME="SERVER-LIST">
+DECLARE @iObject BIGINT = {=Object1ObjectK};
+DECLARE @iSuper BIGINT = {=Example2SuperK};
+DECLARE @iExample BIGINT = {=Example2SuperK};
+
+IF @iObject IS NULL AND @iSuper IS NOT NULL
+   SET @iExample = @iSuper
+   
+IF @iObject IS NULL
+   SET @iObject = (SELECT TOP 1 _e.ParentK FROM $O{API}TExample _e WHERE _e.ExampleK=@iExample AND _e.table_number=10010)
+SELECT TOP 200 CAST(0 AS BIGINT) AS ArticleChapterK, '_ no chapter _' AS FChapterName UNION ALL SELECT t.ArticleChapterK, t.FName FROM $OTArticleChapter t WHERE t.ParentK=@iObject AND t.table_number=10010 ORDER BY 2 DESC            
+         </ATTRIBUTE>
+         <EDIT>
+DECLARE @iChapter BIGINT = {{=Example2ExampleK-Chapter}}
+DELETE FROM $OTrArticleChapterXApiExample WHERE ExampleK = ${@Example2ExampleK} -- delete if article is already connected
+IF @iChapter IS NOT NULL OR @iChapter &gt; 0
+   INSERT INTO $OTrArticleChapterXApiExample(ArticleChapterK,ExampleK) VALUES( @iChapter, ${@Example2ExampleK})
+         </EDIT>
+      </FIELD>
+      <FIELD ID="Example2TypeC" ALIAS="Type" TABLE="Example2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Example2FBrief" ALIAS="Brief" TABLE="Example2" FIELDFLAGNAMES="edit">
+         <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=Example2FBrief}, 'TExample', ${@Example2ExampleK}","formula":"1"}</EDIT>
+      </FIELD>
+      <FIELD ID="Example2FText" ALIAS="Text" TABLE="Example2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Example2LevelC" ALIAS="Level" TABLE="Example2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Example2FIndex" ALIAS="Index" TABLE="Example2" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_sample" SIMPLE="Example" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iObject BIGINT = {{=ObjectK}};
+DECLARE @sBrief NVARCHAR(500) = {=FBrief}
+DECLARE @iSuper BIGINT = {{=SuperK}};
+
+IF @iObject IS NULL AND @iSuper IS NOT NULL
+   SET @iObject = (SELECT TOP 1 ParentK FROM $O{API}TExample WHERE ExampleK=@iSuper);
+
+
+INSERT INTO $O{API}TExample(RepositoryK,ParentK,table_number,TypeC,LevelC,FBrief,FText,FIndex,SuperK,CreateD,UpdateD)
+VALUES({=RepositoryK},@iObject,10010,{=TypeC},{=LevelC},@sBrief,{=FText},{=FIndex},@iSuper,GETDATE(),GETDATE())
+
+DECLARE @iExample BIGINT = (SELECT IDENT_CURRENT('$O{API}TExample'));
+DECLARE @iChapter BIGINT = {=Example2ExampleK-Chapter}
+
+IF @iChapter IS NOT NULL
+   INSERT INTO TrArticleChapterXApiExample(ArticleChapterK,ExampleK) VALUES(@iChapter,@iExample)
+
+EXEC $OPROCEDURE_UpdateBadge @sBrief, 'TExample', @iExample
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TExample')" />
+         </EDIT>
+         <EDIT NAME="delete sample" SIMPLE="Delete object sample" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TExample WHERE ExampleK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Functions: Edit" KEY="BA30BC70815F8345A1123C53287F4AB0">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,200]|25</ATTRIBUTE>
+      <FIELD ID="Function1FunctionK" ALIAS="Function" TABLE="Function1"/>
+      
+      <FIELD ID="Function1FunctionK-Chapter" ALIAS="Chapter" TABLE="Function1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTE NAME="SERVER-LIST">
+DECLARE @iObject BIGINT = {{=Object1ObjectK}}; --  condition id
+DECLARE @iSuper BIGINT = {{=Function1SuperK}};
+DECLARE @iFunction BIGINT = {=Function1FunctionK};
+
+IF @iObject IS NULL AND @iSuper IS NOT NULL
+   SET @iFunction = @iSuper
+   
+IF @iObject IS NULL
+   SET @iObject = (SELECT _f.ObjectK FROM $O{API}TFunction _f WHERE _f.FunctionK=@iFunction)
+
+IF @iObject IS NOT NULL AND (SELECT COUNT(*) FROM $OTArticleChapter WHERE table_number=10010 AND ParentK=@iObject) = 0
+   SET @iObject = ISNULL( (SELECT FThreadId FROM $Othread WHERE table_number=10010 AND FKey=@iObject), @iObject )
+   
+SELECT TOP 200 CAST(0 AS BIGINT) AS ArticleChapterK, '_ no chapter _' AS FChapterName UNION ALL SELECT t.ArticleChapterK, t.FName FROM $OTArticleChapter t WHERE t.ParentK=@iObject AND t.table_number=10010 ORDER BY 2 DESC            
+         </ATTRIBUTE>
+         <EDIT>
+DECLARE @iChapter BIGINT = {{=Function1FunctionK-Chapter}}
+DELETE FROM $O{}TrArticleChapterXApiFunction WHERE FunctionK = ${@Function1FunctionK}
+IF @iChapter IS NOT NULL OR @iChapter &gt; 0
+   INSERT INTO $O{}TrArticleChapterXApiFunction(ArticleChapterK,FunctionK) VALUES( @iChapter, ${@Function1FunctionK})
+         </EDIT>
+      </FIELD>
+      
+      <FIELD ID="Function1FName" ALIAS="Name" TABLE="Function1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Function1FDescription" ALIAS="Description" TABLE="Function1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Function1FDeclaration" ALIAS="Declaration" TABLE="Function1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Function1ReturnC" ALIAS="Return" TABLE="Function1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTE NAME="SERVER-LIST">
+DECLARE @iObject BIGINT = {{=Object1ObjectK}}; --  condition id
+IF @iObject IS NULL
+   SET @iObject = (SELECT ObjectK FROM $O{API}TFunction WHERE FunctionK={{=Function1FunctionK}})
+IF @iObject IS NOT NULL
+BEGIN
+   DECLARE @iSuper INT = (SELECT ReturnC FROM $O{API}TObject WHERE ObjectK=@iObject);
+   SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10015 AND FDeleted=0 AND FIdle=0 AND SuperK=@iSuper ORDER BY 2
+END   
+ELSE
+   SELECT 0, '_ no value _'
+         </ATTRIBUTE>
+      </FIELD>
+      <FIELD ID="Function1Note" ALIAS="Note" TABLE="Function1" FIELDFLAGNAMES="edit">
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $O{}table_number WHERE "name" = 'TFunction');
+DECLARE @sNote NVARCHAR(MAX) = {=Function1Note} 
+IF @sNote IS NOT NULL AND LEN( @sNote ) > 0
+BEGIN
+   IF (SELECT COUNT(*) FROM $O{}TNote WHERE RecordK=${@FunctionK} AND table_number=@iTable) = 0
+      INSERT INTO $O{}TNote (RecordK, table_number,CreateD,UpdateD) VALUES(${@FunctionK},@iTable,GETDATE(), GETDATE())
+
+   UPDATE $O{}TNote SET FNote=@sNote WHERE RecordK=${@FunctionK} AND table_number=@iTable
+END
+ELSE
+   DELETE FROM $O{}TNote WHERE RecordK=${@FunctionK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="Function1TypeC" ALIAS="Type" TABLE="Function1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Function1StateC" ALIAS="State" TABLE="Function1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Function1PriorityC" ALIAS="Priority" TABLE="Function1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Function1AccessC" ALIAS="Access" TABLE="Function1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_function" SIMPLE="Function" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION CACHE="726f240c-69e5-454d-a943-cba6273d96be">
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TFunction');
+DECLARE @iObject BIGINT = {{=ObjectK}};
+DECLARE @iSuper BIGINT = {{=SuperK}}
+DECLARE @iRepository INT = {{=RepositoryK}}
+DECLARE @sNote NVARCHAR(MAX) = {=Function1Note}
+DECLARE @iAccess INT = {=AccessC"0"}
+
+IF @iObject IS NULL AND @iSuper IS NOT NULL        -- No object, try to get it from super if super is set
+   SET @iObject = (SELECT TOP 1 ObjectK FROM $O{API}TFunction WHERE FunctionK=@iSuper);
+   
+IF @iRepository IS NULL                            -- No repository, try to get it from object
+   SET @iRepository = (SELECT RepositoryK FROM $O{API}TObject WHERE ObjectK=@iObject)
+   
+IF @iAccess = 0
+   SET @iAccess = (SELECT TOP 1 ISNULL(CodeK,0) FROM $O{CODE}TCode WHERE GroupK = 10036 AND FDefault = 1)
+   
+DECLARE @sDescription NVARCHAR(MAX) = {=FDescription};
+
+INSERT INTO $O{API}TFunction (RepositoryK,ObjectK,ObjectChapterK,StateC,EnvironmentC,TypeC,NamespaceC,LanguageC,PriorityC,AccessC,ReturnC,FName,FDeclaration,FDescription,FVersionBegin,FVersionEnd,FBeta,FDepreciated,FDeleted,SuperK,CreateD,UpdateD)
+VALUES( @iRepository,@iObject,{=ObjectChapterK},{=StateC},{=EnvironmentC},{=TypeC},{=NamespaceC},{=LanguageC},{=PriorityC},@iAccess,{=ReturnC},{=FName},{=FDeclaration},@sDescription,{=FVersionBegin},{=FVersionEnd},{=FBeta},{=FDepreciated},{=FDeleted},@iSuper, GETDATE(), GETDATE() )
+
+DECLARE @iFunction BIGINT = (SELECT IDENT_CURRENT('$O{API}TFunction'));
+
+IF @sNote IS NOT NULL AND LEN( @sNote ) &gt; 0
+   INSERT INTO $OTNote(RecordK,table_number,FNote,CreateD,UpdateD) VALUES(@iFunction,@iTable,@sNote,GETDATE(), GETDATE())
+   
+DECLARE @iChapter BIGINT = {=Function1FunctionK-Chapter}   
+   
+IF @iChapter IS NOT NULL
+   INSERT INTO $OTrArticleChapterXApiFunction(ArticleChapterK,FunctionK) VALUES(@iChapter,@iFunction)
+   
+
+EXEC $OPROCEDURE_UpdateBadge @sDescription, 'TFunction', @iFunction
+               </EXPRESSION>
+            </SQL>
+            <PROPERTY NAME="columns">FunctionK,AccessC</PROPERTY>
+            <SQL TYPENAME="select" COMMAND="select-key">
+               <EXPRESSION>
+DECLARE @iKey BIGINT = (SELECT IDENT_CURRENT('$O{API}TFunction'))
+SELECT f.FunctionK, (SELECT FName FROM $O{CODE}TCode WHERE CodeK=f.AccessC) FROM $O{API}TFunction f WHERE FunctionK=@iKey
+               </EXPRESSION>
+            </SQL>
+         </EDIT>
+         <EDIT NAME="delete function" SIMPLE="Delete function" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TFunction WHERE FunctionK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Objects: tree" KEY="A5DE831AB3D3410FBE76736A272889A7">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <ATTRIBUTE NAME="LUA-GETRESULT"><![CDATA[
+return function( g ) -- g = {q=q,result=result,db=db,application=application,user=user,on=1|2} 
+   local q = g.q
+   if g.on == 1 then return end
+   local iThreadCount = q:GetConditionCount("ThreadNumber")
+   print( "iThreadCount = " .. iThreadCount )
+   if iThreadCount ~= 1 then return end
+   
+   local oC = q:GetCondition("ThreadNumber");
+   local vThreadKey = oC:GetValue()
+   print( "vThreadKey = " .. vThreadKey )
+   
+   local qFunction = g.user:GetQuery( "CA76DE29C4434B1A8F7257E6293566CD", g.set );
+   local qParameter = g.user:GetQuery( "1FCA00DBA6C34BFC8B93E7FCCEA5BCA5", g.set );
+   
+   local tCondition = { table="Object1", id="Object1ThreadNumber", value=vThreadKey, replace=1 }
+   if qFunction:GetConditionCount("ThreadNumber") == 0 then tCondition.replace = 0 end
+   qFunction:RemoveCondition()
+   qFunction:AddCondition( tCondition )
+   qParameter:RemoveCondition()
+   qParameter:AddCondition( tCondition )
+end
+      ]]></ATTRIBUTE>
+      <FIELD ID="Object1ObjectK" ALIAS="ID" TABLE="Object1" />
+      <FIELD ID="Object1FName-Indent" ALIAS="Name" TABLE="Object1" />
+      <FIELD ID="Object1TypeC" ALIAS="Type" TABLE="Object1" />
+      <FIELD ID="Object1StateC" ALIAS="State" TABLE="Object1" />
+      <FIELD ID="Object1FDescription" ALIAS="Desc." TABLE="Object1" DESCRIPTION="Object description">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Object1.Hashtag`  `markdown||[row]|padding: 3px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Object1Declaration" ALIAS="Declaration" TABLE="Object1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.declaration||[100 row]|raw`" />
+      </FIELD>
+      <FIELD ID="Object1CountFunction" ALIAS="#Func." TABLE="Object1" DESCRIPTION="Count number of functions for object">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="Object1CountExample" ALIAS="#Ex." TABLE="Object1" DESCRIPTION="Count number of examples">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="Object1CountParameter" ALIAS="#Vars." TABLE="Object1" DESCRIPTION="Count number variables">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="Object1CountBooks" ALIAS="#Book" TABLE="Object1" DESCRIPTION="Count number of books">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="Object1CountLink" ALIAS="#Link" TABLE="Object1" DESCRIPTION="Count number of links">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="Object1ThreadNumber" TABLE="Object1"/>
+      </SELECTCONDITIONS>
+      
+      
+      <ORDER FIELD="Object1ObjectK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $O{}thread_header _th JOIN $O{}thread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=10010 WHERE _t.FKey=Object1.ObjectK AND _th.table_number=10010)" />
+      <ORDER FIELD="Object1ObjectK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $O{}thread _t WHERE _t.FKey=Object1.ObjectK AND _t.table_number=10010)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="Object1ObjectK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $O{}thread_header _th JOIN $O{}thread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=10010 WHERE _t.FKey=Object1.ObjectK AND _th.table_number=10010)" />
+         <ORDER FIELD="Object1ObjectK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $O{}thread _t WHERE _t.FKey=Object1.ObjectK AND _t.table_number=10010)" />
+      </ORDERS>
+      
+      
+      
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="2d8c02fb-c606-4865-90af-b9a50298a6bf"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 6 then
+         R:SetValue('url','{"link": ["746EF207CE0E4E389EB6FF8D7801732Fzoom"],"table":"Object1"}' )  return
+      elseif iColumn == 7 then
+         R:SetValue('url','{"link": ["A5F8B42ED9E54FE4B193BA942E580436zoom"],"table":"Object1"}' )  return
+      elseif iColumn == 8 then
+         R:SetValue('url','{"link": ["97285B8A96524F6688EF3E0BA5012C8Azoom"],"table":"Object1"}' )  return
+      elseif iColumn == 9 then
+         R:SetValue('url','{"link": ["885BFAA5B6424B78B08A6482688CEB87zoom"],"table":"Object1"}' )  return
+      elseif iColumn == 10 then
+         R:SetValue('url','{"link": ["D2BF374AB3BC4CFDB0B15E67F76ED88Fzoom"],"table":"Object1"}' )  return
+      end
+      R:SetValue('url','{"link": ["746EF207CE0E4E389EB6FF8D7801732Fzoom"],"table":"Object1"}' )  return
+   else
+      if iColumn == 6 then
+         R:SetValue('url','{"title":"Functions: Edit", "link": ["EDC37C065D734A45BEB640E7D1E4A842"],"table":"Object1"}' )  return
+      elseif iColumn == 7 then
+         R:SetValue('url','{"title":"Edit samples","link": ["DE5098CDBC8D401E956FDAD715291D75"],"table":"Object1"}' )  return
+      elseif iColumn == 8 then
+         R:SetValue('url','{"title":"Variables: Edit", "link": ["8679018FD12C42B3BF8A9A39C0A88193"],"table":"Object1"}' )  return
+      elseif iColumn == 9 then
+R:SetValue('url','{"link": ["8679018FD12C42B3BF8A9A39C0A88193"],"table":"Object1"}' )  return
+      elseif iColumn == 10 then
+         R:SetValue('url','{"link": ["D2BF374AB3BC4CFDB0B15E67F76ED88Fzoom"],"table":"Object1"}' )  return
+      end
+   end
+end 
+   R:SetValue('url','[' .. 
+   '{"id": "object_edit","title":"Edit object", "icon": "fa-i-cursor", "table":"Object1", "link": ["1354CBBDA90549A7B6265E23742F2A07"]},' ..
+   '{"child": "Edit"},' ..
+   '{"id": "function_edit","title":"Functions: Edit", "icon": "fa-edit", "table":"Object1", "link": ["EDC37C065D734A45BEB640E7D1E4A842"]},' ..
+   '{"id": "parameter_edit","title":"Variables: Edit", "icon": "fa-edit", "table":"Object1", "link": ["8679018FD12C42B3BF8A9A39C0A88193"]},' ..
+   '{"id": "object_edit_example","title":"Edit samples", "icon": "fa-edit", "table":"Object1", "link": ["DE5098CDBC8D401E956FDAD715291D75"]},' ..
+   '{"id": "object_add_link","title":"Link: Edit", "icon": "fa-edit", "table":"Object1", "link": ["FAF84064658947D3BFD811CB5A7210C2"]},' .. 
+   '{"id": "object_add_chapter","title":"Chapter: Edit", "icon": "fa-edit", "table":"Object1", "link": ["6BC41FF1D1724E9B97BEEBF9B27326B1"]},' ..
+   '{"id": "object_connect_book","title":"Connect book", "icon": "fa-edit", "table":"Object1", "link": ["9C2883FAEA924FC6B81202542C77936A"]},' ..   
+   '{"id": "object_edit_codes","title":"Edit object attributes", "icon": "fa-i-cursor", "table":"Object1", "link": ["F38E633A449347E69334F9C40A2C57AA"]},' ..
+   '{"id": "object_add_child","title":"Object: Add child", "icon": "fa-edit", "table":"Object1", "link": ["19B3F37089884CD59A1581B4CB110BEA"]},' ..
+   '{"parent": 1},' ..   
+   '{"id": "function_view","title":"Functions: View", "icon": "fa-align-justify", "table":"Object1", "link": ["746EF207CE0E4E389EB6FF8D7801732Fzoom"]},' ..
+   '{"id": "parameter_view","title":"Variables: View", "icon": "fa-align-justify", "table":"Object1", "link": ["97285B8A96524F6688EF3E0BA5012C8Azoom"]},' ..
+   '{"id": "object_view_example","title":"View samples", "icon": "fa-align-justify", "table":"Object1", "link": ["A5F8B42ED9E54FE4B193BA942E580436zoom"]},' ..
+   '{"id": "book_view","title":"Books: View", "icon": "fa-align-justify", "table":"Object1", "link": ["885BFAA5B6424B78B08A6482688CEB87zoom"]},' ..
+   '{"id": "object_view_link","title":"Link: View", "icon": "fa-align-justify", "table":"Object1", "link": ["D2BF374AB3BC4CFDB0B15E67F76ED88Fzoom"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" NAME="Edit object"  DESCRIPTION="Edit selected object" KEY="1354CBBDA90549A7B6265E23742F2A07" QUERY="F189B827054348D2AA4DCBADA35F7EE9">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="600" OUTPUT-POSITION="right-bottom" />
+         <EXPRESSION>
+SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}
+UNION ALL
+SELECT SystemK AS value, 'SystemK' AS name, (SELECT s.FName FROM $O{}TSystem s WHERE s.SystemK=TrSystemXApiObject.SystemK) AS simple FROM $O{}TrSystemXApiObject WHERE ObjectK={{==[0]}}
+         </EXPRESSION>
+      </QUERYLINK>
+      
+      
+      <QUERYLINK TYPENAME="children" NAME="Edit object codes"  DESCRIPTION="Edit selected object" KEY="F38E633A449347E69334F9C40A2C57AA">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="600" OUTPUT-POSITION="right-top" />
+         <EXPRESSION>
+SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}
+UNION ALL
+SELECT SystemK AS value, 'SystemK' AS name, (SELECT s.FName FROM $O{}TSystem s WHERE s.SystemK=TrSystemXApiObject.SystemK) AS simple FROM $O{}TrSystemXApiObject WHERE ObjectK={{==[0]}}
+         </EXPRESSION>
+      </QUERYLINK>
+      
+      
+      <QUERYLINK TYPENAME="children" NAME="View functions"  DESCRIPTION="View functions" KEY="746EF207CE0E4E389EB6FF8D7801732F" QUERY="E80A98AD4B0640B19141238F8DBD6DE3" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="80%" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Edit functions"  DESCRIPTION="Edit functions" KEY="EDC37C065D734A45BEB640E7D1E4A842" QUERY="BA30BC70815F8345A1123C53287F4AB0" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="50%" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+
+      <QUERYLINK TYPENAME="children" NAME="View variables"  DESCRIPTION="View variables" KEY="97285B8A96524F6688EF3E0BA5012C8A" QUERY="6F74793E7A6248DDBCA8102F7084E912" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="800" OUTPUT-POSITION="center-bottom" />
+      </QUERYLINK>
+
+      <QUERYLINK TYPENAME="children" NAME="Edit variables"  DESCRIPTION="Edit variables" KEY="8679018FD12C42B3BF8A9A39C0A88193" QUERY="A78CBC50DD5E40AD87FEF714D0768D85" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="View samples" KEY="A5F8B42ED9E54FE4B193BA942E580436" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="700" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+
+      <QUERYLINK TYPENAME="children" NAME="Add samples" KEY="DE5098CDBC8D401E956FDAD715291D75" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="700" OUTPUT-POSITION="center-bottom" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="View books" KEY="885BFAA5B6424B78B08A6482688CEB87" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="right-bottom|-50,0" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="Add child object"  DESCRIPTION="Add child object to " KEY="19B3F37089884CD59A1581B4CB110BEA" QUERY="F189B827054348D2AA4DCBADA35F7EE9" EXPRESSION="SELECT ObjectK value, 'SuperK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="600" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" NAME="Add link"  DESCRIPTION="Add link" KEY="FAF84064658947D3BFD811CB5A7210C2" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}" />
+      <QUERYLINK TYPENAME="children" NAME="Links"  DESCRIPTION="System links" KEY="D2BF374AB3BC4CFDB0B15E67F76ED88F" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="200" OUTPUT-POSITION="center-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Add chapter"  DESCRIPTION="Add chapter" KEY="6BC41FF1D1724E9B97BEEBF9B27326B1" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}" />
+      <QUERYLINK TYPENAME="children" NAME="Connect book"  DESCRIPTION="Connect book to object" KEY="9C2883FAEA924FC6B81202542C77936A" EXPRESSION="SELECT ObjectK value, 'ObjectK' AS name, FName AS simple FROM $O{API}TObject WHERE ObjectK={{==[0]}}" />
+   </QUERY>
+   
+
+   <QUERY ID="Objects" DESCRIPTION="Manage objects" KEY="F189B827054348D2AA4DCBADA35F7EE9">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,100]|25</ATTRIBUTE>
+      <FIELD ID="Object1ObjectK" ALIAS="ID" TABLE="Object1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Object1TypeC" ALIAS="Type" TABLE="Object1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Object1StateC" ALIAS="State" TABLE="Object1" />
+      <FIELD ID="Object1FName" ALIAS="Name" TABLE="Object1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Object1FDescription" ALIAS="Description" TABLE="Object1" FIELDFLAGNAMES="edit">
+         <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=Object1FDescription}, 'TObject', ${@Object1ObjectK}","formula":"1"}</EDIT>
+      </FIELD>
+      <FIELD ID="Object1Declaration" ALIAS="Declaration" TABLE="Object1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_object" SIMPLE="Object" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSystem INT = {{=SystemK}};
+DECLARE @iSuper BIGINT = {{=SuperK}}
+IF @iSystem IS NULL AND @iSuper IS NOT NULL
+   SET @iSystem = (SELECT TOP 1 SystemK FROM $OTrSystemXApiObject WHERE ObjectK=@iSuper);
+   
+DECLARE @sDescription NVARCHAR(1000) = {=FDescription};
+
+INSERT INTO $O{API}TObject ( EnvironmentC, TypeC, NamespaceC, FName, FDeclaration, FDescription, FBeta, SuperK, CreateD, UpdateD )
+VALUES( {=EnvironmentC"0"}, {=TypeC"0"}, {=NamespaceC"0"}, {=FName}, {=FDeclaration}, @sDescription, {=FBeta"0"}, @iSuper, GETDATE(), GETDATE() )
+
+DECLARE @iObject BIGINT = (SELECT IDENT_CURRENT('$O{API}TObject'));
+INSERT INTO $OTrSystemXApiObject(SystemK,ObjectK) VALUES(@iSystem,@iObject)
+
+EXEC $OPROCEDURE_UpdateBadge @sDescription, 'TObject', @iObject
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TObject')" />
+         </EDIT>
+         <EDIT NAME="delete object" SIMPLE="Delete object" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TObject WHERE ObjectK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Objects: edit codes"  DESCRIPTION="Manage objects" KEY="F38E633A449347E69334F9C40A2C57AA" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,100]|25</ATTRIBUTE>
+      <FIELD ID="Object1ObjectK" ALIAS="ID" TABLE="Object1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Object1TypeC" ALIAS="Type" TABLE="Object1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Object1StateC" ALIAS="State" TABLE="Object1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Object1NamespaceC" ALIAS="Namespace" TABLE="Object1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Object1LanguageC" ALIAS="Language" TABLE="Object1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Object1ReturnC" ALIAS="Return" TABLE="Object1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10015 AND FDeleted=0 AND FIdle=0 AND SuperK IS NULL ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="Object1FName" ALIAS="Name" TABLE="Object1" />
+   </QUERY>
+   
+
+   <QUERY ID="Object: Connect books" KEY="9C2883FAEA924FC6B81202542C77936A" DESCRIPTION="Connect books to object" FLAGNAMES="">
+      <FIELD ID="rArticleBookXApiObject2rArticleBookXApiObjectK" ALIAS="ID" TABLE="rArticleBookXApiObject2" />
+      <!-- <FIELD ID="rArticleBookXApiObject2ObjectK" ALIAS="Object" TABLE="rArticleBookXApiObject2" FIELDFLAGNAMES="edit" /> -->
+      <FIELD ID="rArticleBookXApiObject2ArticleBookK" ALIAS="Book" TABLE="rArticleBookXApiObject2" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_connected_book" SIMPLE="Book connection" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iObject BIGINT = {{==ObjectK}}
+INSERT INTO $OTrArticleBookXApiObject(ObjectK,ArticleBookK)
+VALUES(@iObject,{{=ArticleBookK}})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TrArticleBookXApiObject')" />
+         </EDIT>
+         <EDIT NAME="delete connection (book - object)" SIMPLE="Delete connection" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TrArticleBookXApiObject WHERE rArticleBookXApiObjectK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Object: Edit links" DESCRIPTION="Object links" KEY="FAF84064658947D3BFD811CB5A7210C2" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="LinkK" ALIAS="ID" TABLE="Link10010"/>
+      <FIELD ID="TypeC" ALIAS="Type" TABLE="Link10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FUrl" ALIAS="Url" TABLE="Link10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FName" ALIAS="Name" TABLE="Link10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FDescription" ALIAS="Description" TABLE="Link10010" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_link" SIMPLE="Object link" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iObject BIGINT = {{=ObjectK}}
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TObject');
+INSERT INTO $OTLink(ParentK,table_number,TypeC,FUrl,FName,FDescription,CreateD,UpdateD)
+VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FName},{=FDescription},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTLink')" />
+         </EDIT>
+         <EDIT NAME="delete link" SIMPLE="Delete link" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTLink WHERE LinkK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Object: View links" DESCRIPTION="Links related to object" KEY="D2BF374AB3BC4CFDB0B15E67F76ED88F" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TLink1LinkK" ALIAS="ID" TABLE="Link10010"/>
+      <FIELD ID="TLink1TypeC" ALIAS="Type" TABLE="Link10010" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink5FUrl-Goto" ALIAS="Link" TABLE="Link10010" />
+      <FIELD ID="TLink1FDescription" ALIAS="Description" TABLE="Link10010" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="hashtag|Link10010.Hashtag" />
+      </FIELD>
+   </QUERY>
+   
+   <QUERY ID="Overloads: Edit" KEY="197A5FFDA53A4CDAA01008573D4CDDBF">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[50,200]|50</ATTRIBUTE>
+      <FIELD ID="FunctionOverload1FunctionOverloadK" ALIAS="ID" TABLE="FunctionOverload1" />
+      <FIELD ID="FunctionOverload1FDeclaration" ALIAS="Declaration" TABLE="FunctionOverload1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FunctionOverload1FDescription" ALIAS="Description" TABLE="FunctionOverload1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FunctionOverload1FIndex" ALIAS="Index" TABLE="FunctionOverload1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_overload" SIMPLE="Overload" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iFunction BIGINT = {{==FunctionK}};
+
+INSERT INTO $O{API}TFunctionOverload (FunctionK,TypeC,FDeclaration,FDescription,FVersionBegin,FVersionEnd,FIndex,FBeta,FDepreciated,FDeleted,CreateD,UpdateD)
+VALUES(@iFunction,{=TypeC},{=FDeclaration},{=FDescription},{=FVersionBegin},{=FVersionEnd},{=FIndex},{=FBeta},{=FDepreciated},{=FDeleted},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TFunctionOverload')" />
+         </EDIT>
+         <EDIT NAME="delete system" SIMPLE="Delete overload" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TFunctionOverload WHERE FunctionOverloadK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Overloads: View" KEY="FA27C8AE1630472B861C47A7ADBAB977">
+      <FIELD ID="FunctionOverload1FunctionOverloadK" ALIAS="ID" TABLE="FunctionOverload1" />
+      <FIELD ID="FunctionOverload1FDeclaration" ALIAS="Declaration" TABLE="FunctionOverload1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.declaration|vertical-align:top;|[250 row]|raw`" />
+      </FIELD>
+      <FIELD ID="FunctionOverload1FDescription" ALIAS="Description" TABLE="FunctionOverload1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <QUERYLINK TYPENAME="children" NAME="Lookup function" KEY="CA76DE29C4434B1A8F7257E6293566CD" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Function1' FROM $O{API}TFunction WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|20,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup parameter" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Parameter2' FROM $O{API}TParameter WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top|0,100" />
+      </QUERYLINK>
+   </QUERY>
+   
+   
+   <QUERY ID="Parameter list" FLAGNAMES="left" KEY="981C4D1BEC714AC4B518250561755655">
+      <FIELD ID="Parameter1ParameterK" ALIAS="ParameterK" TABLE="Parameter1" GROUPBY="1" />
+      <FIELD ID="Function1FName" ALIAS="Function" TABLE="Function1" GROUPBY="1" >
+         <ATTRIBUTES OUTPUT-FORMAT="`html|b|color: rgb(70,130,180);|[rowbefore one]`" />
+      </FIELD>
+      <FIELD ID="Parameter1FName" ALIAS="Name" TABLE="Parameter1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.parameter`" />
+      </FIELD>
+      <FIELD ID="Parameter1FDeclaration" ALIAS="Declaration" TABLE="Parameter1" GROUPBY="1">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.declaration`" />
+      </FIELD>
+      <FIELD ID="Parameter1FDescription" ALIAS="Desc." TABLE="Parameter1" GROUPBY="1" DESCRIPTION="Parameter description">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|max-width: 1200px;padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="Parameter1FType" ALIAS="Type" TABLE="Parameter1" GROUPBY="1" />
+      <FIELD ID="Example3FText" ALIAS="Text" TABLE="Example3" FORMAT="STRING_AGG( $T.$F, '&lt;hr /&gt;' )" FIELDFLAGNAMES="sql_format">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="fea9326d-fdba-4557-9d37-b3ada85ebb0c"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+   else
+   end
+end
+   R:SetValue('url','[' .. 
+   '{"id": "parameter_edit","title":"Edit", "icon": "fa-i-cursor", "table":"Parameter1", "link": ["F4125F93A7CC4C5DA46671A18A11ECD5"]},' ..
+   '{"id": "parameter_add_article","title":"Add article", "icon": "fa-edit", "table":"Parameter1", "link": ["BD9017FB28804E9EB257690DEA0D2698"]}' ..   
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" NAME="Edit parameter"  DESCRIPTION="Edit parameter" KEY="F4125F93A7CC4C5DA46671A18A11ECD5" QUERY="E6233469CBC2E141A13FC325670D6B39">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="300" OUTPUT-POSITION="left-bottom" />
+         <EXPRESSION>
+SELECT ParameterK value, 'ParameterK' AS name, FName AS simple FROM $O{API}TParameter WHERE ParameterK={{==[0]}}
+UNION ALL
+SELECT f.FunctionK value, 'FunctionK' AS name, f.FName AS simple FROM $O{API}TFunction f WHERE f.FunctionK=(SELECT FunctionK FROM $O{API}TParameter WHERE ParameterK={{==[0]}})
+         </EXPRESSION>
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup function" KEY="CA76DE29C4434B1A8F7257E6293566CD" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple FROM $O{API}TFunction WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|20,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup parameter" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple FROM $O{API}TParameter WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top|0,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Add overload" KEY="BD9017FB28804E9EB257690DEA0D2698" EXPRESSION="SELECT ParameterK value, 'ParameterK' AS name, FName AS simple FROM $O{API}TParameter WHERE ParameterK={{==[0]}}" />
+   </QUERY>
+   
+   <QUERY ID="Connect article to parameter" DESCRIPTION="Connect articles with parameters" KEY="BD9017FB28804E9EB257690DEA0D2698" FLAGNAMES="NOTLISTED">
+      <FIELD ID="rArticleXApiParameterK" ALIAS="ID" TABLE="TrArticleXApiParameter1"/>
+      <FIELD ID="ArticleK" ALIAS="Article" TABLE="TrArticleXApiParameter1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="FDescription" ALIAS="Description" TABLE="TrArticleXApiParameter1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Parameter1.Hashtag` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: scroll; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <ROWEDIT>
+         <EDIT NAME="new_article-parameter" SIMPLE="Article-Parameter" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TrArticleXApiParameter
+DECLARE @iParameter BIGINT = {{=ParameterK}};
+INSERT INTO $OTrArticleXApiParameter (ParameterK,ArticleK,FDescription) VALUES(@iParameter,{=ArticleK},{=FDescription});
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTrArticleXApiParameter')" />
+         </EDIT>
+         <EDIT NAME="delete" SIMPLE="Delete article-parameter connection" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTrArticleXApiParameter WHERE rArticleXApiParameterK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   
+   <QUERY ID="Parameters for function" KEY="E6233469CBC2E141A13FC325670D6B39">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,200]|25</ATTRIBUTE>
+      <FIELD ID="Parameter1ParameterK" ALIAS="ParameterK" TABLE="Parameter1"/>
+      <FIELD ID="Parameter1FName" ALIAS="Name" TABLE="Parameter1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Parameter1FDeclaration" ALIAS="Declaration" TABLE="Parameter1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Parameter1FDescription" ALIAS="Description" TABLE="Parameter1" FIELDFLAGNAMES="edit">
+         <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=Parameter1FDescription}, 'TParameter', ${@Parameter1ParameterK}","formula":"1"}</EDIT>
+      </FIELD>
+      <FIELD ID="Parameter1FType" ALIAS="Type" TABLE="Parameter1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_parameter" SIMPLE="Parameter" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iFunction BIGINT = {{=FunctionK}};
+DECLARE @iSuper BIGINT = {{=SuperK}}
+IF @iFunction IS NULL AND @iSuper IS NOT NULL
+   SET @iFunction = (SELECT TOP 1 FunctionK FROM $O{API}TFunction WHERE SuperK=@iSuper);
+   
+DECLARE @sDescription NVARCHAR(1000) = {=FDescription};
+
+INSERT INTO $O{API}TParameter (FunctionK,ParameterTypeK,TypeC,FName,FDeclaration,FType,FDescription,FVersionBegin,FVersionEnd,FDepreciated,FDeleted,SuperK,CreateD,UpdateD)
+VALUES(@iFunction,{=ParameterTypeK},{=TypeC"0"},{=FName},{=FDeclaration},{=FType},{=FDescription},{=FVersionBegin},{=FVersionEnd},{=FDepreciated},{=FDeleted},@iSuper, GETDATE(), GETDATE())
+
+DECLARE @iParameter BIGINT = (SELECT IDENT_CURRENT('$O{API}TParameter'));
+EXEC $OPROCEDURE_UpdateBadge @sDescription, 'TParameter', @iParameter
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TParameter')" />
+         </EDIT>
+         <EDIT NAME="delete parameter" SIMPLE="Delete parameter" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TParameter WHERE ParameterK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Variables for object" KEY="A78CBC50DD5E40AD87FEF714D0768D85">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[25,200]|25</ATTRIBUTE>
+      <FIELD ID="Parameter2ParameterK" ALIAS="ParameterK" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FunctionK-Chapter" ALIAS="Chapter" TABLE="Parameter2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTE NAME="SERVER-LIST">
+DECLARE @iObject BIGINT = {{=Object1ObjectK}}; --  condition id
+DECLARE @iSuper BIGINT = {{=SuperK}};
+DECLARE @iParameter BIGINT = {=Parameter2ParameterK};
+
+IF @iObject IS NULL AND @iSuper IS NOT NULL
+   SET @iParameter = @iSuper
+   
+IF @iObject IS NULL
+   SET @iObject = (SELECT _p.ObjectK FROM $O{API}TParameter _p WHERE _p.ParameterK=@iParameter)
+
+IF @iObject IS NOT NULL AND (SELECT COUNT(*) FROM $OTArticleChapter WHERE table_number=10010 AND ParentK=@iObject) = 0
+   SET @iObject = ISNULL( (SELECT FThreadId FROM $Othread WHERE table_number=10010 AND FKey=@iObject), @iObject )
+   
+SELECT TOP 200 CAST(0 AS BIGINT) AS ArticleChapterK, '_ no chapter _' AS FChapterName UNION ALL SELECT t.ArticleChapterK, t.FName FROM $OTArticleChapter t WHERE t.ParentK=@iObject AND t.table_number=10010 ORDER BY 2 DESC            
+         </ATTRIBUTE>
+         <EDIT>
+DECLARE @iChapter BIGINT = {{=Parameter2ParameterK-Chapter}}
+DELETE FROM $O{}TrArticleChapterXApiParameter WHERE ParameterK = ${@Parameter2ParameterK}
+IF @iChapter IS NOT NULL OR @iChapter &gt; 0
+   INSERT INTO $O{}TrArticleChapterXApiParameter(ArticleChapterK,ParameterK) VALUES( @iChapter, ${@Parameter2ParameterK})
+         </EDIT>
+      </FIELD>
+      <FIELD ID="Parameter2FName" ALIAS="Name" TABLE="Parameter2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Parameter2FDeclaration" ALIAS="Declaration" TABLE="Parameter2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Parameter2FDescription" ALIAS="Description" TABLE="Parameter2" FIELDFLAGNAMES="edit">
+         <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=Parameter2FDescription}, 'TParameter', ${@Parameter2ParameterK}","formula":"1"}</EDIT>
+      </FIELD>
+      <FIELD ID="Parameter2FType" ALIAS="Type" TABLE="Parameter2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Parameter2ContextC" ALIAS="Context" TABLE="Parameter2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="Parameter2FAccess" ALIAS="Access" TABLE="Parameter2" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_parameter" SIMPLE="Parameter" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iObject BIGINT = {{=ObjectK}};
+DECLARE @iSuper BIGINT = {{=SuperK}}
+IF @iObject IS NULL AND @iSuper IS NOT NULL
+   SET @iObject = (SELECT TOP 1 @iObject FROM $O{API}TObject WHERE SuperK=@iSuper);
+   
+DECLARE @sDescription NVARCHAR(1000) = {=FDescription};
+
+INSERT INTO $O{API}TParameter (ObjectK,ParameterTypeK,TypeC,ContextC,AccessC,FName,FDeclaration,FType,FDescription,FVersionBegin,FVersionEnd,FDepreciated,FDeleted,SuperK,CreateD,UpdateD)
+VALUES(@iObject,{=ParameterTypeK},{=TypeC"0"},{=ContextC"0"},{=AccessC"0"},{=FName},{=FDeclaration},{=FType},{=FDescription},{=FVersionBegin},{=FVersionEnd},{=FDepreciated},{=FDeleted},@iSuper, GETDATE(), GETDATE())
+
+DECLARE @iParameter BIGINT = (SELECT IDENT_CURRENT('$O{API}TParameter'));
+
+DECLARE @iChapter BIGINT = {=Parameter2ParameterK-Chapter}   
+
+IF @iChapter IS NOT NULL
+   INSERT INTO $OTrArticleChapterXApiParameter(ArticleChapterK,ParameterK) VALUES(@iChapter,@iParameter)
+
+EXEC $OPROCEDURE_UpdateBadge @sDescription, 'TParameter', @iParameter
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{API}TParameter')" />
+         </EDIT>
+         <EDIT NAME="delete parameter" SIMPLE="Delete parameter" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{API}TParameter WHERE ParameterK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Object: View variables" KEY="6F74793E7A6248DDBCA8102F7084E912">
+      <FIELD ID="Parameter2ParameterK" ALIAS="ParameterK" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FName" ALIAS="Name" TABLE="Parameter2">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.parameter`" />
+      </FIELD>
+      <FIELD ID="Parameter2FDeclaration" ALIAS="Declaration" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FType" ALIAS="Type" TABLE="Parameter2" />
+      <FIELD ID="Parameter2ContextC" ALIAS="Context" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FAccess" ALIAS="Access" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FDescription" ALIAS="Desc" TABLE="Parameter2">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Parameter2.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+
+      <FIELD ID="Parameter2FunctionK-Chapter" ALIAS="Chapter" TABLE="Parameter2">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|b|color: rgb(70,130,180);font-size:160%;|[rowbefore one]`" />
+         <ATTRIBUTE NAME="SERVER-CONDITIONLIST">
+SELECT TOP 200 t.FName FROM $OTArticleChapter t WHERE t.ParentK={{=Object1ObjectK}} AND t.table_number=10010 ORDER BY 1 DESC            
+         </ATTRIBUTE>
+      </FIELD>
+      
+      <ORDER FIELD="Parameter2ParameterK-Chapter" SQL="ISNULL( (SELECT TOP 1 _ac.FIndex FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiParameter x ON _ac.ArticleChapterK=x.ArticleChapterK WHERE x.ParameterK=$T.ParameterK), 1000000)" />
+      <ORDERS NAME="Chapters">
+         <ORDER FIELD="Parameter2ParameterK-Chapter" SQL="ISNULL( (SELECT TOP 1 _ac.FIndex FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiParameter x ON _ac.ArticleChapterK=x.ArticleChapterK WHERE x.ParameterK=$T.ParameterK), 1000000)" />
+      </ORDERS>
+      
+      
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="7cb0d417-a372-4d2c-8a47-ae506fc75c9e"><![CDATA[ return function(g) local R = g.result;
+   R:SetValue('url','[' .. 
+   '{"id": "parameter_edit","title":"Variables: Edit", "icon": "fa-edit", "table":"Parameter2", "link": ["8679018FD12C42B3BF8A9A39C0A88193"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="record" NAME="Object"  DESCRIPTION="Edit object variable" KEY="8679018FD12C42B3BF8A9A39C0A88193" QUERY="A78CBC50DD5E40AD87FEF714D0768D85">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="300" OUTPUT-POSITION="left-bottom" />
+         <EXPRESSION>
+SELECT ParameterK value, 'ParameterK' AS name, FName AS simple, 'Parameter2' AS "table" FROM $O{API}TParameter WHERE ParameterK={{==[0]}}
+UNION ALL
+SELECT ObjectK value, 'ObjectK' AS name, FName AS simple, 'Object1' AS "table" FROM $O{API}TObject WHERE ObjectK=(SELECT ObjectK FROM $O{API}TParameter WHERE ParameterK={{==[0]}})
+         </EXPRESSION>
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup function" KEY="CA76DE29C4434B1A8F7257E6293566CD" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple FROM $O{API}TFunction WHERE Fname={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|20,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup parameter" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple FROM $O{API}TParameter WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top|0,100" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Parameter: find" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5">
+      <FIELD ID="Parameter2ParameterK" ALIAS="ParameterK" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FunctionOrObject" ALIAS="O or F" TABLE="Parameter2" DESCRIPTION="Owning object or function">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.container`" />
+      </FIELD>
+      <FIELD ID="Parameter2FName" ALIAS="Name" TABLE="Parameter2">
+         <ATTRIBUTES OUTPUT-FORMAT="`html|code.parameter`" />
+      </FIELD>
+      <FIELD ID="Parameter2FDeclaration" ALIAS="Declaration" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FType" ALIAS="Type" TABLE="Parameter2" />
+      <FIELD ID="Parameter2ContextC" ALIAS="Context" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FAccess" ALIAS="Access" TABLE="Parameter2" />
+      <FIELD ID="Parameter2FDescription" ALIAS="Desc" TABLE="Parameter2">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|Parameter2.Hashtag` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@` `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 10px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="7cb0d417-a372-4d2c-8a47-ae506fc75c9e"><![CDATA[ return function(g) local R = g.result;
+   R:SetValue('url','[' .. 
+   '{"id": "parameter_edit","title":"Variables: Edit", "icon": "fa-edit", "table":"Parameter2", "link": ["8679018FD12C42B3BF8A9A39C0A88193"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="record" NAME="Object"  DESCRIPTION="Edit object variable" KEY="8679018FD12C42B3BF8A9A39C0A88193" QUERY="A78CBC50DD5E40AD87FEF714D0768D85">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="300" OUTPUT-POSITION="left-bottom" />
+         <EXPRESSION>
+SELECT ParameterK value, 'ParameterK' AS name, FName AS simple, 'Parameter2' AS "table" FROM $O{API}TParameter WHERE ParameterK={{==[0]}}
+UNION ALL
+SELECT ObjectK value, 'ObjectK' AS name, FName AS simple, 'Object1' AS "table" FROM $O{API}TObject WHERE ObjectK=(SELECT ObjectK FROM $O{API}TParameter WHERE ParameterK={{==[0]}})
+         </EXPRESSION>
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup function" KEY="CA76DE29C4434B1A8F7257E6293566CD" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple FROM $O{API}TFunction WHERE Fname={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|20,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup parameter" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple FROM $O{API}TParameter WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top|0,100" />
+      </QUERYLINK>
+   </QUERY>
+      
+   
+   <QUERY ID="System: tree" KEY="F12429A8B23A06449ABA71A4A88D853E" DESCRIPTION="View systems as tree&lt;br&gt;Systems can be connected in a tree like structure. Open information related to systems.">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <FIELD ID="TSystem1SystemK" ALIAS="ID" TABLE="TSystem1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TSystem1FName-Indent" ALIAS="Indented Name" TABLE="TSystem1" DESCRIPTION="Indented System name to show where system is located in system tree" />
+      <FIELD ID="TSystem1CountObject" ALIAS="obj" TABLE="TSystem1" DESCRIPTION="Number of root objects">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TSystem1CountBooks" ALIAS="book" TABLE="TSystem1" DESCRIPTION="Attached books with information about the system">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TSystem1FDescription" ALIAS="Description" TABLE="TSystem1" DESCRIPTION="Short description about system. # Has hashtag logic.">
+         <ATTRIBUTES OUTPUT-FORMAT="hashtag|TSystem1.Hashtag" />
+      </FIELD>
+      <FIELD ID="TSystem1TypeC" ALIAS="Type" TABLE="TSystem1" />
+      <FIELD ID="TSystem1ThreadShortName" ALIAS="Thread" TABLE="TSystem1"/>
+      <CONDITION ID="TSystem1CountObject" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0" />
+      <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1010 WHERE _t.FKey=TSystem1.SystemK AND _th.table_number=1010)" />
+      <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TSystem1.SystemK AND _t.table_number=1010)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1010 WHERE _t.FKey=TSystem1.SystemK AND _th.table_number=1010)" />
+         <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TSystem1.SystemK AND _t.table_number=1010)" />
+      </ORDERS>
+
+      <ORDERS NAME="Recent Objects">
+         <ORDER FIELD="TSystem1SystemK" SQL="(SELECT TOP 1 _o.UpdateD FROM $O{API}TObject _o WHERE _o.ParentK=$T.SystemK AND _a.table_number = 1010 ORDER BY 1 DESC)" DESC="1" />
+      </ORDERS>
+      
+      <CONDITIONS ID="Select filter!"/>
+      <CONDITIONS ID='{ "name": "Systems with Books", "title": "Systems with attached books.", "style": "color: rgb(65,105,225); " }'>
+         <CONDITION ID="TSystem1CountBooks" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0" />
+      </CONDITIONS>
+      <CONDITIONS ID='{ "name": "Systems with Objects", "title": "Systems with attached objects.", "style": "color: rgb(65,105,225); " }' SELECTED="1">
+         <CONDITION ID="TSystem1CountObject" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0" />
+      </CONDITIONS>
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="TSystem1Hashtag" TABLE="TSystem1"/>
+      </SELECTCONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="fe5ca52b-4a12-4947-96e4-fe4a7d575753"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 2 then
+         R:SetValue('url','{"link": ["2E60AEF3D9D2499B9D8CAD4E95087501zoom"],"table":"TSystem1"}' )  return
+      elseif iColumn == 3 then
+         R:SetValue('url','{"link": ["BDF6B05C0CF66F46817740CD67DB4ADFzoom"],"table":"TSystem1"}' )  return
+      end
+   
+      R:SetValue('url','{"link": ["2E60AEF3D9D2499B9D8CAD4E95087501result"],"table":"TSystem1"}' )  return   
+   else
+   end
+end
+   R:SetValue('url','[' .. 
+   '{"id": "edit","title":"Edit System", "icon": "fa-i-cursor", "table":"TSystem1", "link": ["3FE1BB73CAA04ADEA91029BABC69BF83"]},' .. 
+   '{"id": "object_view","title":"View Objects", "icon": "fa-align-justify", "table":"TSystem1", "link": ["2E60AEF3D9D2499B9D8CAD4E95087501zoom"]},' ..
+   '{"id": "object_add","title":"Add Object", "icon": "fa-edit", "table":"Object1", "link": ["F189B827054348D2AA4DCBADA35F7EE9"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="record" NAME="System"  DESCRIPTION="Edit system record" KEY="3FE1BB73CAA04ADEA91029BABC69BF83" QUERY="7C262055E3601A43ABAC7E5CC0C3F868" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="400" OUTPUT-POSITION="center-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Books"  DESCRIPTION="Books" KEY="BDF6B05C0CF66F46817740CD67DB4ADF" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1100" OUTPUT-HEIGHT="300" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Objects"  DESCRIPTION="Add objects" KEY="2E60AEF3D9D2499B9D8CAD4E95087501" QUERY="A5DE831AB3D3410FBE76736A272889A7" EXPRESSION="SELECT SystemK AS value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="800" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Objects"  DESCRIPTION="Add objects" KEY="F189B827054348D2AA4DCBADA35F7EE9" EXPRESSION="SELECT SystemK AS value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="1600" OUTPUT-HEIGHT="600" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Systems: all" DESCRIPTION="Active systems" KEY="7C262055E3601A43ABAC7E5CC0C3F868">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Work,100</ATTRIBUTE>
+      <FIELD ID="TSystem1SystemK" ALIAS="ID (System)" TABLE="TSystem1"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1FAbbreviation" ALIAS="Short" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1FDescription" ALIAS="Description" TABLE="TSystem1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="hashtag|TSystem1.Hashtag" />
+         <EDIT>{"update":"DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE \"name\" = 'TSystem');\nDECLARE @iSystem BIGINT = ${@TSystem1SystemK}\nDECLARE @sDescription NVARCHAR(1000) = {=TSystem1FDescription}\n\nDELETE FROM $OTrXBadge WHERE ParentK = @iSystem AND table_number = @iTable\n\nIF LEN( @sDescription ) &gt; 2\nBEGIN\n-- Add missing hashtags to Badge table\n   INSERT INTO $OTBadge (FName)\n   SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName\n   WHERE _b.FName IS NULL   \n\n-- Connect hashtags to System record\n   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)\n   SELECT @iSystem, @iTable, _b.BadgeK\n   FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag\nEND\n","formula":"1"}</EDIT>
+      </FIELD>
+      <FIELD ID="TSystem1TypeC" ALIAS="Type" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1PriorityC" ALIAS="Priority" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1SuperK-Name" ALIAS="Parent" TABLE="TSystem1">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS SystemK, '_ no parent _' AS FName UNION ALL SELECT SystemK, FName FROM $OTSystem WHERE FDeleted = 0 AND FIdle = 0 ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="TSystem1CountRequest" ALIAS="Cnt.req." TABLE="TSystem1" />
+      <CONDITION ID="TSystem1FDeleted" TABLE="TSystem1" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <ROWEDIT>
+         <EDIT NAME="new_system" SIMPLE="Systems" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSuper INT = {{=SuperK}}
+IF @iSuper = 0 SET @iSuper = NULL
+INSERT INTO $OTSystem(GlobalK,UserK,SuperK,FName,FDescription,TypeC,CreateD,UpdateD) 
+VALUES({#V user "@@global"}, {#V user "@@user"},@iSuper,{=FName"''"},{=FDescription},{=TypeC},GETDATE(),GETDATE());
+
+INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES( (SELECT IDENT_CURRENT('$OTSystem')), 1010, {=TSystem1Note});
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSystem')" />
+         </EDIT>
+         <EDIT NAME="delete system" SIMPLE="Delete System" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTSystem WHERE SystemK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Books for system" KEY="BDF6B05C0CF66F46817740CD67DB4ADF">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1Indent.FHeader" ALIAS="Indented header" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1FName" ALIAS="Name" TABLE="TArticleBook1">
+         <ATTRIBUTES OUTPUT-FORMAT="hashtag|TArticleBook1.Hashtag" />
+      </FIELD>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1UpdateD" ALIAS="Update" TABLE="TArticleBook1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticleBook1FReleased" ALIAS="Released" TABLE="TArticleBook1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticleBook1CountArticle" ALIAS="Pages" TABLE="TArticleBook1" DESCRIPTION="Pages or text records in book">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right; padding-right: 0.5em;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TArticleBook1Note" ALIAS="Note" TABLE="TArticleBook1">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|TArticleBook1.Hashtag`  `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 50px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TArticleBook1CountLink" ALIAS="Links" TABLE="TArticleBook1" DESCRIPTION="Number of added links for book">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right; padding-right: 0.5em;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook1.ArticleBookK AND _th.table_number=1170)" />
+      <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook1.ArticleBookK AND _t.table_number=1170)" />
+      <ORDERS NAME="Latest modified book pages" DESCRIPTION="Order books after last modified page in book">
+         <ORDER FIELD="TArticleBook1ArticleBookK" DESC="1" SQL="(SELECT TOP 1 _a.UpdateD FROM $OTrArticleBookXArticle x JOIN $OTArticle _a ON x.ArticleK=_a.ArticleK WHERE x.ArticleBookK=TArticleBook1.ArticleBookK ORDER BY _a.UpdateD DESC)" />
+      </ORDERS>
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook1.ArticleBookK AND _th.table_number=1170)" />
+         <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook1.ArticleBookK AND _t.table_number=1170)" />
+      </ORDERS>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="1c7d33a9-75b7-441b-80f4-001679ae69cc"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iColumn = R:GetParam("column")
+   if iColumn == 6 then
+      R:SetValue('url','{"link": ["BE8050ECC27B40168DC885F809DDD043result"],"table":"TArticleBook1"}' ) return
+   elseif iColumn == 8 then
+      R:SetValue('url','{"link": ["8512DA4837284DDF9657704D65823506zoom"],"table":"TArticleBook1"}' ) return
+   else
+      R:SetValue('url','{"link": ["BE8050ECC27B40168DC885F809DDD043result","9F60D5FEDE8E41CC986C10147F0AD2F7zoom","71C91DEE3C5A4FDC8EC1114C7C18033Bzoom"],"table":"TArticleBook1"}' )
+      return
+   end      
+end
+            
+R:SetValue('url','[' .. 
+   '{"id": "articles_view","title":"View book pages", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["BE8050ECC27B40168DC885F809DDD043result"]},' ..
+   '{"id": "chapters","title":"Select chapter", "icon": "fa-map-marker", "table":"TArticleBook1", "link": ["71C91DEE3C5A4FDC8EC1114C7C18033Bzoom"]},' ..
+   '{"id": "hashtags","title":"Select hashtags", "icon": "fa-map-marker", "table":"TArticleBook1", "link": ["9F60D5FEDE8E41CC986C10147F0AD2F7zoom"]},' ..
+   '{"id": "links","title":"View links", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["8512DA4837284DDF9657704D65823506zoom"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" NAME="Read pages"  DESCRIPTION="Read articles" KEY="BE8050ECC27B40168DC885F809DDD043" QUERY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+
+      <QUERYLINK TYPENAME="children" NAME="Pages"  DESCRIPTION="Show pages for book in main" KEY="5BD90062851847438FE6B456AA9F2624" QUERY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+
+      <QUERYLINK TYPENAME="children" NAME="Select chapter"  KEY="71C91DEE3C5A4FDC8EC1114C7C18033B" QUERY="D789DF86FAC34562850121D27756C3CE" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="330" OUTPUT-HEIGHT="400" OUTPUT-POSITION="right-bottom|-100,0" OUTPUT-ROWS="20" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Article hashtags"  DESCRIPTION="View hashtags for articles" KEY="9F60D5FEDE8E41CC986C10147F0AD2F7" QUERY="E5CDC74AE4DA4E2B8F02F2B6CAFD9E7E" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="280" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom|-10,-200" OUTPUT-ROWS="20" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="View book links"  DESCRIPTION="Add links to book" KEY="8512DA4837284DDF9657704D65823506" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="600" OUTPUT-HEIGHT="300" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Books for object" KEY="885BFAA5B6424B78B08A6482688CEB87" DESCRIPTION="List books for selected object">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TArticleBook10010ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook10010"/>
+      <FIELD ID="TArticleBook10010FHeader" ALIAS="Header" TABLE="TArticleBook10010"/>
+      <FIELD ID="TArticleBook10010FName" ALIAS="Name" TABLE="TArticleBook10010">
+         <ATTRIBUTES OUTPUT-FORMAT="hashtag|TArticleBook10010.Hashtag" />
+      </FIELD>
+      <FIELD ID="TArticleBook10010TypeC" ALIAS="Type" TABLE="TArticleBook10010"/>
+      <FIELD ID="TArticleBook10010CountArticle" ALIAS="Pages" TABLE="TArticleBook10010" DESCRIPTION="Pages or text records in book">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right; padding-right: 0.5em;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TArticleBook10010Note" ALIAS="Note" TABLE="TArticleBook10010">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|TArticleBook10010.Hashtag`  `markdown||[row]|padding: 0px; opacity: 0.7; overflow-x: auto; overflow-y: auto; white-space: normal;padding-left: 50px;`"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TArticleBook10010CountLink" ALIAS="Links" TABLE="TArticleBook10010" DESCRIPTION="Number of added links for book">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right; padding-right: 0.5em;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <ORDER FIELD="TArticleBook10010ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook10010.ArticleBookK AND _th.table_number=1170)" />
+      <ORDER FIELD="TArticleBook10010ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook10010.ArticleBookK AND _t.table_number=1170)" />
+      <ORDERS NAME="Latest modified book pages" DESCRIPTION="Order books after last modified page in book">
+         <ORDER FIELD="TArticleBook10010ArticleBookK" DESC="1" SQL="(SELECT TOP 1 _a.UpdateD FROM $OTrArticleBookXArticle x JOIN $OTArticle _a ON x.ArticleK=_a.ArticleK WHERE x.ArticleBookK=TArticleBook10010.ArticleBookK ORDER BY _a.UpdateD DESC)" />
+      </ORDERS>
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TArticleBook10010ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook10010.ArticleBookK AND _th.table_number=1170)" />
+         <ORDER FIELD="TArticleBook10010ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook10010.ArticleBookK AND _t.table_number=1170)" />
+      </ORDERS>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="0054f1d1-1616-4db5-b538-4bf294e46eb6"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iColumn = R:GetParam("column")
+   if iColumn == 4 then
+      R:SetValue('url','{"link": ["BE8050ECC27B40168DC885F809DDD043result"],"table":"TArticleBook1"}' ) return
+   elseif iColumn == 6 then
+      R:SetValue('url','{"link": ["8512DA4837284DDF9657704D65823506zoom"],"table":"TArticleBook1"}' ) return
+   else
+      R:SetValue('url','{"link": ["BE8050ECC27B40168DC885F809DDD043result","71C91DEE3C5A4FDC8EC1114C7C18033Bzoom"],"table":"TArticleBook1"}' )
+      return
+   end      
+end
+            
+R:SetValue('url','[' .. 
+   '{"id": "articles_view","title":"View book pages", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["BE8050ECC27B40168DC885F809DDD043result"]},' ..
+   '{"id": "chapters","title":"Select chapter", "icon": "fa-map-marker", "table":"TArticleBook1", "link": ["71C91DEE3C5A4FDC8EC1114C7C18033Bzoom"]},' ..
+   '{"id": "links","title":"View links", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["8512DA4837284DDF9657704D65823506zoom"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" NAME="Read pages"  DESCRIPTION="Read articles" KEY="BE8050ECC27B40168DC885F809DDD043" QUERY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple, 'TArticleBook1'  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+
+      <QUERYLINK TYPENAME="children" NAME="Pages"  DESCRIPTION="Show pages for book in main" KEY="5BD90062851847438FE6B456AA9F2624" QUERY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple, 'TArticleBook1' AS _table FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+
+      <QUERYLINK TYPENAME="children" NAME="Select chapter"  KEY="71C91DEE3C5A4FDC8EC1114C7C18033B" QUERY="D789DF86FAC34562850121D27756C3CE" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="330" OUTPUT-HEIGHT="400" OUTPUT-POSITION="right-bottom|-10,0" OUTPUT-ROWS="20" />         
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="View book links"  DESCRIPTION="Add links to book" KEY="8512DA4837284DDF9657704D65823506" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="600" OUTPUT-HEIGHT="300" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   
+   <QUERY ID="Book pages" KEY="AEA4B9753D454B6DAE0CDCE9922D6223">
+      <FIELD ID="TArticle2ArticleK" ALIAS="ID" TABLE="TArticle2"/>
+      <FIELD ID="TArticle2FChapterName-Chapter" ALIAS="Chapter" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="html|b|letter-spacing: 3px;font-size:250%; color: black;|[rowbefore one]" />
+      </FIELD>
+      <FIELD ID="TArticle2FBrief-Indent" ALIAS="Brief" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|TArticle2.Hashtag||text-link-expand-hash` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@|text-link-expand` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@|text-link-expand`" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='font-size:120%; font-weight: bold; color: #483D8B;'" />
+      </FIELD>
+      <FIELD ID="TArticle2CountLink" ALIAS="Links" TABLE="TArticle2" DESCRIPTION="Number of links for text">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" />
+      <FIELD ID="TArticle2TargetC" ALIAS="Target" TABLE="TArticle2" />
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" />
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|TArticle2.Hashtag||text-link-expand-hash` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@|text-link-expand` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@|text-link-expand` `markdown|max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|margin: 1em 3em; padding-left: 20px;max-width: 95%; border-left: 2px solid #CCC;`"
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+      <FIELD ID="TArticle2FPage" ALIAS="Page" TABLE="TArticle2" />
+      <FIELD ID="TArticle2Picture" ALIAS="Pic" DESCRIPTION="Picture" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="image| |[row]|padding-left: 50px; margin: 3px;"
+                     OUTPUT-STYLE="column|width: 20px;" />
+      </FIELD>
+      <FIELD ID="TArticle2ConnectionC" ALIAS="Connection" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TArticle2ArticleK" SQL="ISNULL($T.FSticky,0)" DESC="1"/>
+      <ORDER FIELD="TArticle2FChapterName-Chapter" SQL="ISNULL( (SELECT TOP 1 _ac.FIndex FROM $OTArticleChapter _ac JOIN $OTrArticleChapterXArticle x ON _ac.ArticleChapterK=x.ArticleChapterK WHERE x.ArticleK=$T.ArticleK), 1000000)" />
+      <ORDER FIELD="TArticle2FPage" />
+      <ORDERS NAME="Chapters">
+         <ORDER FIELD="TArticle2FPage" SQL="ISNULL( (SELECT TOP 1 _ac.FIndex FROM $OTArticleChapter _ac JOIN $OTrArticleChapterXArticle x ON _ac.ArticleChapterK=x.ArticleChapterK WHERE x.ArticleK=$T.ArticleK), 1000000)" />
+         <ORDER FIELD="TArticle2FPage" />
+      </ORDERS>
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TArticle2FPage" SQL="(SELECT TOP 1 ISNULL(_ac.FIndex,1000000) FROM $OTArticleChapter _ac JOIN $OTrArticleChapterXArticle x ON _ac.ArticleChapterK=x.ArticleChapterK WHERE x.ArticleK=$T.ArticleK)" />
+         <ORDER FIELD="TArticle2ArticleK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1160 WHERE _t.FKey=$T.ArticleK AND _th.table_number=1160)" />
+         <ORDER FIELD="TArticle2ArticleK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=$T.ArticleK AND _t.table_number=1160)" />
+      </ORDERS>
+      <CONDITION ID="TArticle2FDeleted" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="1" />
+      <CONDITION ID="TArticle2FDepreciated" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="1" />
+      <CONDITION ID="TArticle2StateC" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="4241" SIMPLEVALUE="Draft" />
+      <CONDITIONS ID="Admins">
+         <CONDITION ID="TArticle2LevelC-Rank" TABLE="TArticle2" OPERATORNAME="LESS" VALUE="6" />
+         <CONDITION ID="TArticle2FPage" TABLE="TArticle2" OPERATORNAME="GREATEREQUAL" VALUE="0" />
+         <CONDITION ID="TArticle2StateC" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="4241" SIMPLEVALUE="Draft" />
+      </CONDITIONS>
+      <CONDITIONS ID="Advanced">
+         <CONDITION ID="TArticle2FPage" TABLE="TArticle2" OPERATORNAME="GREATEREQUAL" VALUE="0" />
+         <CONDITION ID="TArticle2StateC" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="4241" SIMPLEVALUE="Draft" />
+      </CONDITIONS>
+      <CONDITIONS ID="All" SELECTED="1">
+         <CONDITION ID="TArticle2FDeleted" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="1" />
+         <CONDITION ID="TArticle2FDepreciated" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="1" />
+         <CONDITION ID="TArticle2StateC" TABLE="TArticle2" OPERATORNAME="NOTEQUAL" VALUE="4241" SIMPLEVALUE="Draft" />
+      </CONDITIONS>
+      <CONDITIONS ID="All including removed and drafts" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="4e3c40ce-947b-4e6d-8a77-4c7557fde8fe"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 3 then
+         R:SetValue('url','{"link": ["A876BB4D3C6E4F6186E4C6EE66A59535zoom"],"table":"TArticle2"}' )  return
+      end
+   end
+   return
+end
+            
+R:SetValue('url','[' .. 
+   '{"id": "chapter_view","title":"View chapters", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["71C91DEE3C5A4FDC8EC1114C7C18033Bzoom"]},' ..
+   '{"id": "book","title":"View book", "icon": "fa-align-justify", "table":"TArticle2", "link": ["E5BB2FA1C43C45BDB1E725AB77D4F511zoom"]},' .. 
+   '{"id": "links_view","title":"View links", "icon": "fa-align-justify", "table":"TArticle2", "link": ["A876BB4D3C6E4F6186E4C6EE66A59535zoom"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+
+      <QUERYLINK TYPENAME="children" NAME="Chapters: view"  KEY="71C91DEE3C5A4FDC8EC1114C7C18033B" QUERY="D789DF86FAC34562850121D27756C3CE">
+         <EXPRESSION>
+DECLARE @iBook BIGINT = {{=TArticleBook1}};
+DECLARE @iArticle BIGINT = {{=TArticle2}};
+IF @iBook IS NULL
+   SET @iBook = (SELECT TOP 1 ArticleBookK FROM $OTrArticleBookXArticle WHERE ArticleK = @iArticle);
+SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple FROM $OTArticleBook WHERE ArticleBookK = @iBook
+         </EXPRESSION>
+         <PROPERTIES OUTPUT-WIDTH="330" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom|-10,-535" OUTPUT-ROWS="20" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Books" DESCRIPTION="Books" KEY="E5BB2FA1C43C45BDB1E725AB77D4F511" QUERY="BDF6B05C0CF66F46817740CD67DB4ADF">
+         <EXPRESSION>
+SELECT TOP 1 ab.ArticleBookK AS value, 'ArticleBookK' AS name, ab.FHeader AS simple, 'TArticleBook1' AS "table" FROM $OTArticleBook ab JOIN $OTrArticleBookXArticle x ON ab.ArticleBookK=x.ArticleBookK WHERE x.ArticleK={{==TArticle2}}
+         </EXPRESSION>
+         <PROPERTIES OUTPUT-WIDTH="1100" OUTPUT-HEIGHT="300" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Article hashtags"  DESCRIPTION="View hashtags for articles" KEY="9F60D5FEDE8E41CC986C10147F0AD2F7" QUERY="E5CDC74AE4DA4E2B8F02F2B6CAFD9E7E" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="280" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom|-10,0" OUTPUT-ROWS="20" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Links" DESCRIPTION="View links" KEY="A876BB4D3C6E4F6186E4C6EE66A59535" EXPRESSION="SELECT ArticleK AS value, 'ArticleK' AS name, FBrief AS simple FROM $OTArticle WHERE ArticleK={{==TArticle2}}">
+         <PROPERTIES OUTPUT-WIDTH="500" OUTPUT-HEIGHT="200" OUTPUT-POSITION="center-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup function" KEY="CA76DE29C4434B1A8F7257E6293566CD" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Function1' FROM $O{API}TFunction WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|20,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Lookup parameter" KEY="1FCA00DBA6C34BFC8B93E7FCCEA5BCA5" EXPRESSION="SELECT FName value, 'FName' AS name, FName AS simple, 'Parameter2' FROM $O{API}TParameter WHERE FName={=[0]}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top|0,100" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Objects"  DESCRIPTION="View objects" KEY="9F1E006D78894848838A0970E2FF0BE9" QUERY="A5DE831AB3D3410FBE76736A272889A7">
+         <EXPRESSION>
+SELECT TOP 1 o.ObjectK AS value, 'ThreadNumber' AS name, FName AS simple FROM api.TObject o WHERE o.ObjectK IN (SELECT x.ObjectK FROM application.TrArticleBookXApiObject x JOIN application.TArticleBook ab ON x.ArticleBookK=ab.ArticleBookK WHERE x.ArticleBookK = {{==[0]}})            
+         </EXPRESSION>
+         <PROPERTIES OUTPUT-WIDTH="600" OUTPUT-HEIGHT="400" OUTPUT-POSITION="right-bottom|-350,0" />
+      </QUERYLINK>
+   
+      <QUERYLINK TYPENAME="children" NAME="Objects"  DESCRIPTION="View objects" KEY="80977AA51C7E4AB1BB623A25A35403CA" QUERY="A5DE831AB3D3410FBE76736A272889A7">
+         <EXPRESSION>
+SELECT TOP 1 ObjectK AS value, 'ThreadNumber' AS name, FName AS simple, 'Object1' AS "table" FROM api.TObject WHERE ObjectK = {{==[0]}}
+         </EXPRESSION>
+         <PROPERTIES OUTPUT-WIDTH="600" OUTPUT-HEIGHT="400" OUTPUT-POSITION="right-bottom|-350,0" />
+      </QUERYLINK>
+   
+   </QUERY>
+   
+   
+   <QUERY ID="Function pages" KEY="C6934A438F1A4E08B58A03DE4ED6F620">
+      <FIELD ID="TArticle10010ArticleK" ALIAS="ID" TABLE="TArticle10010"/>
+      <FIELD ID="TArticle10010FBrief" ALIAS="Brief" TABLE="TArticle10010" />
+      <FIELD ID="TArticle10010TypeC" ALIAS="Type" TABLE="TArticle10010" />
+      <FIELD ID="TArticle10010FText" ALIAS="Text" TABLE="TArticle10010">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|TArticle10010.Hashtag||text-link-expand-hash` `hashtag|Function1.FName.CA76DE29C4434B1A8F7257E6293566CDzoom|@@|text-link-expand` `hashtag|Parameter2.FName.1FCA00DBA6C34BFC8B93E7FCCEA5BCA5zoom|@@@|text-link-expand` `markdown|max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|margin: 1em 3em; padding-left: 20px;max-width: 95%; border-left: 2px solid #CCC;`"
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+      <FIELD ID="TArticle10010Picture" ALIAS="Pic" DESCRIPTION="Picture" TABLE="TArticle10010">
+         <ATTRIBUTES OUTPUT-FORMAT="image| |[row]|padding-left: 50px; margin: 3px;"
+                     OUTPUT-STYLE="column|width: 20px;" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="c17c73c6-7954-4291-8feb-98f597a0af02"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+           
+R:SetValue('url','[' .. 
+--   '{"id": "links_view","title":"View links", "icon": "fa-align-justify", "table":"TArticle10010", "link": ["A876BB4D3C6E4F6186E4C6EE66A59535zoom"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+   </QUERY>   
+   
+   <QUERY ID="Open links for article" DESCRIPTION="Links related to book" KEY="A876BB4D3C6E4F6186E4C6EE66A59535">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="TLink6LinkK" ALIAS="ID" TABLE="TLink6"/>
+      <FIELD ID="TLink6TypeC" ALIAS="Type" TABLE="TLink6" />
+      <FIELD ID="TLink6FUrl-Goto" ALIAS="Link" TABLE="TLink6" />
+      <FIELD ID="TLink6FDescription" ALIAS="Description" TABLE="TLink6">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|TLink6.Hashtag` `markdown|padding: 0px; padding-bottom: 25px; width: 97%; overflow-x: auto; white-space: normal;|[row]`"
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+   </QUERY>
+   
+   <QUERY ID="Open links for book" DESCRIPTION="Links related to book" KEY="8512DA4837284DDF9657704D65823506">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="TLink5LinkK" ALIAS="ID" TABLE="TLink5"/>
+      <FIELD ID="TLink5TypeC" ALIAS="Type" TABLE="TLink5" />
+      <FIELD ID="TLink5FUrl-Goto" ALIAS="Link" TABLE="TLink5" />
+      <FIELD ID="TLink5FDescription" ALIAS="Description" TABLE="TLink5">
+         <ATTRIBUTES OUTPUT-FORMAT="`hashtag|TLink5.Hashtag` `markdown|padding: 0px; padding-bottom: 25px; width: 97%; overflow-x: auto; white-space: normal;|[row]`"
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+   </QUERY>
+   
+   
+   
+</SELECTION>

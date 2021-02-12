@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+  
+   <QUERY ID="Articles">
+      <FIELD ID="TArticle1ArticleK" ALIAS="ID" TABLE="TArticle1"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1"/>
+      <FIELD ID="TArticle1LevelC" ALIAS="Level" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle1TypeC" ALIAS="Type" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle1FText" ALIAS="Text" TABLE="TArticle1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 5px;max-width: 1000px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TArticle1SuperK" ALIAS="Parent" TABLE="TArticle1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS ArticleK, '_ no parent _' AS FName UNION ALL SELECT ArticleK, FBrief FROM $OTArticle WHERE FBrief &gt; ' ' AND FDeleted = 0 AND FDepreciated = 0 ORDER BY 2" /> 
+      </FIELD>
+      <AGGREGATES>
+         <AGGREGATE NAME="Sales" TYPENAME="query"
+                    ALL-ROWCOUNT="10"
+                    OUTPUT-ORDER="150" OUTPUT-SIZE="[1,3]" OUTPUT-SELECT="1">
+         </AGGREGATE>
+      </AGGREGATES>
+   </QUERY>
+   
+
+</SELECTION>

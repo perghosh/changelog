@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Queries used to manage database documentation, how the database works">
+   <QUERY ID="Tables" KEY="CF8D28B9866FB34D96EEBC13FE006ADB">
+      <FIELD NAME="TableK" ALIAS="ID" TABLE="describe_table1"/>
+      <FIELD ID="TDatabase1Index" ALIAS="Index" TABLE="TDatabase1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TDatabase1FName" ALIAS="FName" TABLE="TDatabase1" FIELDFLAGNAMES="edit" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Schemas" DESCRIPTION="Schemas" KEY="BC90C7771EC469469E30CD178210F3A0" EXPRESSION="SELECT DatabaseK value, 'DatabaseK' name, FName simple  FROM $OTDatabase WHERE DatabaseK={{==TDatabase1}}"/>
+      <ROWEDIT>
+         <EDIT NAME="new_database" SIMPLE="New database" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O"TDatabase" ("Index","FName") 
+VALUES({=Index},{=FName})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTDatabase')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="schemas" KEY="BC90C7771EC469469E30CD178210F3A0" DESCRIPTION="Schema query used to add new schemas to selected database">
+      <FIELD ID="TSchema1SchemaK" ALIAS="SchemaK" TABLE="TSchema1"/>
+      <FIELD ID="TSchema1FName" ALIAS="FName" TABLE="TSchema1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSchema1FDescription" ALIAS="FDescription" TABLE="TSchema1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Tables" DESCRIPTION="Tables" KEY="150CCDBAC03781479B002B2508BFBB53" EXPRESSION="SELECT SchemaK value, 'SchemaK' name, FName simple  FROM $OTDatabase WHERE DatabaseK={{==[0]}}"/>      
+      <ROWEDIT>
+         <EDIT NAME="new_schema" SIMPLE="New schema" TYPENAME="new_row" CONTEXTNAME="children">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O"TSchema" ("DatabaseK","FName","FDescription") 
+VALUES({{=DatabaseK}},{=FName"''"},{=FDescription})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSchema')" />
+         </EDIT>
+         <EDIT NAME="delete schema" SIMPLE="Delete Schema" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TSchema" WHERE "SchemaK"={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="tables" KEY="150CCDBAC03781479B002B2508BFBB53">
+      <FIELD ID="TTable1TableK" ALIAS="TableK" TABLE="TTable1"/>
+      <FIELD ID="TTable1FName" ALIAS="FName" TABLE="TTable1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTable1FDescription" ALIAS="FDescription" TABLE="TTable1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "columns","title":"Table columns", "table":"TTable1", "link": ["CDB87E5C00984B46AD2BC50FE0A8E4F3"]},' .. 
+   '{"id": "notes","title":"Table notes", "table":"TTable1", "link": ["07388615D5ABA84F8E92E3BA0B7CD69E"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Columns" DESCRIPTION="Table columns" KEY="CDB87E5C00984B46AD2BC50FE0A8E4F3" EXPRESSION="SELECT TableK value, 'TableK' name, FName simple  FROM $OTTable WHERE TableK={{==[0]}}"/>      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Notes" DESCRIPTION="Table notes" KEY="07388615D5ABA84F8E92E3BA0B7CD69E" EXPRESSION="SELECT TableK value, 'TableK' name, FName simple  FROM $OTTable WHERE TableK={{==[0]}}"/>      
+      <ROWEDIT>
+         <EDIT NAME="new_table" SIMPLE="New table" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O"TTable" ("SchemaK","FName","FDescription") 
+VALUES({{=SchemaK}},{=FName"''"},{=FDescription})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTTable')" />
+         </EDIT>
+         <EDIT NAME="delete table" SIMPLE="Delete Table" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TTable" WHERE "TableK"={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="table_notes" KEY="07388615D5ABA84F8E92E3BA0B7CD69E" DESCRIPTION="Table notes, describe how tables is used in database">
+      <FIELD ID="TNote2NoteK" ALIAS="NoteK" TABLE="TNote2" />
+      <FIELD ID="TTable1FName" ALIAS="FName" TABLE="TTable1" />
+      <FIELD ID="TNote2FBrief" ALIAS="FBrief" TABLE="TNote2" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TNote2FNote" ALIAS="FNote" TABLE="TNote2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <ROWEDIT>
+         <EDIT NAME="new_table" SIMPLE="New table" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O"TNote" ("ParentK","FBrief","FNote",table_number)
+VALUES({{=TableK}},{=FBrief"''"},{=FNote},30)
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTNote')" />
+         </EDIT>
+         <EDIT NAME="delete note" SIMPLE="Delete Note" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TNote" WHERE "NoteK"={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="columns" KEY="CDB87E5C00984B46AD2BC50FE0A8E4F3">
+      <FIELD ID="TColumn1ColumnK" ALIAS="ColumnK" TABLE="TColumn1"/>
+      <FIELD ID="TColumn1FName" ALIAS="FName" TABLE="TColumn1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TColumn1FType" ALIAS="FType" TABLE="TColumn1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TColumn1FSize" ALIAS="FSize" TABLE="TColumn1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TColumn1FDescription" ALIAS="FDescription" TABLE="TColumn1" FIELDFLAGNAMES="edit" />
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="TTable1SchemaKName" TABLE="TTable1" />
+         <SELECTCONDITION ID="TTable1FName" TABLE="TTable1" />
+      </SELECTCONDITIONS>
+      <ROWEDIT>
+         <EDIT NAME="new_column" SIMPLE="New column" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O"TColumn" ("TableK","FName","FType","FSize",FDescription") 
+VALUES({{=TableK}},{=FName"''"},{=FType"''"},{=FSize},{=FDescription})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTColumn')" />
+         </EDIT>
+         <EDIT NAME="delete column" SIMPLE="Delete Column" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O"TColumn" WHERE "ColumnK"={{=[0]}}' />
+         </EDIT>
+         
+         <EDIT NAME="parse_table" SIMPLE="Scan table" TYPENAME="new_sheet" DESCRIPTION="Build information for selected table">
+            <SQL TYPENAME="insert" COMMAND="insert-sheet">
+               <EXPRESSION><![CDATA[
+SET NOCOUNT ON
+DECLARE @TableSchema NVARCHAR(100) = {=SchemaKName};
+DECLARE @TableName NVARCHAR(100) = {=FName};
+DECLARE @iDbTableCount INT = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=@TableSchema AND TABLE_NAME=@TableName);
+DECLARE @iTableCount INT = (SELECT COUNT(*) FROM $O"TTable" t JOIN $O"TSchema" s ON t.SchemaK=s.SchemaK  WHERE s."FName"=@TableSchema AND t."FName"=@TableName);
+DECLARE @Name NVARCHAR(100), @Type NVARCHAR(100), @Length INT, @Position INT, @Default NVARCHAR(100), @Nullable NVARCHAR(100);
+DECLARE @SchemaK INT -- Schema key to TSchema table
+DECLARE @TableK INT  -- Table key to TTable table
+DECLARE @NullableBit BIT  -- Bit if column i nullable or not
+
+
+IF @iDbTableCount = 1 AND @iTableCount = 0  -- If the table is missing
+BEGIN
+   BEGIN TRAN AddDescriptionForTable;
+   
+   -- Try to add table
+   SET @SchemaK = (SELECT SchemaK FROM $OTSchema WHERE FName = @TableSchema);
+   INSERT INTO $OTTable (SchemaK,FName) VALUES(@SchemaK,@TableName);
+   SET @TableK = (SELECT IDENT_CURRENT('$OTTable'));
+   
+   DECLARE cursorColumns CURSOR FAST_FORWARD FOR SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, ORDINAL_POSITION, COLUMN_DEFAULT, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = @TableSchema AND TABLE_NAME = @TableName  ORDER BY 1;
+   OPEN cursorColumns;
+   FETCH NEXT FROM cursorColumns INTO @Name, @Type, @Length, @Position, @Default, @Nullable;
+   WHILE @@FETCH_STATUS = 0
+   BEGIN
+      SET @NullableBit = 0;
+      IF @Nullable = 'YES'
+         SET @NullableBit = 1;
+      INSERT INTO $O"TColumn" ( "TableK", "FName", "FType", "FSize", "FNullable" ) VALUES( @TableK, @Name, @Type, @Length, @NullableBit );
+      FETCH NEXT FROM cursorColumns INTO @Name, @Type, @Length, @Position, @Default, @Nullable;
+   END
+
+   CLOSE cursorColumns;
+   DEALLOCATE cursorColumns;
+   COMMIT TRAN AddDescriptionForTable;
+END
+            ]]></EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION='SELECT MAX("TableK") FROM $O"TTable"' />
+         </EDIT>
+         
+         
+      </ROWEDIT>
+   </QUERY>
+   
+   
+</SELECTION>

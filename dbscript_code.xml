@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SELECTION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="file:///C:/Program Files (x86)/Common Files/gorep/selection/select.xsd"
+           NAME="script for code tables"  DBID="CODE" DBSIMPLEID="CODE" OWNER="code." VERSION="1" LOWER="1">
+   <DATABASENAMES>
+      <NAME ID="CODE" NAME="code." />
+   </DATABASENAMES>
+   
+   <SCRIPTS>
+      <SCRIPT ID="idLogin" VERSION="0" DBVERSION="1" TYPE="login" LANGUAGE="LUA">
+         <CODE>
+            <![CDATA[
+function main()
+   local app = Application.new()
+   local result = Result.new()
+   local alias = result:GetParam("alias", "guest")
+   
+   local user = app:GetUser( result:GetParam("user", ""), true )
+   if user == nil then
+      user = app:AddUser() 
+      user:SetName( alias )
+      user:LoadQueries()
+   end
+end
+main()         
+         ]]>
+         </CODE>
+      </SCRIPT>
+   </SCRIPTS>   
+   
+   <INTELLISENSES>
+      <INTELLISENSE ID="thread_name" TABLE="C1" SQL="SELECT TOP 20 _c.FName FROM $OTCode _c JOIN $Othread_header _th ON _c.CodeK = _th.FThreadId WHERE _c.FName like '{{=this}}%' ORDER BY 1" MASK="V" DESCRIPTION="Thread name" />
+   </INTELLISENSES>
+   
+   <CACHE ID="yes_no">
+      <PAIR KEY="0" VALUE="NO" />
+      <PAIR KEY="1" VALUE="YES" />
+   </CACHE>
+   
+<!-- group table, group codes -->   
+   <TABLETEMPLATE ID="code.group">
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" DISPLAY="0" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLabel" ALIAS="Label" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FTable" ALIAS="Table" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FMainTable" ALIAS="Main table" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FSchema" ALIAS="Schema" TYPE="STR" CONDITION="1" />
+      <FIELD ID="Count" NAME="GroupK" ALIAS="Count code" SIMPLENAME="Code count for code group" TYPE="INT" CONDITION="expression" DESCRIPTION="Number of codes connected to code group">
+         <EXPRESSION>(SELECT COUNT(*) FROM $OTCode _c WHERE _c.GroupK=$T.GroupK)</EXPRESSION>
+      </FIELD>
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" DESCRIPTION="Code group name, ofthen same as column name with codes for this code group" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="250" DESCRIPTION="Describe code" />
+      <EDIT NAME="FLabel" ALIAS="Label" TYPE="STR" MAX="100" DESCRIPTION="Can be used as a label in application" />
+      <EDIT NAME="FTable" ALIAS="Table" TYPE="STR" MAX="200" DESCRIPTION="Table or tables code belongs to" />
+      <EDIT NAME="FMainTable" ALIAS="Main" TYPE="STR" MAX="200" DESCRIPTION="Table name code belongs to" />
+      <EDIT NAME="FSchema" ALIAS="Schema" TYPE="STR" MAX="50" DESCRIPTION="Schema name for table" />
+   </TABLETEMPLATE>
+   
+<!-- TPropertyKey, define properties for specific code group -->
+   <TABLETEMPLATE ID="code.propertykey">
+      <FIELD NAME="GroupK" ALIAS="GroupK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FKey" ALIAS="FKey" TYPE="STR" CONDITION="1" DESCRIPTION="fixed property name for specified group" />
+      <FIELD NAME="FDescription" ALIAS="FDescription" TYPE="STR" CONDITION="1" DISPLAY="0"  />
+      <EDIT NAME="FKey" ALIAS="Key" TYPE="STR" MAX="100" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="code.basecode">
+      <FIELD NAME="GroupK" ALIAS="GroupK" TYPE="I4" CONDITION="1">
+         <EXPRESSION>( SELECT _g.FName FROM $OTGroup _g WHERE _g.GroupK=$T.GroupK )</EXPRESSION>
+         <LOOKUP CACHE="code.group" >SELECT GroupK, FName FROM $OTGroup ORDER BY FName</LOOKUP>         
+      </FIELD>
+      <FIELD NAME="CreatedD" ALIAS="CreatedD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreatedD" SIMPLENAME="~TBaseCodeCreatedD CreatedD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TBaseCodeUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FId" ALIAS="FId" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="FName" TYPE="STR" CONDITION="1" DISPLAY="0" />
+      <FIELD NAME="FDescription" ALIAS="FDescription" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FIdle" ALIAS="FIdle" TYPE="BOOLEAN" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="FDeleted" TYPE="BOOLEAN" CONDITION="1" />
+
+      <EDIT NAME="GroupK" ALIAS="GroupK" TYPE="I4" NULL="0" DEFAULT="0" />
+      <EDIT NAME="CreatedD" ALIAS="CreatedD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="FId" ALIAS="FId" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="FName" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FDescription" ALIAS="FDescription" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FIdle" ALIAS="FIdle" TYPE="BOOLEAN" />
+      <EDIT NAME="FDeleted" ALIAS="FDeleted" TYPE="BOOLEAN" />
+   </TABLETEMPLATE>   
+   
+<!-- TCode, code is used to handle lookup names and data to table records -->
+   <TABLETEMPLATE ID="code.code">
+      <FIELD NAME="CodeK" ALIAS="CodeK" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="GroupK" ALIAS="GroupK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="BaseCodeK" ALIAS="Bade code" TYPE="I4" CONDITION="1">
+         <EXPRESSION>( SELECT _b.FName FROM $OTBaseCode _b WHERE _b.BaseCodeK=$T.BaseCodeK )</EXPRESSION>
+         <LOOKUP CACHE="code.group" >SELECT BaseCodeK, FName FROM $OTBaseCode ORDER BY FName</LOOKUP>         
+      </FIELD>
+      <FIELD ID="List.GroupK" NAME="GroupK" ALIAS="Group name" TYPE="INT" CONDITION="1" EDIT="1" DISPLAYTYPE="STR" DESCRIPTION="Group name">
+         <EXPRESSION>(SELECT _t.FName FROM $OTGroup _t WHERE _t.GroupK=$T.GroupK)</EXPRESSION>
+         <LOOKUP CACHE="code.group" >SELECT GroupK, FName FROM $OTGroup ORDER BY FName</LOOKUP>
+         <LOOKUPEDIT>SELECT GroupK, FName FROM $OTGroup ORDER BY FName</LOOKUPEDIT>
+      </FIELD>
+      <FIELD NAME="SuperK" ALIAS="Parent project" TYPE="I4" DISPLAYTYPE="STR">
+         <EXPRESSION>(SELECT _c.FName FROM $OTCode _c WHERE _c.CodeK=$T.SuperK)</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="SuperK" SIMPLENAME="Parent project" TYPE="STR" NOMERGE="1" NOVALUE="1">
+         <EXPRESSION>$T.SuperK IN (SELECT _c.CodeK FROM $OTCode _c WHERE _c.FName $_condition)</EXPRESSION>
+      </CONDITION>
+      <FIELD ID="Path" NAME="FPath" ALIAS="Path" TYPE="STR" DESCRIPTION="View path for making it simple to render code tree">
+         <EXPRESSION>(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=$T.CodeK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="Path" NAME="FPath" SIMPLENAME="Path" TYPE="INT">
+         <EXPRESSION></EXPRESSION>
+         <LOOKUP>SELECT _c.CodeK, (SELECT _g.FName FROM $OTGroup _g WHERE _g.GroupK = _c.GroupK) + ': ' + _c.FName FROM $OTCode _c WHERE _c.CodeK IN (SELECT _c_find.SuperK FROM $OTCode _c_find WHERE _c_find.SuperK IS NOT NULL)</LOOKUP>
+      </CONDITION>
+      <FIELD ID="Depth" NAME="FDepth" ALIAS="Depth" TYPE="STR" CONDITION="expression" DESCRIPTION="The depth in tree code is located at">
+         <EXPRESSION>(SELECT _t.FDepth FROM $Othread _t WHERE _t.FKey=$T.CodeK)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="ThreadNumber" NAME="CodeK" ALIAS="Thread ID" TYPE="INT" CONDITION="expression" DESCRIPTION="The thread number, same as key to root code">
+         <EXPRESSION>(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId JOIN WHERE _t.FKey=$T.CodeK)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="ThreadName" NAME="CodeK" ALIAS="Thread Name" TYPE="STR" CONDITION="expression" INTELLISENSE="thread_name" DESCRIPTION="The thread name, same as code name to root code">
+         <EXPRESSION>(SELECT _c.FName FROM $OTCode _c JOIN $Othread_header _th ON _c.CodeK = _th.FThreadId JOIN $Othread _t ON _th.FThreadId = _t.FThreadId WHERE _t.FKey=$T.CodeK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="CreatedD" ALIAS="Created" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreatedD" SIMPLENAME="~TCodeCreatedD CreatedD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TCodeUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FId" ALIAS="FId" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" DISPLAY="0" />
+      <FIELD NAME="FSystemName" ALIAS="System" TYPE="STR" CONDITION="1" />
+      <!-- 
+      <FIELD ID="Indent.FName" NAME="FName" ALIAS="Indented Name" CONDITION="1" TYPE="STR" DESCRIPTION="Indent code name dependent on the number of parents">
+         <EXPRESSION>(REPLICATE('+ ', COALESCE( (SELECT _t.FDepth FROM $Othread _t WHERE _t.FKey=$T.CodeK), 0 ) ) + $T.FName)</EXPRESSION>
+      </FIELD>
+      -->
+      <FIELD NAME="FAbbreviation" ALIAS="Abbreviation" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FRank" ALIAS="Rank" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="FIdle" ALIAS="Idle" TYPE="BOOLEAN" CONDITION="1" />
+      <FIELD NAME="FDefault" ALIAS="Default" TYPE="BOOLEAN" CONDITION="1">
+         <EXPRESSION>CASE WHEN $T.$F = 0 THEN 'NO' ELSE 'YES' END</EXPRESSION>
+         <LOOKUP CACHE="yes_no" />
+      </FIELD>
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="BOOLEAN" CONDITION="1" />
+      <FIELD NAME="type" ALIAS="type" TYPE="INT" CONDITION="1">
+         <EXPRESSION>( SELECT _t."name" FROM $Otype _t WHERE _t."number"=$T.type)</EXPRESSION>
+         <LOOKUP CACHE="code.type" >SELECT "number", "name" FROM $Otype ORDER BY "name"</LOOKUP>         
+      </FIELD>
+      
+
+      <FIELD NAME="FInteger0" ALIAS="Integer 0" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="FInteger1" ALIAS="Integer 1" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="FNumber0" ALIAS="Number 0" TYPE="R8" CONDITION="1" />
+      <FIELD NAME="FText0" ALIAS="Text 0" TYPE="STR" CONDITION="1" />
+
+      
+      <EDIT NAME="SuperK" ALIAS="Super" TYPE="INT" />
+      <EDIT NAME="BaseCodeK" ALIAS="Base code" TYPE="INT" />
+      <EDIT NAME="CreatedD" ALIAS="Created" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" />
+      <EDIT NAME="FId" ALIAS="FId" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FSystemName" ALIAS="System" TYPE="STR" MAX="50" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FAbbreviation" ALIAS="Abbreviation" TYPE="STR" MAX="100" DESCRIPTION="Short name for code, used in breadbrumbs" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="250" />
+      <EDIT NAME="FRank" ALIAS="Rank" TYPE="INT" />
+      <EDIT NAME="FIdle" ALIAS="Idle" TYPE="BOOLEAN" />
+      <EDIT NAME="FDefault" ALIAS="Default" TYPE="BOOLEAN">
+         <EXPRESSION>CASE WHEN $T.$F = 0 THEN 'NO' ELSE 'YES' END</EXPRESSION>
+         <LOOKUP CACHE="yes_no" />
+      </EDIT>
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="BOOLEAN" />
+      <EDIT NAME="FInteger0" ALIAS="Integer 0" TYPE="INT" />
+      <EDIT NAME="FInteger1" ALIAS="Integer 1" TYPE="INT" />
+      <EDIT NAME="FNumber0" ALIAS="Number 0" TYPE="R8" />
+      <EDIT NAME="FText0" ALIAS="Text 0" TYPE="STR" MAX="100" />
+      <EDIT NAME="type" ALIAS="Type" TYPE="INT">
+         <LOOKUP CACHE="code.type.edit">SELECT "number", "name" FROM $Otype ORDER BY "name"</LOOKUP>
+      </EDIT>
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="code.property">
+      <FIELD NAME="PropertyK" ALIAS="PropertyK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CodeK" ALIAS="CodeK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FKey" ALIAS="FKey" TYPE="STR" CONDITION="1" DISPLAY="0" />
+      <FIELD NAME="FValue" ALIAS="FValue" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="FDescription" TYPE="STR" CONDITION="1" />
+      <EDIT NAME="FKey" ALIAS="Key" TYPE="STR" MAX="100" />
+      <EDIT NAME="FValue" ALIAS="Value" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="code.closure">
+      <FIELD NAME="Ancestor" ALIAS="Ancestor" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="Descendant" ALIAS="Descendant" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="Depth" ALIAS="Depth" TYPE="INT" CONDITION="1" />
+
+      <EDIT NAME="Ancestor" ALIAS="Ancestor" TYPE="INT" NULL="0" DEFAULT="0" />
+      <EDIT NAME="Descendant" ALIAS="Descendant" TYPE="INT" NULL="0" DEFAULT="0" />
+      <EDIT NAME="Depth" ALIAS="Depth" TYPE="INT" NULL="0" DEFAULT="0" />
+   </TABLETEMPLATE>
+
+   <TABLE PREFIX="TGroup1" NAME="TGroup" SIMPLENAME="~TGroup Group" DESCRIPTION="Code groups codes are attached to">
+      <FIELD NAME="GroupK" ALIAS="GroupK" TYPE="I4" CONDITION="1" EDIT="1" KEY="1" />
+      <USETABLETEMPLATE ID="code.group" />
+   </TABLE>
+   
+   <TABLE PREFIX="TPropertyKey1" NAME="TPropertyKey" ALIAS="TPropertyKey1" PARENT="TGroup1" SIMPLENAME="Code property" DESCRIPTION="Property key table is used to specify valid properties for code">
+      <JOIN TYPE="inner">$parent.GroupK=$this.GroupK</JOIN>
+      <FIELD NAME="PropertyKeyK" ALIAS="PropertyKeyK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="code.propertykey" />
+   </TABLE>
+   
+   <TABLE PREFIX="TBaseCode1" NAME="TBaseCode" ALIAS="TBaseCode1" SIMPLENAME="~TBaseCode Base code" PARENT="TGroup1" DESCRIPTION="Base code can be used to connect codes with similar meaning">
+      <JOIN TYPE="inner">$parent.GroupK=$this.GroupK</JOIN>
+      <FIELD NAME="BaseCodeK" ALIAS="BaseCodeK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="code.basecode" />
+   </TABLE>
+   
+   
+   <TABLE PREFIX="TCode1" NAME="TCode" ALIAS="TCode1" SIMPLENAME="~TCode Code" PARENT="TGroup1">
+      <JOIN TYPE="inner">$parent.GroupK=$this.GroupK</JOIN>
+      <FIELD NAME="CodeK" ALIAS="CodeK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="code.code" />
+   </TABLE>
+   
+   <TABLE PREFIX="TProperty1" NAME="TProperty" ALIAS="TProperty1" SIMPLENAME="~TProperty Code property" PARENT="TCode1">
+      <JOIN TYPE="inner">$parent.CodeK=$this.CodeK</JOIN>
+      <FIELD NAME="PropertyK" ALIAS="PropertyK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="code.property" />
+   </TABLE>
+   
+   <TABLE PREFIX="closure1" NAME="closure" ALIAS="closure" SIMPLENAME="~closure Code closure" PARENT="TCode1">
+      <JOIN TYPE="inner">$parent.Code1=$this.Ancestor</JOIN>
+      <USETABLETEMPLATE ID="code.closure" />
+   </TABLE>   
+   
+</SELECTION>

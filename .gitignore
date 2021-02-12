@@ -1,0 +1,7 @@
+*.sln
+*.sublime*
+*.json
+.vs/
+systems/
+test/
+

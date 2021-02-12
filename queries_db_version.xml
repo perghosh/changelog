@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+   <QUERY ID="filter" KEY="1F5D4425392F4958BF5E0266EB1F5F6F">
+      <ATTRIBUTE NAME="ALL-FILTER">1</ATTRIBUTE>
+      <FIELD ID="TSystemVersion1SystemVersionK" ALIAS="ID (System version)" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FName" ALIAS="Name" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FDescription" ALIAS="Description" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FVersion1" ALIAS="Version major" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FVersion2" ALIAS="Version minor" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FVersion3" ALIAS="Version patch" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1Name.SystemK" ALIAS="System name" TABLE="TSystemVersion1"/>
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="TSystemVersion1NameList.SystemK" TABLE="TSystemVersion1"  />
+         <SELECTCONDITION ID="TSystemVersion1FVersion1" TABLE="TSystemVersion1"  />
+         <SELECTCONDITION ID="TSystemVersion1FVersion2" TABLE="TSystemVersion1"  />
+         <SELECTCONDITION ID="TSystemVersion1FVersion3" TABLE="TSystemVersion1"  />
+      </SELECTCONDITIONS>      
+   </QUERY>
+
+   <QUERY ID="Version" KEY="8FEA698BAD53134BAD7DAC24133F9526">
+      <FIELD ID="TSystemVersion1SystemVersionK" ALIAS="ID (System version)" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FName" ALIAS="Name" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FDescription" ALIAS="Description" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FVersion1" ALIAS="Version major" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FVersion2" ALIAS="Version minor" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FVersion3" ALIAS="Version patch" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1Name.SystemK" ALIAS="System name" TABLE="TSystemVersion1"/>
+      <CONDITION ID="TSystemVersion1FReleased" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      <CONDITION ID="TSystemVersion1FDeleted" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      <CONDITIONS ID="Active versions" SELECTED="1">
+         <CONDITION ID="TSystemVersion1FReleased" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+         <CONDITION ID="TSystemVersion1FDeleted" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="All versions">
+         <CONDITION ID="TSystemVersion1FDeleted" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      </CONDITIONS>
+      <AGGREGATES>
+         <AGGREGATE NAME="Version" TYPENAME="query" KEY="5510bb45-b333-4a15-8498-a0577841c9e7"
+                    ALL-ROWCOUNT="10"
+                    OUTPUT-ORDER="10" OUTPUT-SIZE="[0,100]" OUTPUT-SELECT="1">
+         </AGGREGATE>
+      </AGGREGATES>
+   </QUERY>
+   <QUERY ID="Changelog" KEY="2AC749C19C8F7049BD8E16091EB40214">
+      <FIELD ID="TSystem1ShortName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="VChangelog1TypeC" ALIAS="Type" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FDescription" ALIAS="Description" TABLE="VChangelog1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="VChangelog1CreateD" ALIAS="Create" TABLE="VChangelog1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="VChangelog1FVersion1" ALIAS="Major" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FVersion2" ALIAS="Minor" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FVersion3" ALIAS="Patch" TABLE="VChangelog1"/>
+      <AGGREGATES>
+         <AGGREGATE NAME="Changelog" TYPENAME="query" KEY="fbc7bfcf-24ce-4fe4-afc8-c38495344602"
+                    ALL-ROWCOUNT="10"
+                    OUTPUT-ORDER="20" OUTPUT-SIZE="[0,100]" OUTPUT-SELECT="1">
+         </AGGREGATE>
+      </AGGREGATES>
+   </QUERY>
+  
+</SELECTION>

@@ -1,0 +1,2713 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Jump to: 
+"Activities: Connect to Version", "Activities for System", "Activity: Remarks", "Activities: for requests",
+"Activities: for Project 2",
+"Article: Add book pages",
+"Books",
+"Customer", 
+"Edit requests for system",
+"Goals",
+"Presentation: User"
+"Projects: Connect to Version", "System: tree",
+"Requests"
+"Todolist: Connect activity"
+-->
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+   
+   <QUERY ID="Activities: Todo" DESCRIPTION="List activities that you need to do" KEY="A8AC9AC6698F874F83ED1AC9B2828D34">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Activities,20</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TSystem1FName-Lookup" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="TActivity2FBeginDFixed" ALIAS="Start" TABLE="TActivity2" DESCRIPTION="" />
+      <FIELD ID="TActivity2FDescription" ALIAS="Desc." TABLE="TActivity2" DESCRIPTION="Activity description" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;" 
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2PriorityC" ALIAS="Priority" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2UserK" ALIAS="User" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2FDone" ALIAS="Closed" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TActivity2FBeginDFixed" INDEX="2" DESC="1" SQL="TActivity2.FBeginD" />
+      <ORDERS NAME="Priority">
+         <ORDER FIELD="TActivity2PriorityC" DESC="1" SQL="(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)" />
+      </ORDERS>
+      <ORDERS NAME="Newest">
+         <ORDER FIELD="TActivity2FBeginDFixed" INDEX="2" DESC="1" SQL="TActivity2.FBeginD" />
+      </ORDERS>
+      <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <CONDITIONS ID="Select filter!" SELECTED="1">
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Not completed activites">
+         <CONDITION ID="TActivity2StateC" TABLE="TActivity2" OPERATORNAME="NOTEQUAL" VALUE="55" />
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      </CONDITIONS>
+   </QUERY>
+
+   <QUERY ID="Activities: Connect to Version" KEY="CA5A5A05098B4040A109E080F3778F10" DESCRIPTION="Connect activities to selection version, only unreleased versions are shown">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Activities,20</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1"/>
+      <FIELD ID="TActivity2VersionName" ALIAS="Version" TABLE="TActivity2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(0 AS INT) AS SystemVersionK, '_ no version _' AS FName UNION ALL SELECT t.SystemVersionK, (SELECT s.FName FROM $OTSystem s WHERE s.SystemK=t.SystemK LIMIT 1) + ', ' + CAST(t.FVersion1 AS VARCHAR(5)) + ':' + CAST(t.FVersion2 AS VARCHAR(5)) + ':' + CAST(t.FVersion3 AS VARCHAR(5)) FROM $OTSystemVersion t WHERE t.FDeleted = 0 AND t.FReleased=0 ORDER BY 2 DESC" />
+         <EDIT>
+DECLARE @iVersion INT = {{=TActivity2VersionName}}
+DELETE FROM $OTrSystemVersionXActivity WHERE ActivityK = ${@TActivity2ActivityK} -- delete if activity is already connected
+IF @iVersion IS NOT NULL OR @iVersion &gt; 0
+   INSERT INTO $OTrSystemVersionXActivity(SystemVersionK,ActivityK,TargetC,ImpactC) VALUES( @iVersion, ${@TActivity2ActivityK},0,0)
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2" FORMAT="CASE WHEN LENGTH($T.$F) &gt; 80 THEN CAST( $T.$F AS VARCHAR( 80 ) ) || '...' ELSE $T.$F END" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TActivity2CreateD" ALIAS="Created" TABLE="TActivity2" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      <CONDITIONS ID="Select filter!" SELECTED="1">
+         <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      </CONDITIONS>
+      <CONDITIONS ID="Active">
+         <CONDITION ID="TActivity2StateC" TABLE="TActivity2" OPERATORNAME="EQUAL" VALUE="54" />
+      </CONDITIONS>
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.UpdateD" />
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.UpdateD" />
+      </ORDERS>
+   </QUERY>
+   
+   <QUERY ID="Activity: Remarks" DESCRIPTION="Comments for activities" KEY="3A3CCA0F5329204FA828CFF0730FDF5E">
+      <FIELD ID="TActivityRemark2ActivityRemarkK" ALIAS="ID (Remark)" TABLE="TActivityRemark2"/>
+      <FIELD ID="TActivityRemark2TypeC" ALIAS="Type" TABLE="TActivityRemark2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivityRemark2FRemark" ALIAS="Remark" TABLE="TActivityRemark2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 2px;max-width: 1000px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <ROWEDIT>
+         <EDIT NAME="new_activityremark" SIMPLE="Remark" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivityRemark
+DECLARE @iActivity BIGINT = {{==ActivityK}};
+DECLARE @iUser INT = {=UserK};
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+INSERT INTO $OTActivityRemark (ActivityK,TypeC,FRemark,UserK,UpdateD) 
+VALUES(@iActivity,{=TypeC"0"},{=FRemark},@iUser,GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivityRemark')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+   <QUERY ID="Activities: for requests" DESCRIPTION="Activities connected to requests" KEY="E5310AF760F09748BB7A760B4588399A" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TActivity1ActivityK" ALIAS="ID" TABLE="TActivity1"/>
+      <FIELD ID="TActivity1FDescription" ALIAS="Description" TABLE="TActivity1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TActivity1TypeC" ALIAS="Type" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity1StateC" ALIAS="State" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity1UserK" ALIAS="User" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity1FBeginD" ALIAS="Start" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity1ParentK-SystemK" ALIAS="System" TABLE="TActivity1" FIELDFLAGNAMES="edit"/>
+      <ORDER FIELD="TActivity1ActivityK" INDEX="0" DESC="1" SQL="TActivity1.UpdateD" />
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity1ActivityK" INDEX="0" DESC="1" SQL="TActivity1.UpdateD" />
+      </ORDERS>
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivity
+DECLARE @iSystemRequest INT = {{==SystemRequestK}};
+DECLARE @iSystem INT = (SELECT SystemK FROM $OTSystemRequest WHERE SystemRequestK = @iSystemRequest); -- get system
+DECLARE @iUser INT = {=UserK};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FDescription},{=TypeC"0"},{=StateC"0"},0,0,@iUser,@dateBegin,GETDATE(),GETDATE(),@iSystem,@iTable);
+
+-- # Add relation between system request and activity
+DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+INSERT INTO $OTrSystemRequestXActivity VALUES({{=SystemRequestK}},@iActivity);
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+<!--
+ | Activity connected to article, may be used to work with specifications that is changing.
+ | Activity is connected firstly to TSystem and TrArticleXActivity. 
+ -->
+   <QUERY ID="Activities for article" DESCRIPTION="Activities connected to article" KEY="55B09801F3984917B4F141F6322F944F">
+      <FIELD ID="TActivity9ActivityK" ALIAS="ID" TABLE="TActivity9"/>
+      <FIELD ID="TActivity9FDescription" ALIAS="Description" TABLE="TActivity9" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TActivity9TypeC" ALIAS="Type" TABLE="TActivity9" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity9StateC" ALIAS="State" TABLE="TActivity9" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity9UserK" ALIAS="User" TABLE="TActivity9" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity9FBeginD" ALIAS="Start" TABLE="TActivity9" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TActivity9ActivityK" INDEX="0" DESC="1" SQL="TActivity9.UpdateD" />
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity9ActivityK" INDEX="0" DESC="1" SQL="TActivity9.UpdateD" />
+      </ORDERS>
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivity
+DECLARE @iArticle BIGINT = {{==ArticleK}};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @iSystem INT = (SELECT ParentK FROM $OTArticle WHERE ArticleK = @iArticle AND table_number = @iTable); -- get system
+DECLARE @iUser INT = {=UserK};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FDescription},{=TypeC"0"},{=StateC"0"},0,0,@iUser,@dateBegin,GETDATE(),GETDATE(),@iSystem,@iTable);
+
+-- # Add relation between activity and article
+DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+INSERT INTO $OTrArticleXActivity VALUES(@iArticle,@iActivity);
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   
+   
+   <QUERY ID="Activities connected to requests" DESCRIPTION="Activities connected to requests" KEY="8C85672673CD4721AE38639DBE3B2290">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TActivity1ActivityK" ALIAS="ID" TABLE="TActivity1"/>
+      <FIELD ID="TActivity1FDescription" ALIAS="Description" TABLE="TActivity1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TActivity1TypeC" ALIAS="Type" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity1StateC" ALIAS="State" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity1UserK" ALIAS="User" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity1FBeginD" ALIAS="Start" TABLE="TActivity1" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TActivity1ActivityK" INDEX="0" DESC="1" SQL="TActivity1.UpdateD" />
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity1ActivityK" INDEX="0" DESC="1" SQL="TActivity1.UpdateD" />
+      </ORDERS>
+   </QUERY>
+   
+   
+   <QUERY ID="Activities: for Project" DESCRIPTION="Activities connected to system" KEY="2E8B763EB13048F4A97AF48049F9E2D4" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TActivity4ActivityK" ALIAS="ID" TABLE="TActivity4"/>
+      <FIELD ID="TActivity4FDescription" ALIAS="Description" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4TypeC" ALIAS="Type" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4StateC" ALIAS="State" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4UserK" ALIAS="User" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1" />
+      <FIELD ID="TActivity4FDone" ALIAS="Closed" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TActivity4FDone" TABLE="TActivity4" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <CONDITION ID="TActivity4FDeleted" TABLE="TActivity4" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.UpdateD" />
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.UpdateD" />
+      </ORDERS>
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivity
+DECLARE @iSystem INT = {=SystemK};
+DECLARE @iProject INT = {=ProjectK};
+DECLARE @iUser INT = {=UserK};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FDescription},{=TypeC"0"},{=StateC"0"},0,0,@iUser,@dateBegin,GETDATE(),GETDATE(),@iSystem,@iTable);
+
+IF @iProject IS NOT NULL
+BEGIN
+   DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+   INSERT INTO $OTrProjectXActivity(ProjectK, ActivityK) VALUES( @iProject, @iActivity )
+END
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Activities: for Project 2" DESCRIPTION="Activities connected to project" KEY="8E433F88556C4F3EA0C41370263DB9A2" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|20</ATTRIBUTE>
+      <FIELD ID="TActivity4ActivityK" ALIAS="ID" TABLE="TActivity4"/>
+      <FIELD ID="TActivity4TypeC" ALIAS="Type" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4StateC" ALIAS="State" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4FDescription" ALIAS="Description" TABLE="TActivity4" FIELDFLAGNAMES="edit">
+         <EDIT>{"update":"DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE \"name\" = 'TActivity');\nDECLARE @iActivity BIGINT = ${@TActivity4ActivityK}\nDECLARE @sDescription NVARCHAR(1000) = {=TActivity4FDescription}\n\nDELETE FROM $OTrXBadge WHERE ParentK = @iActivity AND table_number = @iTable\n\nIF LENGTH( @sDescription ) &gt; 2\nBEGIN\n-- Add missing hashtags to Badge table\n   INSERT INTO $OTBadge (FName)\n   SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName\n   WHERE _b.FName IS NULL   \n\n-- Connect hashtags to Activity record\n   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)\n   SELECT @iActivity, @iTable, _b.BadgeK\n   FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag\nEND\n","formula":"1"}</EDIT>
+      </FIELD>
+      <FIELD ID="TActivity4Note" ALIAS="Documentation" TABLE="TActivity4" FIELDFLAGNAMES="edit">
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity4ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity4ActivityK},@iTable)
+
+UPDATE $OTNote SET FNote={=TActivity4Note} WHERE RecordK=${@TActivity4ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity4UserK" ALIAS="User" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4FBeginD" ALIAS="Start" TABLE="TActivity4" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TActivity4FDone" ALIAS="Closed" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4ParentK" ALIAS="System" TABLE="TActivity4" FIELDFLAGNAMES="edit, sql_format" FORMAT="(SELECT _s.FName FROM $OTSystem _s WHERE _s.SystemK=$T.ParentK AND $T.table_number=1010)">
+         <ATTRIBUTES SERVER-LIST="SELECT _s.SystemK AS SystemK, _s.FName AS FName FROM $OTSystem _s WHERE _s.SystemK IN (SELECT _t.FKey FROM $Othread _t WHERE _t.FThreadId = (SELECT _t1.FThreadId FROM $Othread _t1 WHERE _t1.FKey = (SELECT _p.ParentK FROM $OTProject _p WHERE ProjectK={{=TProject1ProjectK}}) AND _t1.table_number=1010) LIMIT 1) ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="TActivity4FSort" ALIAS="Sort" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TActivity4FDeleted" TABLE="TActivity4" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.CreateD" />
+      <ORDERS NAME="Last created">
+         <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.CreateD" />
+      </ORDERS>
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.UpdateD" />
+      </ORDERS>
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Foreign keys
+DECLARE @iParent INT = {=ParentK};
+DECLARE @iSystem INT = {=SystemK};
+DECLARE @sDescription NVARCHAR(1000) = {=FDescription};
+DECLARE @iProject INT = {=ProjectK};
+DECLARE @iUser INT = {=UserK};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+
+IF @iParent IS NOT NULL AND @iParent &lt;&gt; 0
+   SET @iSystem = @iParent
+
+IF @iSystem IS NULL
+   SET @iSystem = (SELECT ParentK FROM $OTProject WHERE ProjectK = @iProject AND table_number=1010)
+   
+   
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+                  
+-- # Add record to TActivity, main connection is TSystem
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,FSort,CreateD,UpdateD,ParentK,table_number) 
+VALUES(@sDescription,{=TypeC"0"},{=StateC"0"},0,0,@iUser,@dateBegin,{=FSort"0"},GETDATE(),GETDATE(),@iSystem,@iTable);
+
+IF @iProject IS NOT NULL
+BEGIN
+   DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+   INSERT INTO $OTrProjectXActivity(ProjectK, ActivityK) VALUES( @iProject, @iActivity )
+   
+   DECLARE @iTableActivity INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+   INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES(@iActivity,@iTableActivity,{=TActivity4Note})
+END
+
+IF LEN( @sDescription ) &gt; 2
+BEGIN
+   SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+
+   -- Add missing hashtags to Badge table
+   INSERT INTO $OTBadge (FName)
+   SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName
+   WHERE _b.FName IS NULL   
+
+   -- Connect hashtags to Activity record
+   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)
+   SELECT @iActivity, @iTable, _b.BadgeK
+   FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag
+END
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Activities: for selected Project" DESCRIPTION="Activities connected to project" KEY="EA5ED8A1C4E443D893B666953D572CBF">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TActivity4ActivityK" ALIAS="ID" TABLE="TActivity4"/>
+      <FIELD ID="TActivity4TypeC" ALIAS="Type" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4StateC" ALIAS="State" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4FDescription" ALIAS="Description" TABLE="TActivity4" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 2px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />         
+      </FIELD>
+      <FIELD ID="TActivity4Note" ALIAS="Docs" TABLE="TActivity4" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 50px;"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity4ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity4ActivityK},@iTable)
+   
+UPDATE $OTNote SET FNote={=TActivity4Note} WHERE RecordK=${@TActivity4ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity4UserK" ALIAS="User" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4FDone" ALIAS="Closed" TABLE="TActivity4" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity4UpdateD" ALIAS="Updated" TABLE="TActivity4" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <CONDITION ID="TActivity4FDeleted" TABLE="TActivity4" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.CreateD" />
+      <ORDERS NAME="Last created">
+         <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.CreateD" />
+      </ORDERS>
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.UpdateD" />
+      </ORDERS>
+   </QUERY>
+   
+   <QUERY ID="Activities: thread" DESCRIPTION="Activities connected to system" KEY="4774E0E630204B6988EDF517243FAACE">
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID (Activity)" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2TypeC-Indent" ALIAS="Type" TABLE="TActivity2"/>
+   </QUERY>
+      
+   
+   <QUERY ID="Activities for System" DESCRIPTION="Activities connected to system" KEY="25CD6ED397DB44859FB0E18E78BB0FF4">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2TypeC-Indent" ALIAS="Type" TABLE="TActivity2" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2PriorityC" ALIAS="Priority" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 1px;max-width: 600px; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TActivity2ActivityK" ALIAS="Assig." TABLE="TActivity2" FORMAT="(SELECT _ar.FRemark FROM $OTActivityRemark _ar WHERE _ar.ActivityK=$T.ActivityK AND _ar.TypeC=125 LIMIT 1)" FIELDFLAGNAMES="sql_format">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|padding-left: 50px;"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TActivity2Note" ALIAS="Docs" TABLE="TActivity2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 50px;"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity2ActivityK},@iTable)
+   
+UPDATE $OTNote SET FNote={=TActivity2Note} WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity2FDone" ALIAS="Closed" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2CountRemark" ALIAS="N" TABLE="TActivity2" DESCRIPTION="Number of notes for Activity"/>
+      <FIELD ID="TActivity2FBeginD" ALIAS="Start" TABLE="TActivity2" DESCRIPTION="" />
+      <ORDER FIELD="TActivity2FBeginD" INDEX="9" DESC="1" />
+      <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+      <CONDITIONS ID="Select filter!" SELECTED="1">
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+      </CONDITIONS>
+      <CONDITIONS ID="High priority activities">
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+         <CONDITION ID="TActivity2PriorityC" TABLE="TActivity2" OPERATORNAME="GREATER" SIMPLEVALUE="Important" VALUE="4">
+            <EXPRESSION>(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)</EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Do now">
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+         <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+         <CONDITION ID="TActivity2PriorityC" TABLE="TActivity2" OPERATORNAME="GREATER" SIMPLEVALUE="Do now" VALUE="6">
+            <EXPRESSION>(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)</EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.UpdateD" />
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.FDone" />
+      <ORDERS NAME="Latest">
+         <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.UpdateD" />
+         <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.FDone" />
+      </ORDERS>
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="TActivityRemark2FRemark" TABLE="TActivityRemark2" />
+      </SELECTCONDITIONS>      
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "remark","title":"View comments", "icon": "fa-align-justify", "table":"TActivity2", "link": ["3A3CCA0F5329204FA828CFF0730FDF5Eresult"]},' .. 
+   '{"id": "remark","title":"Comments", "icon": "fa-edit", "table":"TActivity2", "link": ["3A3CCA0F5329204FA828CFF0730FDF5E"]},' .. 
+   '{"id": "activity_child","title":"Add activity sub", "icon": "fa-edit", "table":"TActivity2", "link": ["4BD466822F9549D1998B16C75DC0E92E"]},' .. 
+   '{"id": "activity","title":"Beam Activity", "icon": "fa-broadcast-tower", "table":"TActivity2", "link": ["C6E29A22AE72434B91FE66293CBB972F"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Remarks"  DESCRIPTION="Remarks" KEY="3A3CCA0F5329204FA828CFF0730FDF5E" EXPRESSION="SELECT _a.ActivityK value, 'ActivityK' AS name, ISNULL((SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=_a.TypeC),' - ') + ': ' + ISNULL(CASE WHEN LENGTH(FDescription) >= 30 THEN LEFT(FDescription, 28) + '...' ELSE FDescription END, ' - ') simple  FROM $OTActivity _a WHERE ActivityK={{==TActivity2}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Sub system"  DESCRIPTION="Sub activities to selected" KEY="4BD466822F9549D1998B16C75DC0E92E" EXPRESSION="SELECT ActivityK value, 'SuperK' AS name, LEFT( FDescription, 100 ) simple FROM $OTActivity WHERE ActivityK={{==TActivity2}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="200" OUTPUT-POSITION="left-bottom" />         
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="message" NAME="Activity" DESCRIPTION="Send acitivity key" KEY="C6E29A22AE72434B91FE66293CBB972F" EXPRESSION="SELECT _a.ActivityK value, 'ActivityK' AS name, ISNULL((SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=_a.TypeC),' - ') + ': ' + ISNULL(CASE WHEN LEN(FDescription) >= 30 THEN LEFT(FDescription, 28) + '...' ELSE FDescription END, ' - ') simple  FROM $OTActivity _a WHERE ActivityK={{==TActivity2}}">
+         <PROPERTIES OUTPUT-COMMAND="send key" />
+      </QUERYLINK>
+   </QUERY>
+
+   <QUERY ID="Activities: Reporting" KEY="41112C86D2354D46BAE1139909D8280A">
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID (Activity)" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2TypeC-Indent" ALIAS="Type" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2LevelC" ALIAS="Level" TABLE="TActivity2" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2FBeginD" ALIAS="Begin" TABLE="TActivity2" FORMAT="CONVERT(CHAR(10), $T.$F, 120)" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TActivity2Note" ALIAS="Docs" TABLE="TActivity2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 50px;"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" SQL="(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1110 WHERE _t.FKey=TActivity2.ActivityK AND _th.table_number=1110 LIMIT 1)" />
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" SQL="(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=TActivity2.ActivityK AND _t.table_number=1110 LIMIT 1)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TActivity2ActivityK" INDEX="0" SQL="(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1110 WHERE _t.FKey=TActivity2.ActivityK AND _th.table_number=1110 LIMIT 1)" />
+         <ORDER FIELD="TActivity2ActivityK" INDEX="0" SQL="(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=TActivity2.ActivityK AND _t.table_number=1110 LIMIT 1)" />
+      </ORDERS>
+
+   </QUERY>   
+   
+   <QUERY ID="Activities: for System" DESCRIPTION="Activities connected to system" KEY="E011E9977E314F43B719979473167221" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|20</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2LevelC" ALIAS="Level" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2FBeginD" ALIAS="Begin" TABLE="TActivity2" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format edit">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TActivity2FBeginD" ALIAS="Begin" TABLE="TActivity2" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format edit">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="file" />
+      </FIELD>
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2" FIELDFLAGNAMES="edit" DESCRIPTION="activity with hashtag logic">
+         <EDIT>
+{
+"update":"DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE \"name\" = 'TActivity');\nDECLARE @iActivity BIGINT = ${@TActivity2ActivityK}\nDECLARE @sDescription NVARCHAR(1000) = {=TActivity2FDescription}\n\nDELETE FROM $OTrXBadge WHERE ParentK = @iActivity AND table_number = @iTable\n\nIF LEN( @sDescription ) &gt; 2\nBEGIN\n-- Add missing hashtags to Badge table\n   INSERT INTO $OTBadge (FName)\n   SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName\n   WHERE _b.FName IS NULL   \n\n-- Connect hashtags to Activity record\n   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)\n   SELECT @iActivity, @iTable, _b.BadgeK\n   FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag\nEND\n",
+"formula":"1"
+}         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity2Note" ALIAS="Documentation" TABLE="TActivity2" FIELDFLAGNAMES="edit">
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity2ActivityK},@iTable)
+
+UPDATE $OTNote SET FNote={=TActivity2Note} WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity2PriorityC" ALIAS="Priority" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2FDone" ALIAS="Closed" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2UserK" ALIAS="User" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="CASE WHEN TActivity2.FBeginD IS NOT NULL THEN TActivity2.FBeginD ELSE TActivity2.CreateD END" />
+      <ORDERS NAME="Priority">
+         <ORDER FIELD="TActivity2PriorityC" DESC="1" SQL="(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)" />
+      </ORDERS>
+      <CONDITIONS ID="All Activities" />
+      <CONDITIONS ID="Documentation" SELECTED="1">
+         <CONDITION ID="TActivity2TypeC" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="Documentation" VALUE="3128" />
+      </CONDITIONS>
+      <CONDITIONS ID="High priority activities">
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+         <CONDITION ID="TActivity2PriorityC" TABLE="TActivity2" OPERATORNAME="GREATER" SIMPLEVALUE="Important" VALUE="4">
+            <EXPRESSION>(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)</EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Open Activities" SELECTED="1">
+         <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      </CONDITIONS>
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivity
+DECLARE @iSystem INT = {{=SystemK}};
+DECLARE @sDescription NVARCHAR(1000) = {=FDescription};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number) 
+VALUES(@sDescription,{=TypeC"0"},{=StateC"0"},0,0,{=UserK},@dateBegin,GETDATE(),GETDATE(),@iSystem,@iTable);
+
+DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES(@iActivity,@iTable,{=TActivity2Note})
+
+IF LEN( @sDescription ) &gt; 2
+BEGIN
+   SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+
+   -- Add missing hashtags to Badge table
+   INSERT INTO $OTBadge (FName)
+   SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName
+   WHERE _b.FName IS NULL   
+
+   -- Connect hashtags to Activity record
+   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)
+   SELECT @iActivity, @iTable, _b.BadgeK
+   FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag
+END
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+      </ROWEDIT>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Sub system"  DESCRIPTION="Sub activities to selected" KEY="4BD466822F9549D1998B16C75DC0E92E" EXPRESSION="SELECT ActivityK value, 'ActivityK' AS name, LEFT( FDescription, 100 ) simple FROM $OTActivity WHERE ActivityK={{==TActivity2}}" />
+   </QUERY>
+
+<!-- * Create and edit sub activities -->   
+   <QUERY ID="Activities: Add activity child" DESCRIPTION="Activities, for use when adding child activities" KEY="4BD466822F9549D1998B16C75DC0E92E" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|20</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2FBeginD" ALIAS="Begin" TABLE="TActivity2" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format edit">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2" FIELDFLAGNAMES="edit">
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+DECLARE @iActivity BIGINT = ${@TActivity2ActivityK}
+DECLARE @sDescription NVARCHAR(1000) = {=TActivity2FDescription}
+
+DELETE FROM $OTrXBadge WHERE ParentK = @iActivity AND table_number = @iTable
+
+IF LEN( @sDescription ) &gt; 2
+BEGIN
+-- Add missing hashtags to Badge table
+   INSERT INTO $OTBadge (FName)
+   SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName
+   WHERE _b.FName IS NULL   
+
+-- Connect hashtags to Activity record
+   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)
+   SELECT @iActivity, @iTable, _b.BadgeK
+   FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag
+END
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity2Note" ALIAS="Documentation" TABLE="TActivity2" FIELDFLAGNAMES="edit">
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity2ActivityK},@iTable)
+
+UPDATE $OTNote SET FNote={=TActivity2Note} WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity2PriorityC" ALIAS="Priority" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2FDone" ALIAS="Closed" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2UserK" ALIAS="User" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="CASE WHEN TActivity2.FBeginD IS NOT NULL THEN TActivity2.FBeginD ELSE TActivity2.CreateD END" />
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add sub activity record to parent TActivity
+DECLARE @iSuper INT = {{=SuperK}}
+IF @iSuper = 0 SET @iSuper = NULL
+
+DECLARE @iSystem INT = (SELECT ParentK FROM $OTActivity WHERE ActivityK = @iSuper);
+DECLARE @sDescription NVARCHAR(1000) = {=FDescription};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number,SuperK) 
+VALUES(@sDescription,{=TypeC"0"},{=StateC"0"},0,0,{=UserK},@dateBegin,GETDATE(),GETDATE(),@iSystem,@iTable,@iSuper);
+
+DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES(@iActivity,@iTable,{=TActivity2Note})
+
+IF LEN( @sDescription ) &gt; 2
+BEGIN
+   -- clear hashtags for Activity
+   SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+
+   -- Add missing hashtags to Badge table
+   INSERT INTO $OTBadge (FName)
+   SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName
+   WHERE _b.FName IS NULL   
+
+   -- Connect hashtags to Activity record
+   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)
+   SELECT @iActivity, @iTable, _b.BadgeK
+   FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag
+END
+
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+         <EDIT NAME="delete activity" SIMPLE="Delete Activity" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTActivity WHERE ActivityK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   
+   
+   <QUERY ID="Activities: for Customer" DESCRIPTION="Activities connected to customer" KEY="6CC3172D6ABA4A0DB1980E903B3154BB">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[50,200]|50</ATTRIBUTE>
+      <FIELD ID="TActivity6ActivityK" ALIAS="ID" TABLE="TActivity6"/>
+      <FIELD ID="TActivity6TypeC" ALIAS="Type" TABLE="TActivity6" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity6StateC" ALIAS="State" TABLE="TActivity6" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity6FBeginD" ALIAS="Begin" TABLE="TActivity6" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format edit">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TActivity6FDescription" ALIAS="Description" TABLE="TActivity6" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity6Note" ALIAS="Note" TABLE="TActivity6" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 50px;"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity6ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity6ActivityK},@iTable)
+
+UPDATE $OTNote SET FNote={=TActivity6Note} WHERE RecordK=${@TActivity6ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity6PriorityC" ALIAS="Priority" TABLE="TActivity6" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity6FDone" ALIAS="Closed" TABLE="TActivity6" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity6UserK" ALIAS="User" TABLE="TActivity6" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TActivity6FDone" TABLE="TActivity6" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <CONDITION ID="TActivity6FDeleted" TABLE="TActivity6" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity6ActivityK" INDEX="0" DESC="1" SQL="CASE WHEN TActivity6.FBeginD IS NOT NULL THEN TActivity6.FBeginD ELSE TActivity6.CreateD END" />
+      <ORDERS NAME="Priority">
+         <ORDER FIELD="TActivity6PriorityC" DESC="1" SQL="(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)" />
+      </ORDERS>
+      <CONDITIONS ID="All Activities" />
+      <CONDITIONS ID="Documentation" SELECTED="1">
+         <CONDITION ID="TActivity6TypeC" TABLE="TActivity6" OPERATOR="0" SIMPLEVALUE="Documentation" VALUE="3128" />
+      </CONDITIONS>
+      <CONDITIONS ID="High priority activities">
+         <CONDITION ID="TActivity6FDeleted" TABLE="TActivity6" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+         <CONDITION ID="TActivity6PriorityC" TABLE="TActivity6" OPERATORNAME="GREATER" SIMPLEVALUE="Important" VALUE="4">
+            <EXPRESSION>(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)</EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Open Activities" SELECTED="1">
+         <CONDITION ID="TActivity6FDone" TABLE="TActivity6" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      </CONDITIONS>
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivity
+DECLARE @iCustomer INT = {{=CustomerK}};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TCustomer');
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FDescription},{=TypeC"0"},{=StateC"0"},0,0,{=UserK},@dateBegin,GETDATE(),GETDATE(),@iCustomer,@iTable);
+
+DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES(@iActivity,@iTable,{=TActivity6Note})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Activities: for Sale" DESCRIPTION="Activities connected to sale" KEY="D1ED8FCC75B744C89D4E0286CDF35998" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|20</ATTRIBUTE>
+      <FIELD ID="TActivity7ActivityK" ALIAS="ID" TABLE="TActivity7"/>
+      <FIELD ID="TActivity7TypeC" ALIAS="Type" TABLE="TActivity7" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity7StateC" ALIAS="State" TABLE="TActivity7" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity7FBeginD" ALIAS="Begin" TABLE="TActivity7" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format edit">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TActivity7FDescription" ALIAS="Description" TABLE="TActivity7" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity7Note" ALIAS="Documentation" TABLE="TActivity7" FIELDFLAGNAMES="edit">
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity7ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity7ActivityK},@iTable)
+
+UPDATE $OTNote SET FNote={=TActivity7Note} WHERE RecordK=${@TActivity7ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity7PriorityC" ALIAS="Priority" TABLE="TActivity7" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity7FDone" ALIAS="Closed" TABLE="TActivity7" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity7UserK" ALIAS="User" TABLE="TActivity7" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TActivity7FDone" TABLE="TActivity7" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <CONDITION ID="TActivity7FDeleted" TABLE="TActivity7" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity7ActivityK" INDEX="0" DESC="1" SQL="CASE WHEN TActivity7.FBeginD IS NOT NULL THEN TActivity7.FBeginD ELSE TActivity7.CreateD END" />
+      <ORDERS NAME="Priority">
+         <ORDER FIELD="TActivity7PriorityC" DESC="1" SQL="(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)" />
+      </ORDERS>
+      <CONDITIONS ID="All Activities" />
+      <CONDITIONS ID="Documentation" SELECTED="1">
+         <CONDITION ID="TActivity7TypeC" TABLE="TActivity7" OPERATOR="0" SIMPLEVALUE="Documentation" VALUE="3128" />
+      </CONDITIONS>
+      <CONDITIONS ID="High priority activities">
+         <CONDITION ID="TActivity7FDeleted" TABLE="TActivity7" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" />
+         <CONDITION ID="TActivity7PriorityC" TABLE="TActivity7" OPERATORNAME="GREATER" SIMPLEVALUE="Important" VALUE="4">
+            <EXPRESSION>(SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)</EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Open Activities" SELECTED="1">
+         <CONDITION ID="TActivity7FDone" TABLE="TActivity7" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      </CONDITIONS>
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivity
+DECLARE @iSale INT = {{=SaleK}};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSale');
+INSERT INTO $OTActivity (FDescription,TypeC,StateC,ServiceC,AreaC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FDescription},{=TypeC"0"},{=StateC"0"},0,0,{=UserK},@dateBegin,GETDATE(),GETDATE(),@iSale,@iTable);
+
+DECLARE @iActivity BIGINT = (SELECT IDENT_CURRENT('$OTActivity'));
+SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES(@iActivity,@iTable,{=TActivity7Note})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTActivity')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>   
+   
+   
+   <QUERY ID="Article: Add book pages" FLAGS="1" KEY="536D18CD34572E4684CFC8E6FE3C06C0" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|20</ATTRIBUTE>
+      <FIELD ID="TArticle2ArticleK" ALIAS="ID" TABLE="TArticle2"/>
+      <FIELD ID="TArticle2FBrief" ALIAS="Brief" TABLE="TArticle2" FIELDFLAGNAMES="edit">
+         <EDIT>
+{
+"update":"DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE \"name\" = 'TArticle');\nDECLARE @iArticle INT = ${@TArticle2ArticleK}\nDECLARE @sBrief NVARCHAR(500) = {=TArticle2FBrief}\n\nDELETE FROM $OTrXBadge WHERE ParentK = @iArticle AND table_number = @iTable\n\nIF LEN( @sBrief ) &gt; 2\nBEGIN\n   INSERT INTO $OTBadge (FName)\n   SELECT tag FROM $OPullTagsFromText( @sBrief ) LEFT JOIN $OTBadge _b ON tag = _b.FName\n   WHERE _b.FName IS NULL   \n\n   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)\n   SELECT @iArticle, @iTable, _b.BadgeK\n   FROM $OTBadge _b JOIN $OPullTagsFromText( @sBrief ) ON _b.FName = tag\nEND",
+"formula":"1"
+}         </EDIT>
+      </FIELD>
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2FPage" ALIAS="Page" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2TargetC" ALIAS="Target" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2VersionName" ALIAS="Version" TABLE="TArticle2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(0 AS INT) AS SystemVersionK, '_ no version _' AS FName UNION ALL SELECT t.SystemVersionK, CAST(t.FVersion1 AS NVARCHAR(5)) + ':' + CAST(t.FVersion2 AS NVARCHAR(5)) + ':' + CAST(t.FVersion3 AS NVARCHAR(5)) + ' - ' + (SELECT s.FName FROM $OTSystem s WHERE s.SystemK=t.SystemK LIMIT 1) FROM $OTSystemVersion t WHERE t.FDeleted = 0 AND t.SystemK = (SELECT ParentK FROM $OTArticleBook WHERE ArticleBookK={==TArticleBook1ArticleBookK}) ORDER BY 2 DESC" />
+         <EDIT>
+DECLARE @iVersion INT = {{=TArticle2VersionName}}
+DELETE FROM $OTrSystemVersionXArticle WHERE ArticleK = ${@TArticle2ArticleK} -- delete if article is already connected
+IF @iVersion IS NOT NULL OR @iVersion &gt; 0
+   INSERT INTO $OTrSystemVersionXArticle(SystemVersionK,ArticleK,CreateD,UpdateD) VALUES( @iVersion, ${@TArticle2ArticleK},GETDATE(),GETDATE())
+         </EDIT>
+      </FIELD>
+      <ORDER INDEX="5" FIELD="TArticle2FPage" DESC="1" />
+      <ROWEDIT>
+         <EDIT NAME="new_activity" SIMPLE="Activities" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TArticle
+DECLARE @iBook INT = {{=ArticleBookK}};
+DECLARE @iSystem INT = (SELECT ParentK FROM $OTArticleBook WHERE ArticleBookK=@iBook)
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TArticleBook');
+DECLARE @sBrief NVARCHAR(500) = {=FBrief};
+DECLARE @iUser INT = {=UserK};
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+
+INSERT INTO $OTArticle(UserK,FBrief,FText,TypeC,LevelC,TargetC,StateC,LanguageC,FPage,CreateD,UpdateD,ParentK,table_number)
+VALUES(@iUser,@sBrief,{=FText},{=TypeC"0"},{=LevelC"0"},{=TargetC"0"},0,0,{=FPage"0"},GETDATE(),GETDATE(),@iSystem,1010)
+
+-- # Add relation between book and article
+DECLARE @iArticle INT = (SELECT IDENT_CURRENT('$OTArticle'));
+INSERT INTO $OTrArticleBookXArticle(ArticleBookK,ArticleK) VALUES(@iBook,@iArticle);
+
+IF LEN( @sBrief ) &gt; 2
+BEGIN
+   SET @iTable = (SELECT number FROM $Otable_number WHERE "name" = 'TArticle');
+
+   INSERT INTO $OTBadge (FName)
+   SELECT tag FROM $OPullTagsFromText( @sBrief ) LEFT JOIN $OTBadge _b ON tag = _b.FName
+   WHERE _b.FName IS NULL   
+
+   INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)
+   SELECT @iArticle, @iTable, _b.BadgeK
+   FROM $OTBadge _b JOIN $OPullTagsFromText( @sBrief ) ON _b.FName = tag
+END
+
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTArticle')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Article: Edit settings" KEY="AC8A9D401F89564EB220601C9ACA1B45" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TArticle2ArticleK" ALIAS="ID (Article)" TABLE="TArticle2"/>
+      <FIELD ID="TArticle2FBrief" ALIAS="Brief" TABLE="TArticle2" />
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2StateC" ALIAS="State" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2FDepreciated" ALIAS="Depreciated" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2FDeleted" ALIAS="Deleted" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2FPage" ALIAS="Page" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2" FORMAT="CASE WHEN LENGTH($T.$F) &gt; 50 THEN CAST( $T.$F AS VARCHAR( 48 ) ) || '...' ELSE $T.$F END" FIELDFLAGNAMES="sql_format" />
+   </QUERY>
+   
+
+   <QUERY ID="Book pages" KEY="AEA4B9753D454B6DAE0CDCE9922D6223">
+      <FIELD ID="TArticle2ArticleK" ALIAS="ID" TABLE="TArticle2"/>
+      <FIELD ID="TSystem1ShortName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="TArticle2FBrief" ALIAS="Brief" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="html|b|font-size:120%;" />
+      </FIELD>
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" />
+      <FIELD ID="TArticle2TargetC" ALIAS="Target" TABLE="TArticle2" />
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" />
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TArticle2FPage" ALIAS="Page" TABLE="TArticle2" />
+      <FIELD ID="TArticle2VersionNameMajor" ALIAS="Version" TABLE="TArticle2" />
+      <FIELD ID="TArticle2UpdateD" ALIAS="Updated" TABLE="TArticle2" FORMAT="CONVERT(VARCHAR, $T.$F, 12)" FIELDFLAGNAMES="sql_format" />
+      <ORDER FIELD="TArticle2FPage" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   if iKeyPressed == 0 then
+      R:SetValue('url','{"link": ["55B09801F3984917B4F141F6322F944Fresult"],"table":"TArticle2"}' )
+   else
+      R:SetValue('url','{"title":"Activity - Edit", "link": ["55B09801F3984917B4F141F6322F944F"],"table":"TArticle2"}' )
+   end
+   return
+end
+            
+R:SetValue('url','[' .. 
+   '{"id": "article","title":"Beam Article", "icon": "fa-broadcast-tower", "table":"TArticle2", "link": ["E670C9938FFA48D3BAFCE7950E788958"]},' .. 
+   '{"id": "activity_edit","title":"Activity - Edit", "icon": "fa-edit", "table":"TArticle2", "link": ["55B09801F3984917B4F141F6322F944F"]},' ..
+   '{"id": "activity_view","title":"Activity - View", "icon": "fa-align-justify", "table":"TArticle2", "link": ["55B09801F3984917B4F141F6322F944Fresult"]},' ..    
+   '{"id": "slides","title":"Add to presentation", "icon": "fa-edit", "table":"TArticle3", "link": ["941FCC75BEFEC84EA15A695E9CDEDB43"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities" DESCRIPTION="Edit articles" KEY="55B09801F3984917B4F141F6322F944F" EXPRESSION="SELECT ArticleK value, 'ArticleK' AS name, (CASE WHEN FBrief IS NOT NULL THEN FBrief WHEN FHeader IS NOT NULL THEN FHeader ELSE LEFT(FText, 50) END) AS simple  FROM $OTArticle WHERE ArticleK={{==TArticle2}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="700" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Slides"  DESCRIPTION="Add slides to presentation" KEY="941FCC75BEFEC84EA15A695E9CDEDB43" EXPRESSION="SELECT ArticleK AS value, 'ArticleK' AS name, FBrief AS simple FROM $OTArticle WHERE ArticleK={{==TArticle3}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="700" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="message" FIELD="" NAME="Article" DESCRIPTION="Send article key as message" KEY="E670C9938FFA48D3BAFCE7950E788958" EXPRESSION="SELECT ArticleK value, 'ArticleK' AS name, (CASE WHEN FBrief IS NOT NULL THEN FBrief WHEN FHeader IS NOT NULL THEN FHeader ELSE LEFT(FText, 50) END) AS simple  FROM $OTArticle WHERE ArticleK={{==TArticle2}}" />
+   </QUERY>
+   
+   <QUERY ID="Print book pages" KEY="721FF87318124BDC9CCE19EB67A3244B">
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" />
+      <FIELD ID="TArticle2TargetC" ALIAS="Target" TABLE="TArticle2" />
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" />
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; width: 97%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TArticle2FPage" ALIAS="Page" TABLE="TArticle2" />
+      <ORDER FIELD="TArticle2FPage" />
+   </QUERY>
+   
+   <QUERY ID="Books" KEY="BDF6B05C0CF66F46817740CD67DB4ADF">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1Indent.FHeader" ALIAS="Indented header" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1UpdateD" ALIAS="Update" TABLE="TArticleBook1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticleBook1FReleased" ALIAS="Released" TABLE="TArticleBook1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticleBook1CountLink" ALIAS="Links" TABLE="TArticleBook1" DESCRIPTION="Number of added links for book">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook1.ArticleBookK AND _th.table_number=1170 LIMIT 1)" />
+      <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook1.ArticleBookK AND _t.table_number=1170 LIMIT 1)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook1.ArticleBookK AND _th.table_number=1170 LIMIT 1)" />
+         <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook1.ArticleBookK AND _t.table_number=1170 LIMIT 1)" />
+      </ORDERS>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iColumn = R:GetParam("column")
+   if iColumn == 5 then
+      R:SetValue('url','{"link": ["8512DA4837284DDF9657704D65823506result"],"table":"TArticleBook1"}' )
+      return
+   else
+      R:SetValue('url','{"link": ["AEA4B9753D454B6DAE0CDCE9922D6223result"],"table":"TArticleBook1"}' )
+      return
+   end      
+end
+            
+R:SetValue('url','[' .. 
+   '{"id": "articles_add","title":"Add book pages", "icon": "fa-edit", "table":"TArticleBook1", "link": ["536D18CD34572E4684CFC8E6FE3C06C0"]},' ..
+   '{"id": "articles_settings","title":"Edit pages settings", "icon": "fa-edit", "table":"TArticleBook1", "link": ["AC8A9D401F89564EB220601C9ACA1B45"]},' ..    
+   '{"id": "articles_view","title":"View book pages", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["AEA4B9753D454B6DAE0CDCE9922D6223result"]},' ..
+   '{"id": "articles_view","title":"Print book pages", "icon": "fa-print", "table":"TArticleBook1", "link": ["721FF87318124BDC9CCE19EB67A3244Bresult"]},' ..
+   '{"id": "links","title":"Edit links", "icon": "fa-edit", "table":"TArticleBook1", "link": ["A406796504D34476B183AEECCF2724D4"]},' ..
+   '{"id": "book","title":"Add child books", "icon": "fa-share-alt-square", "table":"TArticleBook1", "link": ["03B52D05DBC340268B279B1EDFED5ACC"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit articles" KEY="536D18CD34572E4684CFC8E6FE3C06C0" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="2000" OUTPUT-HEIGHT="700" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit articles" KEY="AC8A9D401F89564EB220601C9ACA1B45" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="500" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Read pages"  DESCRIPTION="Read articles" KEY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Print pages"  DESCRIPTION="Print articles" KEY="721FF87318124BDC9CCE19EB67A3244B" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Edit book links"  DESCRIPTION="Add links to book" KEY="A406796504D34476B183AEECCF2724D4" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="View book links"  DESCRIPTION="Add links to book" KEY="8512DA4837284DDF9657704D65823506" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Sub book"  DESCRIPTION="Sub books to selected" KEY="03B52D05DBC340268B279B1EDFED5ACC" EXPRESSION="SELECT ArticleBookK AS value, 'SuperK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+   </QUERY>
+
+   <QUERY ID="Book links" DESCRIPTION="Links related to book" KEY="A406796504D34476B183AEECCF2724D4" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="TLink5LinkK" ALIAS="ID" TABLE="TLink5"/>
+      <FIELD ID="TLink5TypeC" ALIAS="Type" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink5FUrl" ALIAS="Url" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink5FName" ALIAS="Name" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink5FDescription" ALIAS="Description" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_systemversion" SIMPLE="System version" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iBook INT = {{=ArticleBookK}}
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TArticleBook');
+INSERT INTO $OTLink(ParentK,table_number,TypeC,FUrl,FName,FDescription,CreateD,UpdateD)
+VALUES(@iBook,@iTable,{=TypeC"0"},{=FUrl},{=FName},{=FDescription},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTLink')" />
+         </EDIT>
+         <EDIT NAME="delete link" SIMPLE="Delete link" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTLink WHERE LinkK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+   <QUERY ID="Open links for book" DESCRIPTION="Links related to book" KEY="8512DA4837284DDF9657704D65823506">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="TLink5LinkK" ALIAS="ID" TABLE="TLink5"/>
+      <FIELD ID="TLink5TypeC" ALIAS="Type" TABLE="TLink5" />
+      <FIELD ID="TLink5FUrl-Goto" ALIAS="Link" TABLE="TLink5" />
+      <FIELD ID="TLink5FDescription" ALIAS="Description" TABLE="TLink5" />
+   </QUERY>
+
+   <QUERY ID="Books: Add sub" DESCRIPTION="List books" KEY="03B52D05DBC340268B279B1EDFED5ACC" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1FHeader" ALIAS="Header" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticleBook1FName" ALIAS="Name" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <ROWEDIT>
+         <EDIT NAME="new_book" SIMPLE="Books" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TArticleBook
+DECLARE @iSystem INT
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @iSuper INT = {{=SuperK}}
+IF @iSuper = 0 
+   SET @iSuper = NULL
+ELSE   
+   SET @iSystem = (SELECT ParentK FROM $OTArticleBook WHERE ArticleBookK = @iSuper AND table_number=@iTable);
+   
+DECLARE @iUser INT = {=UserK};
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+   
+   
+INSERT INTO $OTArticleBook (FHeader,FName,TypeC,StateC,LanguageC,UserK,CreateD,UpdateD,ParentK,table_number,SuperK) 
+VALUES({=FHeader},{=FName},{=TypeC"0"},0,0,@iUser,GETDATE(),GETDATE(),@iSystem,@iTable,@iSuper);
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTArticleBook')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+   <QUERY ID="Books: List" DESCRIPTION="List books" KEY="8610140C5C7D4A42B42A32316C5BB3AA">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook1"/>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="TArticleBook1FHeader" ALIAS="Book" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1CountArticle" ALIAS="Pages" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1CreateD" ALIAS="Create" TABLE="TArticleBook1"/>
+      <CONDITION ID="TArticleBook1CountArticle" TABLE="TArticleBook1" OPERATORNAME="GREATER" SIMPLEVALUE="1 page or more" VALUE="0" />
+      <CONDITIONS ID="All books" SELECTED="1"/>
+      <CONDITIONS ID="Books with pages" SELECTED="1">
+         <CONDITION ID="TArticleBook1CountArticle" TABLE="TArticleBook1" OPERATORNAME="GREATER" SIMPLEVALUE="1 page or more" VALUE="0" />
+      </CONDITIONS>
+      <CONDITIONS ID="XML: Create systems">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="XML files for select configuration" VALUE="57" />
+      </CONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE>
+               <![CDATA[ return function(g) local R, db=g.result, g.db
+R:SetValue('url','[' .. 
+   '{"id": "articles_view","title":"View book pages", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["AEA4B9753D454B6DAE0CDCE9922D6223result"]}' ..    
+   ']') 
+end  ]]>
+            </CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Read pages"  DESCRIPTION="Read articles" KEY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+   </QUERY>
+
+
+
+   <QUERY ID="Books: for systems" KEY="87595A00949C31499CE831438BA08D94" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1FHeader" ALIAS="Header" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticleBook1FName" ALIAS="Name" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <ROWEDIT>
+         <EDIT NAME="new_book" SIMPLE="Books" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TActivity
+DECLARE @iSystem INT = {{=SystemK}};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+INSERT INTO $OTArticleBook (FHeader,FName,TypeC,StateC,LanguageC,UserK,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FHeader},{=FName},{=TypeC"0"},0,0,{=UserK},GETDATE(),GETDATE(),@iSystem,@iTable);
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTArticleBook')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Customer" KEY="B124EF3E32790A44817150F735A04C64" DESCRIPTION="List customers.&lt;br&gt;Open or edit sales from customer.&lt;br&gt;Open or edit contacts from customer.">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Sales,50</ATTRIBUTE>
+      <FIELD ID="TCustomer1CustomerK" ALIAS="ID" TABLE="TCustomer1"/>
+      <FIELD ID="TCustomer1FName" ALIAS="Name" TABLE="TCustomer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCustomer1TypeC" ALIAS="Type" TABLE="TCustomer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCustomer1CategoryC" ALIAS="Category" TABLE="TCustomer1" FIELDFLAGNAMES="edit" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE>
+               <![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 2 then
+         R:SetValue('url','{"link": ["6CC3172D6ABA4A0DB1980E903B3154BBresult"],"table":"TCustomer1"}' )  return
+      end
+   else
+      if iColumn == 2 then
+         R:SetValue('url','{"title":"Activities: edit","link": ["6CC3172D6ABA4A0DB1980E903B3154BB"],"table":"TCustomer1"}' )  return
+      end
+   end
+end
+
+R:SetValue('url','[' .. 
+   '{"id": "activities","title":"Activities: edit", "icon": "fa-edit", "table":"TCustomer1", "link": ["6CC3172D6ABA4A0DB1980E903B3154BB"]},' .. 
+   '{"id": "view_sales","title":"View Sales", "icon": "fa-align-justify", "table":"TCustomer1", "link": ["72BC3FA82387944DA6339CB436BF2E7Bresult"]},' ..    
+   '{"id": "add_sales","title":"Edit Sales", "icon": "fa-edit", "table":"TCustomer1", "link": ["72BC3FA82387944DA6339CB436BF2E7B"]},' ..    
+   '{"id": "contacts","title":"Contacts: edit", "icon": "fa-edit", "table":"TCustomer1", "link": ["424450A706EED440BD039F13A03FF5E2"]},' .. 
+   '{"id": "numbers","title":"Phone: edit", "icon": "fa-edit", "table":"TCustomer1", "link": ["5BB3A19846F64BDD9D091344A54BBB68"]}' ..    ']') 
+end  ]]>
+            </CODE>
+         </SCRIPT>
+      </SCRIPTS>
+
+      <ROWEDIT>
+         <EDIT NAME="new_customer" SIMPLE="Customers" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $OTCustomer (GlobalK,FName,TypeC,CategoryC,CreateD,UpdateD) 
+VALUES({#V user "@@global"}, {=FName},{=TypeC},{=CategoryC},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTCustomer')" />
+         </EDIT>
+      </ROWEDIT>
+      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit activities for customer" KEY="6CC3172D6ABA4A0DB1980E903B3154BB" EXPRESSION="SELECT CustomerK value, 'CustomerK' AS name, FName simple  FROM $OTCustomer WHERE CustomerK={{==TCustomer1}}">
+         <PROPERTIES OUTPUT-WIDTH="1900" OUTPUT-HEIGHT="600" OUTPUT-POSITION="center-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Add Sale"  KEY="72BC3FA82387944DA6339CB436BF2E7B" EXPRESSION="SELECT CustomerK value, 'CustomerK' AS name, FName simple  FROM $OTCustomer WHERE CustomerK={{==TCustomer1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Contacts"  DESCRIPTION="Edit contacts for customer" KEY="424450A706EED440BD039F13A03FF5E2" EXPRESSION="SELECT CustomerK value, 'CustomerK' AS name, FName simple  FROM $OTCustomer WHERE CustomerK={{==TCustomer1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="500" OUTPUT-POSITION="center-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Number"  KEY="5BB3A19846F64BDD9D091344A54BBB68" DESCRIPTION="Edit number/phone for customer" EXPRESSION="SELECT CustomerK value, 'CustomerK' AS name, FName AS simple FROM $OTCustomer WHERE CustomerK={{==TCustomer1}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="300" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Customer contacts" KEY="424450A706EED440BD039F13A03FF5E2">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Sales,50</ATTRIBUTE>
+      <FIELD ID="TCustomerContact1CustomerContactK" ALIAS="ID (Contact)" TABLE="TCustomerContact1"/>
+      <FIELD ID="TCustomerContact1FFirstName" ALIAS="First name" TABLE="TCustomerContact1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCustomerContact1FLastName" ALIAS="Last name" TABLE="TCustomerContact1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCustomerContact1FMail" ALIAS="Mail" TABLE="TCustomerContact1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCustomerContact1FMobile" ALIAS="Mobile" TABLE="TCustomerContact1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_sale" SIMPLE="Sales" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TCustomerContact
+DECLARE @iCustomer INT = {{=CustomerK}};
+
+INSERT INTO $OTCustomerContact (CustomerK,FFirstName,FLastName,FMail,FMobile,CreateD,UpdateD) 
+VALUES(@iCustomer,{=FFirstName},{=FLastName},{=FMail},{=FMobile},GETDATE(),GETDATE());
+
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTCustomerContact')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+   <QUERY ID="Number" KEY="5BB3A19846F64BDD9D091344A54BBB68">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Sales,50</ATTRIBUTE>
+      <FIELD ID="TNumber1NumberK" ALIAS="ID" TABLE="TNumber1"/>
+      <FIELD ID="TNumber1TypeC" ALIAS="Type" TABLE="TNumber1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TNumber1FNumber" ALIAS="Number" TABLE="TNumber1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TNumber1FDescription" ALIAS="Description" TABLE="TNumber1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_number" SIMPLE="Number" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TNumber
+DECLARE @iCustomer INT = {{=CustomerK}};
+
+INSERT INTO $OTNumber (ParentK,TypeC,FNumber,FDescription,CreateD,UpdateD) 
+VALUES(@iCustomer,{=TypeC},{=FNumber},{=FDescription},GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTNumber')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+   
+   <QUERY ID="Sales" KEY="72BC3FA82387944DA6339CB436BF2E7B">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Sales,50</ATTRIBUTE>
+      <FIELD ID="TSale1SaleK" ALIAS="ID" TABLE="TSale1"/>
+      <FIELD ID="TSale1FName" ALIAS="Name" TABLE="TSale1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSale1TypeC" ALIAS="Type" TABLE="TSale1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSale1StateC" ALIAS="State" TABLE="TSale1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSale1FBeginD" ALIAS="Date" TABLE="TSale1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSale1FAmount" ALIAS="Amount" TABLE="TSale1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSale1FInvoice" ALIAS="Invoice" TABLE="TSale1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSale1UserK" ALIAS="User" TABLE="TSale1" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TSale1StateC" TABLE="TSale1" SIMPLEVALUE="Open" VALUE="4140" OPERATORNAME="EQUAL" />   
+      <CONDITIONS ID="All"/>
+      <CONDITIONS ID="Open" SELECTED="1">
+         <CONDITION ID="TSale1StateC" TABLE="TSale1" SIMPLEVALUE="Open" VALUE="4140" OPERATORNAME="EQUAL" />   
+      </CONDITIONS>
+      <ROWEDIT>
+         <EDIT NAME="new_sale" SIMPLE="Sales" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TSale
+DECLARE @iCustomer INT = {{=CustomerK}};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+
+INSERT INTO $OTSale (CustomerK,FName,FAmount,FInvoice,TypeC,StateC,ProbabilityC,ReasonC,StalledC,CurrencyC,UserK,FBeginD,CreateD,UpdateD) 
+VALUES(@iCustomer,{=FName},{=FAmount},{=FInvoice},{=TypeC"0"},{=StateC"0"},0,0,0,0,{=UserK},@dateBegin,GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSale')" />
+         </EDIT>
+      </ROWEDIT>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE>
+               <![CDATA[ return function(g) local R, db=g.result, g.db
+R:SetValue('url','[' .. 
+   '{"id": "activities","title":"Activities: edit", "icon": "fa-edit", "table":"TSale1", "link": ["D1ED8FCC75B744C89D4E0286CDF35998"]},' ..
+   '{"id": "add_salesservice","title":"Edit Sales service", "icon": "fa-edit", "table":"TSale1", "link": ["06A5026D23EC924FBEDDA748F7110795"]},' ..
+   '{"id": "sum_salesservice","title":"Sum Sales service", "icon": "fa-align-justify", "table":"TSale1", "link": ["1C0D51E5E0BE48D99DEDD0A2375A0AA4result"]},' ..
+   '{"id": "add_contact","title":"Edit sale contacts", "icon": "fa-edit", "table":"TSale1", "link": ["CE36A50BF69F4E46AC1B003ACB1D8879"]}' ..    
+   ']') 
+end  ]]>
+            </CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit activities for sale" KEY="D1ED8FCC75B744C89D4E0286CDF35998" EXPRESSION="SELECT SaleK value, 'SaleK' AS name, FName AS simple FROM $OTSale WHERE SaleK={{==TSale1}}">
+         <PROPERTIES OUTPUT-WIDTH="1900" OUTPUT-HEIGHT="600" OUTPUT-POSITION="center-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Edit Sale service"  KEY="06A5026D23EC924FBEDDA748F7110795" EXPRESSION="SELECT SaleK value, 'SaleK' AS name, FName AS simple FROM $OTSale WHERE SaleK={{==TSale1}}">
+         <PROPERTIES OUTPUT-WIDTH="1400" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Sum Sale service"  KEY="1C0D51E5E0BE48D99DEDD0A2375A0AA4" EXPRESSION="SELECT SaleK value, 'SaleK' AS name, FName AS simple FROM $OTSale WHERE SaleK={{==TSale1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Edit sale contacts"  KEY="CE36A50BF69F4E46AC1B003ACB1D8879" EXPRESSION="SELECT SaleK value, 'SaleK' AS name, FName AS simple FROM $OTSale WHERE SaleK={{==TSale1}}" />
+      <AGGREGATES>
+         <AGGREGATE NAME="sum_amount" SIMPLE="Totalt" TYPENAME="sum">
+            <SQL TYPENAME="select" COMMAND="sum-service">
+               <EXPRESSION>
+SELECT SUM( q.FAmount ) "amount" FROM (SELECT TSale1.FAmount {#V from} {#V where} ) AS q
+               </EXPRESSION>
+               <COLUMN INDEX="0" TYPE="R8" NAME="amount" REQUIRE-TABLE="TSale1" FORMAT="string.format_currency( ...2, @this, '{ &quot;decimal_count&quot;:0, &quot;currency_symbol&quot;:&quot;&quot;, &quot;thousand_separator&quot;:&quot; &quot; }' )" OUTPUT-COLUMN="5" OUTPUT-CLASS="text-focus" OUTPUT-STYLE="font-weight: 900; text-align: right; border-bottom: 2px solid;"></COLUMN>
+            </SQL>
+         </AGGREGATE>
+      </AGGREGATES>
+   </QUERY>
+   
+   <QUERY ID="Edit sale contacts" KEY="CE36A50BF69F4E46AC1B003ACB1D8879" DESCRIPTION="Add or remove sale contacts">
+      <FIELD ID="TrSaleXCustomerContact1rSaleXCustomerContactK" ALIAS="ID (Contact)" TABLE="TrSaleXCustomerContact1"/>
+      <FIELD ID="CustomerContactK" ALIAS="Contact" TABLE="TrSaleXCustomerContact1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CustomerContactK, ISNULL(FFirstName,'') + ' ' + ISNULL(FLastName,'') FROM $OTCustomerContact WHERE CustomerK=(SELECT s.CustomerK FROM $OTSale s WHERE s.SaleK = {{=TSale1SaleK}}) ORDER BY 2" /> 
+      </FIELD>
+      <FIELD ID="TrSaleXCustomerContact1RoleC" ALIAS="Role" TABLE="TrSaleXCustomerContact1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_sale" SIMPLE="Sales" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TrSaleXCustomerContact
+DECLARE @iSale BIGINT = {{=SaleK}};
+
+INSERT INTO $OTrSaleXCustomerContact (SaleK,CustomerContactK,RoleC,CreateD,UpdateD) 
+VALUES(@iSale,{=CustomerContactK},{=RoleC},GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTrSaleXCustomerContact')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Sale Service" KEY="06A5026D23EC924FBEDDA748F7110795" DESCRIPTION="Work done for sale" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TSaleService1SaleServiceK" ALIAS="ID" TABLE="TSaleService1"/>
+      <FIELD ID="TSaleService1ActivityK-Name" ALIAS="Activity" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1FDescription" ALIAS="Description" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1FBeginD" ALIAS="Begin" TABLE="TSaleService1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TSaleService1FTimeSpent" ALIAS="Time spent" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1FTimeCharge" ALIAS="Time charge" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1TypeC" ALIAS="Type" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1RateC" ALIAS="Rate" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_saleservice" SIMPLE="Sale service" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TSaleService
+DECLARE @iSale BIGINT = {{=SaleK}};
+DECLARE @iCustomer INT = {=CustomerK};
+DECLARE @dateBegin DATETIME = {=FBeginD};
+DECLARE @dateEnd DATETIME = {=FEndD};
+DECLARE @iUser INT = {=UserK};
+DECLARE @dSpent FLOAT = {=FTimeSpent};
+DECLARE @dCharge FLOAT = {=FTimeCharge};
+
+IF @iCustomer IS NULL
+   SET @iCustomer = (SELECT CustomerK FROM $OTSale WHERE SaleK=@iSale)
+
+IF @dateBegin IS NULL
+   SET @dateBegin = DATEADD(hour, DATEDIFF(hour,0,GETDATE()), 0)
+   
+IF @dSpent IS NULL SET @dSpent = @dCharge
+   
+IF @dateEnd IS NULL
+BEGIN
+   IF @dSpent IS NOT NULL SET @dateEnd = (SELECT DATEADD( SECOND, @dSpent * 3600, @dateBegin ))
+END
+   
+   
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+   
+INSERT INTO $OTSaleService (SaleK, CustomerK, FDescription,   TypeC,      RateC,      UserK, FBeginD,   FEndD,   FTimeSpent,FTimeCharge,CreateD,  UpdateD) 
+VALUES                     (@iSale,@iCustomer,{=FDescription},{=TypeC"0"},{=RateC"0"},@iUser,@dateBegin,@dateEnd,@dSpent,   @dCharge,   GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSaleService')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Sum Sale Service" KEY="1C0D51E5E0BE48D99DEDD0A2375A0AA4" DESCRIPTION="Sum sales work">
+      <FIELD ID="TSaleService1SaleServiceK" ALIAS="ID" TABLE="TSaleService1"/>
+      <FIELD ID="TSaleService1FDescription" ALIAS="Description" TABLE="TSaleService1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="html|div|padding: 5px;max-width: 800px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />         
+      </FIELD>
+      <FIELD ID="TSaleService1FBeginD" ALIAS="Date" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1FTimeCharge" ALIAS="Charge time" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1RateC" ALIAS="Rate" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSaleService1TypeC" ALIAS="Type" TABLE="TSaleService1" FIELDFLAGNAMES="edit" />
+      <AGGREGATES>
+         <AGGREGATE NAME="sum_amount" SIMPLE="Totalt" TYPENAME="sum">
+            <SQL TYPENAME="select" COMMAND="sum-service">
+               <EXPRESSION>
+SELECT CAST( SUM( q.FTimeCharge ) AS NVARCHAR(30) ) + ' hours' AS "hours", SUM( _c.FInteger0 * q.FTimeCharge ) AS "amount" FROM
+(SELECT TSaleService1.FTimeCharge, TSaleService1.RateC {#V from} {#V where} ) AS q JOIN $O{CODE}TCode _c ON q.RateC=_c.CodeK
+WHERE _c.GroupK=181 AND _c.CodeK=q.RateC
+
+               </EXPRESSION>
+               <COLUMN INDEX="0" TYPE="R8" NAME="hours" REQUIRE-TABLE="TSaleService1" OUTPUT-COLUMN="3" OUTPUT-CLASS="text-focus" OUTPUT-STYLE="font-weight: 900; text-align: right; border-bottom: 2px solid;"></COLUMN>
+               <COLUMN INDEX="1" TYPE="R8" NAME="amount" REQUIRE-TABLE="TSaleService1" FORMAT="string.format_currency( ...2, @this, '{ &quot;decimal_count&quot;:0, &quot;currency_symbol&quot;:&quot;&quot;, &quot;thousand_separator&quot;:&quot; &quot; }' )" OUTPUT-COLUMN="4" OUTPUT-CLASS="text-focus" OUTPUT-STYLE="font-weight: 900; text-align: right; border-bottom: 2px solid;"></COLUMN>
+            </SQL>
+         </AGGREGATE>
+         <AGGREGATE NAME="vat" SIMPLE="Moms" TYPENAME="sum">
+            <SQL TYPENAME="select" COMMAND="sum-service">
+               <EXPRESSION>
+SELECT 'VAT' AS "Name", SUM( _c.FInteger0 * q.FTimeCharge ) * 0.25 AS "amount" FROM
+(SELECT TSaleService1.FTimeCharge, TSaleService1.RateC {#V from} {#V where} ) AS q JOIN $O{CODE}TCode _c ON q.RateC=_c.CodeK
+WHERE _c.GroupK=181 AND _c.CodeK=q.RateC
+
+               </EXPRESSION>
+               <COLUMN INDEX="0" TYPE="R8" NAME="name" REQUIRE-TABLE="TSaleService1" OUTPUT-COLUMN="3" OUTPUT-CLASS="text-focus" OUTPUT-STYLE="font-weight: 900; text-align: right; border-bottom: 2px solid;"></COLUMN>
+               <COLUMN INDEX="1" TYPE="R8" NAME="amount" REQUIRE-TABLE="TSaleService1" FORMAT="string.format_currency( ...2, @this, '{ &quot;decimal_count&quot;:0, &quot;currency_symbol&quot;:&quot;&quot;, &quot;thousand_separator&quot;:&quot; &quot; }' )" OUTPUT-COLUMN="4" OUTPUT-CLASS="text-focus" OUTPUT-STYLE="font-weight: 900; text-align: right; border-bottom: 2px solid;"></COLUMN>
+            </SQL>
+         </AGGREGATE>
+         <AGGREGATE NAME="total" SIMPLE="Moms" TYPENAME="sum">
+            <SQL TYPENAME="select" COMMAND="sum-service">
+               <EXPRESSION>
+SELECT 'Total' AS "Name", SUM( _c.FInteger0 * q.FTimeCharge ) * 1.25 AS "amount" FROM
+(SELECT TSaleService1.FTimeCharge, TSaleService1.RateC {#V from} {#V where} ) AS q JOIN $O{CODE}TCode _c ON q.RateC=_c.CodeK
+WHERE _c.GroupK=181 AND _c.CodeK=q.RateC
+
+               </EXPRESSION>
+               <COLUMN INDEX="0" TYPE="R8" NAME="name" REQUIRE-TABLE="TSaleService1" OUTPUT-COLUMN="3" OUTPUT-CLASS="text-focus" OUTPUT-STYLE="font-weight: 900; text-align: right; border-bottom: 2px solid;"></COLUMN>
+               <COLUMN INDEX="1" TYPE="R8" NAME="amount" REQUIRE-TABLE="TSaleService1" FORMAT="string.format_currency( ...2, @this, '{ &quot;decimal_count&quot;:0, &quot;currency_symbol&quot;:&quot;&quot;, &quot;thousand_separator&quot;:&quot; &quot; }' )" OUTPUT-COLUMN="4" OUTPUT-CLASS="text-focus" OUTPUT-STYLE="font-weight: 900; text-align: right; border-bottom: 2px solid;"></COLUMN>
+            </SQL>
+         </AGGREGATE>
+      </AGGREGATES>
+   </QUERY>   
+   
+   <QUERY ID="System Books" KEY="EC6EF6AFA3554865A7DC39DA6222BE95" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1SuperK" ALIAS="Parent" TABLE="TArticleBook1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS ArticleBookK, '_ no parent _' AS FHeader UNION ALL SELECT _ab.ArticleBookK, _ab.FHeader FROM $OTArticleBook _ab JOIN $OTSystem _s ON _ab.ParentK=_s.SystemK AND _ab.table_number=1010  WHERE _ab.FHeader IS NOT NULL AND _ab.FDeleted=0 AND _ab.FDepreciated=0 AND _s.SystemK={{=TSystem1SystemK}} ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="TArticleBook1FHeader" ALIAS="Header" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticleBook1FName" ALIAS="Name" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1" FIELDFLAGNAMES="edit"/>
+   </QUERY>
+   
+   <QUERY ID="System todolists" KEY="1E4485B89FCA8F4CB8D9A1DAFB00A498">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Todo,70</ATTRIBUTE>
+      <FIELD ID="TTodoList1TodoListK" ALIAS="ID (List)" TABLE="TTodoList1"/>
+      <FIELD ID="TTodoList1FName" ALIAS="Name" TABLE="TTodoList1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodoList1TypeC" ALIAS="Type" TABLE="TTodoList1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_todolist" SIMPLE="Sales" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TSale
+DECLARE @iSystem INT = {{=SystemK}};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @iUser INT = {=UserK};
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+INSERT INTO $OTTodoList (FName,TypeC,UserK,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FName},{=TypeC"0"},@iUser,GETDATE(),GETDATE(),@iSystem,@iTable);
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTTodoList')" />
+         </EDIT>
+      </ROWEDIT>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE>
+               <![CDATA[ return function(g) local R, db=g.result, g.db
+R:SetValue('url','[' .. 
+   '{"id": "todo_edit","title":"Edit todo list", "icon": "fa-align-justify", "table":"TTodoList1", "link": ["78027020EA7AD348B057D4C7FBA190A0"]}' ..    
+   ']') 
+end  ]]>
+            </CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Todo"  DESCRIPTION="Edit todolist" KEY="78027020EA7AD348B057D4C7FBA190A0" EXPRESSION="SELECT TodoListK value, 'TodoListK' AS name, FName AS simple FROM $OTTodoList WHERE TodoListK={{==TTodoList1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="400" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Todolist: Connect activity" KEY="18F6A263B2288A41A26A20BE5F7B664A" FLAGNAMES="NOTLISTED" DESCRIPTION="Connections between Activities and TodoLists">
+      <FIELD ID="TrActivityXTodoList2rActivityXTodoListK" ALIAS="ID" TABLE="TrActivityXTodoList2"/>
+      <FIELD ID="TrActivityXTodoList2ActivityK" ALIAS="Activity" TABLE="TrActivityXTodoList2" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_activity_todlist" SIMPLE="Activity-Todolist" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add relation between activity and todo list
+DECLARE @iActivity BIGINT = {{=ActivityK}};
+DECLARE @iTodoList BIGINT = {{=TodoListK}};
+
+INSERT INTO $OTrActivityXTodoList (ActivityK,TodoListK) 
+VALUES(@iActivity,@iTodoList);
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTrActivityXTodoList')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="System todos" KEY="6751CF1641AE47C38F8E13FF46674C99" FLAGS="0" FLAGNAMES="LEFT" DESCRIPTION="List todos for system">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TTodo1TodoK" ALIAS="ID" TABLE="TTodo1"/>
+      <FIELD ID="TTodoList1FName" ALIAS="Name" TABLE="TTodoList1"  />
+      <FIELD ID="TTodoList1TypeC" ALIAS="Type" TABLE="TTodoList1" />
+      <FIELD ID="TTodo1FReady" ALIAS="Ready" TABLE="TTodo1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodo1UserK" ALIAS="User" TABLE="TTodo1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodo1StateC" ALIAS="State" TABLE="TTodo1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodo1FDescription" ALIAS="Description" TABLE="TTodo1" FIELDFLAGNAMES="edit" >
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;" 
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE>
+               <![CDATA[ return function(g) local R, db=g.result, g.db
+R:SetValue('url','[' .. 
+   '{"id": "todo_edit","title":"Edit todo list", "icon": "fa-align-justify", "table":"TTodo1", "link": ["78027020EA7AD348B057D4C7FBA190A0"]}' ..    
+   ']') 
+end  ]]>
+            </CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Todo"  DESCRIPTION="Edit todos for system" KEY="78027020EA7AD348B057D4C7FBA190A0" EXPRESSION="SELECT TodoListK value, 'TodoListK' AS name, FName AS simple FROM $OTTodo WHERE TodoK={{==TTodo1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="400" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+   </QUERY>
+
+   <QUERY ID="Todo" DESCRIPTION="Todo items in todo list" KEY="78027020EA7AD348B057D4C7FBA190A0">
+      <FIELD ID="TTodo1TodoK" ALIAS="ID (Todo)" TABLE="TTodo1"/>
+      <FIELD ID="TTodo1TypeC" ALIAS="Type" TABLE="TTodo1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodo1StateC" ALIAS="State" TABLE="TTodo1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodo1FReady" ALIAS="Ready" TABLE="TTodo1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodo1FClosed" ALIAS="Closed" TABLE="TTodo1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TTodo1FDescription" ALIAS="Description" TABLE="TTodo1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;" 
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+      <FIELD ID="TTodo1UserK" ALIAS="User" TABLE="TTodo1"/>
+      <ROWEDIT>
+         <EDIT NAME="new_todolist" SIMPLE="Sales" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TSale
+DECLARE @DTReady DATETIME = NULL
+DECLARE @DTClosed DATETIME = NULL
+DECLARE @iReady SMALLINT = {=FReady"0"}
+DECLARE @iClosed SMALLINT = {=FClosed"0"}
+DECLARE @iTodoList BIGINT = {{=TodoListK}};
+DECLARE @iUser INT = {=UserK};
+
+IF @iReady = 1
+   SET @DTReady = GETDATE()
+   
+IF @iClosed = 1
+   SET @DTClosed = GETDATE()
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+   
+INSERT INTO $OTTodo(TodoListK,TypeC,StateC,FDescription,FReady,FReadyD,FClosed,FClosedD,CreateD,UpdateD) 
+VALUES(@iTodoList,{=TypeC"0"},{=StateC"0"},{=FDescription},@iReady,@DTReady,@iClosed,@DTClosed,GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTTodo')" />
+         </EDIT>
+         <EDIT NAME="delete todo" SIMPLE="Delete todo item" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTTodo WHERE TodoK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Activities: View documentation" KEY="9ACA66488A8F6645AF527D24F2FE8E28">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Activities</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1"/>
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2">
+         <ATTRIBUTES OUTPUT-FORMAT="html|div|padding: 5px;max-width: 200px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TActivity2Note" ALIAS="Note" TABLE="TActivity2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 5px;width: 800px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2UpdateD" ALIAS="Update" TABLE="TActivity2" FORMAT="CONVERT(VARCHAR, $T.$F, 12)" FIELDFLAGNAMES="sql_format" />
+   </QUERY>
+   
+   <QUERY ID="Activities: List and mark completed" DESCRIPTION="Query to make it easy setting complete mark" KEY="F525D5884F7D71409176198CB33CCB33">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Activities</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="TActivity2FDescription" ALIAS="Desc." TABLE="TActivity2" DESCRIPTION="Activity description">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;" 
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TActivity2FBeginD" ALIAS="Start" TABLE="TActivity2" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format edit">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TActivity2FEndD" ALIAS="End" TABLE="TActivity2" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format edit">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2PriorityC" ALIAS="Priority" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2FDone" ALIAS="Closed" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TActivity2UserK" ALIAS="User" TABLE="TActivity2" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TActivity2FBeginD" DESC="1" />
+      <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />      
+      <CONDITIONS ID="All Activities" />
+      <CONDITIONS ID="Open Activities" SELECTED="1">
+         <CONDITION ID="TActivity2FDone" TABLE="TActivity2" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      </CONDITIONS>
+   </QUERY>
+   
+   <QUERY ID="Articles: For System" KEY="E09B7E7DFF434EBF9A3E24678E4D8815">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TArticle1ArticleK" ALIAS="ID" TABLE="TArticle1"/>
+      <FIELD ID="TArticle1FHeader" ALIAS="Header" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle1FText" ALIAS="Text" TABLE="TArticle1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 5px; font-size: 90%; max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TArticle1TypeC" ALIAS="Type" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle1UpdateD" ALIAS="Updated" TABLE="TArticle1" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticle1FSearchText" ALIAS="Search" TABLE="TArticle1" />
+   </QUERY>
+   
+   
+   <QUERY ID="Articles: For System edit" KEY="E9F72F7E7F2E354AB7FC7E2D67684274" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|20</ATTRIBUTE>
+      <FIELD ID="TArticle1ArticleK" ALIAS="ID" TABLE="TArticle1"/>
+      <FIELD ID="TArticle1FHeader" ALIAS="Header" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle1FText" ALIAS="Text" TABLE="TArticle1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 5px;max-width: 1000px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TArticle1TypeC" ALIAS="Type" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <!-- 
+      <FIELD ID="TArticle1SuperK" ALIAS="Parent" TABLE="TArticle1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS ArticleK, '_ no parent _' AS FName UNION ALL SELECT ArticleK, FBrief FROM $OTArticle WHERE FBrief &gt; ' ' AND FDeleted = 0 AND FDepreciated = 0 ORDER BY 2" /> 
+      </FIELD>
+      -->
+      <ROWEDIT>
+         <EDIT NAME="new_article" SIMPLE="Articles" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSystem INT = {{=SystemK}};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @iUser INT = {=UserK};
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+INSERT INTO $OTArticle (UserK,FText,LevelC,TypeC,LanguageC,CreateD,UpdateD,ParentK,table_number) 
+VALUES(@iUser,{=FText},{=LevelC"0"},{=TypeC"0"},0,GETDATE(),GETDATE(),@iSystem,@iTable)
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTArticle')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Articles: For System Book" KEY="F1CB0BEFD0E94C8CA1BD46DA933E8E6E" FLAGNAMES="NOTLISTED" DESCRIPTION="Adding articles for selected book attached to system">
+      <FIELD ID="TArticle2ArticleK" ALIAS="ID" TABLE="TArticle2"/>
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 5px;max-width: 1000px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <!-- 
+      <FIELD ID="TArticle2SuperK" ALIAS="Parent" TABLE="TArticle2" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS ArticleK, '_ no parent _' AS FName UNION ALL SELECT ArticleK, FBrief FROM $OTArticle WHERE FBrief &gt; ' ' AND FDeleted = 0 AND FDepreciated = 0 ORDER BY 2" /> 
+      </FIELD>
+      -->
+      <ROWEDIT>
+         <EDIT NAME="new_article" SIMPLE="Articles" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TArticle
+DECLARE @iBook INT = {{=ArticleBookK}};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @iSystem INT = (SELECT ParentK FROM $OTArticleBook WHERE ArticleBookK = @iBook);
+DECLARE @iUser INT = {=UserK};
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+
+INSERT INTO $OTArticle (UserK,FText,LevelC,TypeC,LanguageC,CreateD,UpdateD,ParentK,table_number) 
+VALUES(@iUser,{=FText},{=LevelC"0"},{=TypeC"0"},0,GETDATE(),GETDATE(),@iSystem,@iTable)
+
+-- # Add relation between book and article
+DECLARE @iArticle INT = (SELECT IDENT_CURRENT('$OTArticle'));
+INSERT INTO $OTrArticleBookXArticle(ArticleBookK,ArticleK) VALUES(@iBook,@iArticle);
+
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTArticle')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Articles">
+      <FIELD ID="TArticle1ArticleK" ALIAS="ID" TABLE="TArticle1"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1"/>
+      <FIELD ID="TArticle1LevelC" ALIAS="Level" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle1TypeC" ALIAS="Type" TABLE="TArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TArticle1FText" ALIAS="Text" TABLE="TArticle1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 5px;max-width: 1000px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TArticle1SuperK" ALIAS="Parent" TABLE="TArticle1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS ArticleK, '_ no parent _' AS FName UNION ALL SELECT ArticleK, FBrief FROM $OTArticle WHERE FBrief &gt; ' ' AND FDeleted = 0 AND FDepreciated = 0 ORDER BY 2" /> 
+      </FIELD>
+   </QUERY>
+   
+   
+   
+   <QUERY ID="Changelog" KEY="2AC749C19C8F7049BD8E16091EB40214">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TSystem1ShortName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="VChangelog1TypeC" ALIAS="Type" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FDescription" ALIAS="Description" TABLE="VChangelog1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="VChangelog1CreateD" ALIAS="Create" TABLE="VChangelog1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="VChangelog1FVersion1" ALIAS="Major" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FVersion2" ALIAS="Minor" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FVersion3" ALIAS="Patch" TABLE="VChangelog1"/>
+   </QUERY>
+   <QUERY ID="Changelog: List" KEY="65136A5A6EAF9A4795BD3C1B63BDBC2A" DESCRIPTION="Changelog information for systems">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="VChangelog1VersionName" ALIAS="Version" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1TypeC" ALIAS="Type" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FDescription" ALIAS="Description" TABLE="VChangelog1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="VChangelog1ImpactC" ALIAS="Impact" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1CreateD" ALIAS="Date" TABLE="VChangelog1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+      <CONDITIONS ID="All" />
+      <CONDITIONS ID="Selection core" SELECTED="1">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Selection core latest">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+         <CONDITION ID="VChangelog1FVersion1" TABLE="VChangelog1" OPERATOR="0" SIMPLEVALUE="Latest version" 
+                    VALUE="($T.FVersion1 * 1000000 + $T.FVersion2 * 1000 + $T.FVersion3) = (SELECT MAX(s.FVersion1 * 1000000 + s.FVersion2 * 1000 + s.FVersion3) FROM application.TSystemVersion s WHERE s.SystemK = 28)" 
+                    CONDITIONFLAGS="1792" />
+      </CONDITIONS>
+      <CONDITIONS ID="Latest, all systems">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATORNAME="IS NOT NULL" SIMPLEVALUE="empty" VALUE="0" FLAGS="0">
+            <EXPRESSION PART="from">
+JOIN (
+SELECT s.SystemK SystemK, MAX(s.FVersion1 * 1000000 + s.FVersion2 * 1000 + s.FVersion3) Version
+FROM application.TSystemVersion s
+GROUP BY s.SystemK
+) _max ON (VChangelog1.FVersion1 * 1000000 + VChangelog1.FVersion2 * 1000 + VChangelog1.FVersion3) = _max.Version AND "TSystem1"."SystemK" = _max.SystemK
+            </EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+   </QUERY>
+
+   <QUERY ID="Changelog: Settings" KEY="0F310E09EBFD49478C192E9CD50E556B" DESCRIPTION="Modify codes for changelog">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Work</ATTRIBUTE>
+      <FIELD ID="VChangelog1KeyK" ALIAS="ID" TABLE="VChangelog1"/>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="VChangelog1VersionName" ALIAS="Version" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1TypeC" ALIAS="Type" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1ImpactC" ALIAS="Impact" TABLE="VChangelog1" FIELDFLAGNAMES="edit">
+         <EDIT>
+DECLARE @iKey BIGINT = ${@VChangelog1KeyK}
+DECLARE @iTable INT = @iKey % 10
+SET @iKey = @iKey / 10
+IF @iTable = 0 
+   UPDATE $OTrSystemVersionXActivity SET ImpactC={{==VChangelog1ImpactC}} WHERE rSystemVersionXActivityK = @iKey
+IF @iTable = 1 
+   UPDATE $OTrSystemVersionXProject SET ImpactC={{==VChangelog1ImpactC}} WHERE rSystemVersionXProjectK = @iKey
+IF @iTable = 2 
+   UPDATE $OTLog SET ImpactC={{==VChangelog1ImpactC}} WHERE LogK = @iKey
+         </EDIT>
+      </FIELD>
+      <FIELD ID="VChangelog1FDescription" ALIAS="Description" TABLE="VChangelog1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+      <CONDITIONS ID="All" />
+      <CONDITIONS ID="Selection core" SELECTED="1">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Latest, all systems">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATORNAME="IS NOT NULL" SIMPLEVALUE="empty" VALUE="0" FLAGS="0">
+            <EXPRESSION PART="from">
+JOIN (
+SELECT s.SystemK SystemK, MAX(s.FVersion1 * 1000000 + s.FVersion2 * 1000 + s.FVersion3) Version
+FROM application.TSystemVersion s
+GROUP BY s.SystemK
+) _max ON (VChangelog1.FVersion1 * 1000000 + VChangelog1.FVersion2 * 1000 + VChangelog1.FVersion3) = _max.Version AND "TSystem1"."SystemK" = _max.SystemK
+            </EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+   </QUERY>
+
+
+   <!--
+   <QUERY ID="Changelog: for System" KEY="249D143AF6161741870F292A5E05A3E7">
+      <FIELD ID="TLog1LogK" ALIAS="ID" TABLE="TLog1"/>
+      <FIELD ID="TSystemVersion1FName" ALIAS="Name" TABLE="TSystemVersion1"/>
+      <FIELD ID="TLog1TypeC" ALIAS="Type" TABLE="TLog1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLog1FDescription" ALIAS="Description" TABLE="TLog1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="TSystemVersion1TypeC" ALIAS="Type" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FReleased" ALIAS="Released" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FReleaseDate" ALIAS="Release date" TABLE="TSystemVersion1"/>
+   </QUERY>
+   -->
+   
+<!--   
+   <QUERY ID="Customers" DESCRIPTION="View customers and partners" KEY="E1688AE5CB8C3343BBADA900C35ADBFC">
+      <FIELD ID="TCustomer1CustomerK" ALIAS="ID (Customer)" TABLE="TCustomer1"/>
+      <FIELD ID="TCustomer1FName" ALIAS="FName" TABLE="TCustomer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCustomer1FDepartment" ALIAS="FDepartment" TABLE="TCustomer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TCustomer1CategoryC" ALIAS="Category" TABLE="TCustomer1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_user" SIMPLE="Users" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $OTCustomer (GlobalK,FName,FDepartment,CategoryC,CreateD,UpdateD) 
+VALUES({#V user "@@global"}, {=FName},{=FDepartment},{=CategoryC},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTCustomer')" />
+         </EDIT>
+         <EDIT NAME="delete user" SIMPLE="Delete User" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTCustomer WHERE "CustomerK"={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Users" DESCRIPTION="System users" KEY="2B35E3B4F538434BBE2EF05A579A506B">
+      <FIELD ID="TUser1UserK" ALIAS="ID (User)" TABLE="TUser1"/>
+      <FIELD ID="TUser1FAlias" ALIAS="Alias" TABLE="TUser1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TUser1FDisplayName" ALIAS="Display name" TABLE="TUser1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TUser1FFirstName" ALIAS="First name" TABLE="TUser1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TUser1FLastName" ALIAS="Last name" TABLE="TUser1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TUser1FLoginName" ALIAS="Login name" TABLE="TUser1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TUser1FMail" ALIAS="Mail" TABLE="TUser1" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TUser1FDeleted" TABLE="TUser1" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <ROWEDIT>
+         <EDIT NAME="new_user" SIMPLE="Users" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $OTUser (GlobalK,FAlias,FDisplayName,FFirstName,FLastName,FLoginName,FMail) 
+VALUES({#V user "@@global"}, {=FAlias},{=FDisplayName},{=FFirstName},{=FLastName},{=FLoginName},{=FMail})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTUser')" />
+         </EDIT>
+         <EDIT NAME="delete user" SIMPLE="Delete User" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTUser WHERE "UserK"={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+-->   
+   
+   <QUERY ID="Presentation: User" TITLE="User presentation" KEY="D582520447CC884FBAC5FBDE221DD141">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Tutorial,30</ATTRIBUTE>
+      <FIELD ID="TrArticlePresentationXArticle1TypeC" ALIAS="Type" TABLE="TrArticlePresentationXArticle1"/>
+      <FIELD ID="TrArticlePresentationXArticle1ArticleK" ALIAS="Article name" TABLE="TrArticlePresentationXArticle1"/>
+      <FIELD ID="TArticle3FBrief" ALIAS="Brief" TABLE="TArticle3"/>
+      <FIELD ID="TArticle3FText" ALIAS="Text" TABLE="TArticle3">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 120%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;" 
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+   </QUERY>
+   
+   <QUERY ID="Projects: all" DESCRIPTION="Projects connected to system" KEY="6f0511a2d4624e12aa35123245e553a0">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Work,100</ATTRIBUTE>
+      <FIELD ID="TProject1ProjectK" ALIAS="ID" TABLE="TProject1"/>
+      <FIELD ID="TProject1FName" ALIAS="Name" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TProject1TypeC" ALIAS="Type" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TProject1StateC" ALIAS="State" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TProject1UserK" ALIAS="User" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TProject1FBeginD" ALIAS="Begin" TABLE="TProject1" FIELDFLAGNAMES="edit,sql_format" FORMAT="CAST( $T.$F AS DATE )">
+         <!-- Format for Moment.js -->
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD|24" />
+      </FIELD>
+      <FIELD ID="TProject1FDone" ALIAS="Completed" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "activities","title":"Edit activities for project", "icon": "fa-edit", "table":"TProject1", "link": ["2E8B763EB13048F4A97AF48049F9E2D4"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit activities for project" KEY="2E8B763EB13048F4A97AF48049F9E2D4" 
+                 EXPRESSION="SELECT SystemK value, 'SystemK' AS name, 'System: ' + FName simple, 'TSystem1' _table FROM $OTSystem WHERE SystemK = ( SELECT ParentK FROM $OTProject WHERE ProjectK={{==TProject1}} AND table_number=1010) UNION ALL SELECT ProjectK value, 'ProjectK' AS name, 'Project: ' + FName simple, 'TProject1'  FROM $OTProject WHERE ProjectK={{==TProject1}}">
+         <PROPERTIES OUTPUT-WIDTH="1600" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   
+   <QUERY ID="Projects: for System" DESCRIPTION="Projects connected to system" KEY="AC8F938FFFFF45488251BD417A41656F">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TProject1ProjectK" ALIAS="ID (Project)" TABLE="TProject1"/>
+      <FIELD ID="TProject1TypeC" ALIAS="Type" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TProject1FName" ALIAS="Name" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TProject1Note" ALIAS="Documentation" TABLE="TProject1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TProject');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TProject1ProjectK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number,CreateD) VALUES(${@TProject1ProjectK},@iTable,GETDATE())
+   
+UPDATE $OTNote SET FNote={=TProject1Note}, UpdateD=GETDATE() WHERE RecordK=${@TProject1ProjectK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TProject1UserK" ALIAS="User" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TProject1FBeginD" ALIAS="Begin" TABLE="TProject1" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TProject1FBeginD" INDEX="5" DESC="1" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "article","title":"Activities: view", "icon": "fa-align-justify", "table":"TProject1", "link": ["EA5ED8A1C4E443D893B666953D572CBFresult"]},' .. 
+   '{"id": "activities","title":"Add activities", "icon": "fa-edit", "table":"TProject1", "link": ["8E433F88556C4F3EA0C41370263DB9A2"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="View activities for project" KEY="EA5ED8A1C4E443D893B666953D572CBF" 
+                 EXPRESSION="SELECT ProjectK value, 'ProjectK' AS name, 'Project: ' + FName AS simple FROM $OTProject WHERE ProjectK={{==TProject1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit activities for project" KEY="8E433F88556C4F3EA0C41370263DB9A2" 
+                 EXPRESSION="SELECT ProjectK value, 'ProjectK' AS name, 'Project: ' + FName AS simple FROM $OTProject WHERE ProjectK={{==TProject1}}">
+         <PROPERTIES OUTPUT-WIDTH="1600" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <ROWEDIT>
+         <EDIT NAME="new_project" SIMPLE="Projects" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to TProject
+DECLARE @iSystem INT = {{=SystemK}};
+DECLARE @DTBegin DATETIME = {=FBegin};
+DECLARE @iUser INT = {=UserK};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');
+DECLARE @iTableProject INT = (SELECT number FROM $Otable_number WHERE "name" = 'TProject');
+
+IF @DTBegin IS NULL
+   SET @DTBegin = GETDATE()
+
+IF @iUser IS NULL
+   SET @iUser = {#V user "@@user"} -- default user is active user
+   
+INSERT INTO $OTProject (FName,TypeC,UserK,FBeginD,CreateD,UpdateD,ParentK,table_number) 
+VALUES({=FName"''"},{=TypeC},@iUser,@DTBegin,GETDATE(),GETDATE(),@iSystem,@iTable);
+
+INSERT INTO $OTNote(RecordK,table_number,FNote,CreateD,UpdateD)
+VALUES((SELECT IDENT_CURRENT('$OTProject')),@iTableProject,{=TProject1Note},GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTProject')" />
+         </EDIT>
+         <EDIT NAME="delete project" SIMPLE="Delete Project" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTProject WHERE ProjectK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Projects: Connect to Version" KEY="74344EDB55A64E0194402CE4444EC16D" DESCRIPTION="Connect projects to selection version, only unreleased versions are shown">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Projects,30</ATTRIBUTE>
+      <FIELD ID="TProject1ProjectK" ALIAS="ID" TABLE="TProject1"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1"/>
+      <FIELD ID="TProject1VersionName" ALIAS="Version" TABLE="TProject1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(0 AS INT) AS SystemVersionK, '_ no version _' AS FName UNION ALL SELECT t.SystemVersionK, (SELECT s.FName FROM $OTSystem s WHERE s.SystemK=t.SystemK LIMIT 1) + ', ' + CAST(t.FVersion1 AS NVARCHAR(5)) + ':' + CAST(t.FVersion2 AS NVARCHAR(5)) + ':' + CAST(t.FVersion3 AS NVARCHAR(5)) FROM $OTSystemVersion t WHERE t.FDeleted = 0 AND t.FReleased=0 ORDER BY 2 DESC" />
+         <EDIT>
+DECLARE @iVersion INT = {{=TProject1VersionName}}
+DELETE FROM $OTrSystemVersionXProject WHERE ProjectK = ${@TProject1ProjectK} -- delete if activity is already connected
+IF @iVersion IS NOT NULL OR @iVersion &gt; 0
+   INSERT INTO $OTrSystemVersionXProject(SystemVersionK,ProjectK,TargetC,ImpactC) VALUES( @iVersion, ${@TProject1ProjectK},0,0)
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TProject1TypeC" ALIAS="Type" TABLE="TProject1" />
+      <FIELD ID="TProject1StateC" ALIAS="State" TABLE="TProject1" />
+      <FIELD ID="TProject1Name" ALIAS="Name" TABLE="TProject1" />
+      <FIELD ID="TProject1FDescription" ALIAS="Description" TABLE="TProject1" FORMAT="CASE WHEN LENGTH($T.$F) &gt; 80 THEN CAST( $T.$F AS VARCHAR( 80 ) ) || '...' ELSE $T.$F END" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TProject1CreateD" ALIAS="Created" TABLE="TProject1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <CONDITION ID="TProject1FDone" TABLE="TProject1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      <CONDITION ID="TProject1FDeleted" TABLE="TProject1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
+      <ORDER FIELD="TProject1ProjectK" INDEX="0" DESC="1" SQL="TProject1.UpdateD" />
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TProject1ProjectK" INDEX="0" DESC="1" SQL="TProject1.UpdateD" />
+      </ORDERS>
+   </QUERY>
+
+   <QUERY ID="Requests: All" DESCRIPTION="View and edit requests" KEY="9EEDF06D9A4CDE42B1F1BF18243DADF7">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary</ATTRIBUTE>
+      <FIELD ID="TSystemRequest1SystemRequestK" ALIAS="ID" TABLE="TSystemRequest1"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1"/>
+      <FIELD ID="TSystemRequest1FBrief" ALIAS="Brief" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="html|div|padding: 0px; max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TSystemRequest1FText" ALIAS="Text" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TSystemRequest1TypeC" ALIAS="Type" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemRequest1StateC" ALIAS="State" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemRequest1CountActivity" ALIAS="Act." TABLE="TSystemRequest1" DESCRIPTION="Number of activites">
+         <!-- https://stackoverflow.com/questions/18359925/draw-an-arrow-inside-table-cell-using-css -->
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TSystemRequest1FBegin" ALIAS="Start" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemRequest1CreateD" ALIAS="Created" TABLE="TSystemRequest1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TSystemRequest1FDone" ALIAS="Closed" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <ORDER FIELD="TSystemRequest1CreateD" INDEX="8" DESC="1" />
+      <CONDITION ID="TSystemRequest1FDone" TABLE="TSystemRequest1" OPERATOR="0" SIMPLEVALUE="Not closed" VALUE="0" FLAGS="0"/>
+      <CONDITIONS ID="Select filter!">
+         <CONDITION ID="TSystemRequest1FDeleted" TABLE="TSystemRequest1" OPERATOR="0" SIMPLEVALUE="0" VALUE="0" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Not closed" SELECTED="1">
+         <CONDITION ID="TSystemRequest1FDone" TABLE="TSystemRequest1" OPERATOR="0" SIMPLEVALUE="Not closed" VALUE="0" FLAGS="0"/>
+      </CONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iColumn = R:GetParam("column")
+   if iColumn == 6 then
+      R:SetValue('url','{"link": ["8C85672673CD4721AE38639DBE3B2290result"],"table":"TSystemRequest1"}' )
+      return
+   end
+end
+            
+   R:SetValue('url','[' .. 
+   '{"id": "activities","title":"Activities: view", "icon": "fa-align-justify", "table":"TSystemRequest1", "link": ["8C85672673CD4721AE38639DBE3B2290result"]},' .. 
+   '{"id": "activities","title":"Add activities to request", "icon": "fa-edit", "table":"TSystemRequest1", "link": ["E5310AF760F09748BB7A760B4588399A"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="View Activities" KEY="8C85672673CD4721AE38639DBE3B2290" EXPRESSION="SELECT SystemRequestK value, 'SystemRequestK' AS name, FBrief AS simple FROM $OTSystemRequest WHERE SystemRequestK={{==TSystemRequest1}}"/>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit activities for requsts" KEY="E5310AF760F09748BB7A760B4588399A" EXPRESSION="SELECT SystemRequestK value, 'SystemRequestK' AS name, FBrief AS simple FROM $OTSystemRequest WHERE SystemRequestK={{==TSystemRequest1}}">
+         <PROPERTIES OUTPUT-WIDTH="1100" OUTPUT-HEIGHT="250" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Requests" KEY="8DE134A0A74C43E7896A256A644EDB92">
+      <FIELD ID="TSystemRequest1SystemRequestK" ALIAS="ID" TABLE="TSystemRequest1"/>
+      <FIELD ID="TSystemRequest1FBegin" ALIAS="Date" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1TypeC" ALIAS="Type" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1FBrief" ALIAS="Brief" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1FDone" ALIAS="Closed" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1FText" ALIAS="Text" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 50px;"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+
+      </FIELD>
+      <CONDITION ID="TSystemRequest1FDeleted" TABLE="TSystemRequest1" OPERATOR="5" SIMPLEVALUE="Not deleted" VALUE="1" FLAGS="0"/>
+      <CONDITIONS ID="Select filter!" SELECTED="1">
+         <CONDITION ID="TSystemRequest1FDeleted" TABLE="TSystemRequest1" OPERATOR="5" SIMPLEVALUE="Not deleted" VALUE="1" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Not closed">
+         <CONDITION ID="TSystemRequest1FDone" TABLE="TSystemRequest1" OPERATOR="0" SIMPLEVALUE="Not closed" VALUE="0" FLAGS="0"/>
+      </CONDITIONS>
+      <ORDER INDEX="1" DESC="1" />
+   </QUERY>
+
+
+   <QUERY ID="Edit requests for system" KEY="ABD3CAB3AD27A5419FFB978647AF1E17" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TSystemRequest1SystemRequestK" ALIAS="ID" TABLE="TSystemRequest1"/>
+      <FIELD ID="TSystemRequest1TypeC" ALIAS="Type" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1StateC" ALIAS="State" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1PriorityC" ALIAS="Priority" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1FBrief" ALIAS="Brief" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1FText" ALIAS="Text" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1FBegin" ALIAS="Date" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemRequest1FDone" ALIAS="Closed" TABLE="TSystemRequest1" FIELDFLAGNAMES="edit">
+         <EDIT>{"update":"UPDATE $OTSystemRequest SET FDoneAt = GETDATE() WHERE SystemRequestK = ${@TSystemRequest1SystemRequestK}","formula":"1"}</EDIT>
+      </FIELD>
+      <ORDER INDEX="4" FIELD="TSystemRequest1FBegin" />
+      <ROWEDIT>
+         <EDIT NAME="new_request" SIMPLE="New request" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @DTBegin DATETIME = {=FBegin};
+DECLARE @bDone BIT = {=FDone}
+IF @bDone IS NULL
+   SET @bDone = 0
+IF @DTBegin IS NULL
+   SET @DTBegin = GETDATE()
+INSERT INTO $OTSystemRequest(SystemK,TypeC,StateC,PriorityC,FBrief,FText,FBegin,FDone,CreateD,UpdateD) 
+VALUES({{=SystemK}},{=TypeC},{=StateC},{=PriorityC},{=FBrief"''"},{=FText},@DTBegin,@bDone,GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSystemRequest')" />
+         </EDIT>
+      </ROWEDIT>
+      <CONDITION ID="TSystemRequest1FDone" TABLE="TSystemRequest1" OPERATOR="0" SIMPLEVALUE="Not closed" VALUE="0" FLAGS="0"/>
+      <CONDITIONS ID="Select filter!">
+         <CONDITION ID="TSystemRequest1FDeleted" TABLE="TSystemRequest1" OPERATOR="5" SIMPLEVALUE="Not deleted" VALUE="1" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Not closed" SELECTED="1">
+         <CONDITION ID="TSystemRequest1FDone" TABLE="TSystemRequest1" OPERATOR="0" SIMPLEVALUE="Not closed" VALUE="0" FLAGS="0"/>
+      </CONDITIONS>
+   </QUERY>
+   
+   <QUERY ID="Presentation" KEY="C655699FA17A224F8FB61AE637C9F52F">
+      <FIELD ID="TArticlePresentation1ArticlePresentationK" ALIAS="ID (Presentation)" TABLE="TArticlePresentation1"/>
+      <FIELD ID="TArticlePresentation1TypeC" ALIAS="Type" TABLE="TArticlePresentation1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticlePresentation1FName" ALIAS="Name" TABLE="TArticlePresentation1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticlePresentation1FDescription" ALIAS="Description" TABLE="TArticlePresentation1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticlePresentation1FReleasedD" ALIAS="Released" TABLE="TArticlePresentation1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TArticlePresentation1FReady" ALIAS="Ready" TABLE="TArticlePresentation1" FIELDFLAGNAMES="edit"/>
+      <ROWEDIT>
+         <EDIT NAME="new_request" SIMPLE="New request" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DO $$
+DECLARE iSystem INTEGER := {{=SystemK}};
+DECLARE iTable INTEGER;
+DECLARE iUser INTEGER := {=UserK};
+BEGIN
+   SELECT (SELECT "number" FROM $Otable_number WHERE "name" = 'TSystem') INTO iTable;
+   IF iUser IS NULL THEN
+      SELECT {#V user "@@user"} INTO iUser;
+   END IF;
+   
+   INSERT INTO $OTArticlePresentation (UserK,FName,TypeC,StateC,CreateD,UpdateD,ParentK,table_number) 
+   VALUES(iUser,{=FName},{=TypeC"0"},0,now(),now(),iSystem,iTable);
+END $$;
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT CURRVAL(PG_GET_SERIAL_SEQUENCE('$Otarticlepresentation','articlepresentationk'))" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <!--
+    | Add slides for selected presentation
+    |-->
+   <QUERY ID="Presentation: Slides" DESCRIPTION="Add slides to presentation" KEY="7F94DDBA71744EEC837A71BE99C105A4" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TrArticlePresentationXArticle1rArticlePresentationXArticleK" ALIAS="ID (Slide)" TABLE="TrArticlePresentationXArticle1"/>
+      <FIELD ID="TrArticlePresentationXArticle1ArticleK" ALIAS="Article" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TrArticlePresentationXArticle1FName" ALIAS="Name" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TrArticlePresentationXArticle1FDevelop" ALIAS="Develop" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TrArticlePresentationXArticle1FPage" ALIAS="Page" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TrArticlePresentationXArticle1FOrder" ALIAS="Order" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <ROWEDIT>
+         <EDIT NAME="new_request" SIMPLE="New request" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iArticlePresentation INT = {{=ArticlePresentationK}};
+DECLARE @iArticle INT = {{=ArticleK}};
+DECLARE @iUser INT = {#V user "@@user"};
+   
+INSERT INTO $OTrArticlePresentationXArticle (ArticlePresentationK,ArticleK,UserK,FName,FDevelop,FPage,FOrder) 
+VALUES(@iArticlePresentation,@iArticle,@iUser,{=FName},{=FDevelop},{=FPage},{=FOrder})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTrArticlePresentationXArticle')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <!--
+    | Add slides for selected presentation
+    |-->
+   <QUERY ID="Presentation: Slides" DESCRIPTION="Add slides to presentation" KEY="7F94DDBA71744EEC837A71BE99C105A4" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TrArticlePresentationXArticle1rArticlePresentationXArticleK" ALIAS="ID (Slide)" TABLE="TrArticlePresentationXArticle1"/>
+      <FIELD ID="TrArticlePresentationXArticle1ArticleK" ALIAS="Article" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TrArticlePresentationXArticle1FName" ALIAS="Name" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TrArticlePresentationXArticle1FDevelop" ALIAS="Develop" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TrArticlePresentationXArticle1FPage" ALIAS="Page" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TrArticlePresentationXArticle1FOrder" ALIAS="Order" TABLE="TrArticlePresentationXArticle1" FIELDFLAGNAMES="edit"/>
+      <ROWEDIT>
+         <EDIT NAME="new_request" SIMPLE="New request" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iArticlePresentation INT = {{=ArticlePresentationK}};
+DECLARE @iArticle INT = {{=ArticleK}};
+DECLARE @iUser INT = {#V user "@@user"};
+   
+INSERT INTO $OTrArticlePresentationXArticle (ArticlePresentationK,ArticleK,UserK,FName,FDevelop,FPage,FOrder) 
+VALUES(@iArticlePresentation,@iArticle,@iUser,{=FName},{=FDevelop},{=FPage},{=FOrder})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTrArticlePresentationXArticle')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+   <QUERY ID="Systems: all" DESCRIPTION="Active systems" KEY="7C262055E3601A43ABAC7E5CC0C3F868">
+      <FIELD ID="TSystem1SystemK" ALIAS="ID (System)" TABLE="TSystem1"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1FAbbreviation" ALIAS="Short" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <!-- <FIELD ID="TSystem1FDescription" ALIAS="Description" TABLE="TSystem1" FIELDFLAGNAMES="edit" /> 
+      <FIELD ID="TSystem1Note" ALIAS="Note" TABLE="TSystem1" FIELDFLAGNAMES="edit" 
+             ORDEREXPRESSION="CAST( (SELECT TOP 1 _n.FNote FROM $OTNote _n WHERE _n.RecordK=$T.SystemK AND _n.table_number=1010) AS NVARCHAR(50))">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+         <EDIT>UPDATE $OTNote SET FNote={=TSystem1Note} WHERE RecordK=${@TSystem1SystemK} AND table_number=1010</EDIT>
+      </FIELD>
+      -->
+      <FIELD ID="TSystem1TypeC" ALIAS="Type" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1PriorityC" ALIAS="Priority" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1SuperK-Name" ALIAS="Parent" TABLE="TSystem1">
+         <ATTRIBUTES SERVER-LIST="SELECT CAST(NULL AS INT) AS SystemK, '_ no parent _' AS FName UNION ALL SELECT SystemK, FName FROM $OTSystem WHERE FDeleted = 0 AND FIdle = 0 ORDER BY 2" />
+      </FIELD>
+      <FIELD ID="TSystem1CountRequest" ALIAS="Cnt.req." TABLE="TSystem1" />
+      <CONDITION ID="TSystem1FDeleted" TABLE="TSystem1" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <CONDITIONS ID="Systems with Activities not closed">
+         <CONDITION ID="TSystem1CountActivity" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with Projects not closed">
+         <CONDITION ID="TSystem1CountProject" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with Requests not closed">
+         <CONDITION ID="TSystem1CountRequest" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "activities","title":"Activities", "icon": "fa-edit", "table":"TSystem1", "link": ["E011E9977E314F43B719979473167221"]},' .. 
+   '{"id": "projects","title":"Projects", "icon": "fa-edit", "table":"TSystem1", "link": ["AC8F938FFFFF45488251BD417A41656F"]},' .. 
+   '{"id": "systemrequest","title":"System requests", "icon": "fa-edit", "table":"TSystem1", "link": ["ABD3CAB3AD27A5419FFB978647AF1E17"]},' .. 
+   '{"id": "systemversion","title":"System versions", "icon": "fa-edit", "table":"TSystem1", "link": ["DB7C2B1E88DF2B4EA265C49A3D7FB59C"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit activities for system" KEY="E011E9977E314F43B719979473167221" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1900" OUTPUT-HEIGHT="600" OUTPUT-POSITION="center-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="System requests"  DESCRIPTION="Edit requests for system" KEY="ABD3CAB3AD27A5419FFB978647AF1E17" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Projects"  DESCRIPTION="Edit projects for system" KEY="AC8F938FFFFF45488251BD417A41656F" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1400" OUTPUT-HEIGHT="500"  />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="System versions"  DESCRIPTION="Versions for active system" KEY="DB7C2B1E88DF2B4EA265C49A3D7FB59C" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+      <ROWEDIT>
+         <EDIT NAME="new_system" SIMPLE="Systems" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSuper INT = {{=SuperK}}
+IF @iSuper = 0 SET @iSuper = NULL
+INSERT INTO $OTSystem(GlobalK,UserK,SuperK,FName,FDescription,TypeC,CreateD,UpdateD) 
+VALUES({#V user "@@global"}, {#V user "@@user"},@iSuper,{=FName"''"},{=FDescription},{=TypeC},GETDATE(),GETDATE());
+
+INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES( (SELECT IDENT_CURRENT('$OTSystem')), 1010, {=TSystem1Note});
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSystem')" />
+         </EDIT>
+         <EDIT NAME="delete system" SIMPLE="Delete System" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTSystem WHERE SystemK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="System: Add sub system" KEY="05CC0280D7A3DB4883C3324C2D355A0A">
+      <FIELD ID="TSystem1SystemK" ALIAS="ID (System)" TABLE="TSystem1"/>
+      <FIELD ID="TSystem1FName" ALIAS="Name" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1Note" ALIAS="Note" TABLE="TSystem1" FIELDFLAGNAMES="edit" 
+             ORDEREXPRESSION="CAST( (SELECT _n.FNote FROM $OTNote _n WHERE _n.RecordK=$T.SystemK AND _n.table_number=1010 LIMIT 1) AS VARCHAR(50))">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+         <EDIT>UPDATE $OTNote SET FNote={=TSystem1Note} WHERE RecordK=${@TSystem1SystemK} AND table_number=1010</EDIT>
+      </FIELD>
+      <FIELD ID="TSystem1TypeC" ALIAS="Type" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1StateC" ALIAS="State" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystem1PriorityC" ALIAS="Priority" TABLE="TSystem1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_system" SIMPLE="Systems" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSuper INT = {{=SuperK}}
+IF @iSuper = 0 SET @iSuper = NULL
+INSERT INTO $OTSystem(GlobalK,UserK,SuperK,FName,FDescription,TypeC,StateC,PriorityC,CreateD,UpdateD) 
+VALUES({#V user "@@global"}, {#V user "@@user"},@iSuper,{=FName"''"},{=FDescription},{=TypeC},{=StateC},{=PriorityC},GETDATE(),GETDATE());
+
+INSERT INTO $OTNote(RecordK,table_number,FNote) VALUES( (SELECT IDENT_CURRENT('$OTSystem')), 1010, {=TSystem1Note});
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSystem')" />
+         </EDIT>
+         <EDIT NAME="delete system" SIMPLE="Delete System" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTSystem WHERE SystemK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="System: tree" KEY="F12429A8B23A06449ABA71A4A88D853E" DESCRIPTION="View systems as tree&lt;br&gt;Systems can be connected in a tree like structure. Open information related to systems.">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <FIELD ID="TSystem1SystemK" ALIAS="ID" TABLE="TSystem1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TSystem1FName-Indent" ALIAS="Indented Name" TABLE="TSystem1" DESCRIPTION="Indented System name to show where system is located in system tree" />
+      <FIELD ID="TSystem1TypeC" ALIAS="Type" TABLE="TSystem1" />
+      <FIELD ID="TSystem1CountActivity" ALIAS="act" TABLE="TSystem1" DESCRIPTION="Number of activities not closed for System">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+         <CONDITIONGROUP>
+            <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+         </CONDITIONGROUP>
+      </FIELD>
+      <FIELD ID="TSystem1CountRequest" ALIAS="req" TABLE="TSystem1" DESCRIPTION="Number of requests not closed for System">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+         <CONDITIONGROUP>
+            <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+         </CONDITIONGROUP>
+      </FIELD>
+      <FIELD ID="TSystem1CountProject" ALIAS="prj" TABLE="TSystem1" DESCRIPTION="Number of projects not closed for System">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+         <CONDITIONGROUP>
+            <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+         </CONDITIONGROUP>
+      </FIELD>
+      <FIELD ID="TSystem1CountBooks" ALIAS="book" TABLE="TSystem1" DESCRIPTION="Attached books with information about the system">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TSystem1CountTodo" ALIAS="todo" TABLE="TSystem1" DESCRIPTION="Number of todos not ready">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+         <CONDITIONGROUP>
+            <FIELDCONDITION ID="FReady" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            <FIELDCONDITION ID="FClosed" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+         </CONDITIONGROUP>
+      </FIELD>
+      <FIELD ID="TSystem1ThreadShortName" ALIAS="Thread" TABLE="TSystem1"/>
+      <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1010 WHERE _t.FKey=TSystem1.SystemK AND _th.table_number=1010 LIMIT 1)" />
+      <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=TSystem1.SystemK AND _t.table_number=1010 LIMIT 1)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1010 WHERE _t.FKey=TSystem1.SystemK AND _th.table_number=1010 LIMIT 1)" />
+         <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT _t.FPath FROM $Othread _t WHERE _t.FKey=TSystem1.SystemK AND _t.table_number=1010 LIMIT 1)" />
+      </ORDERS>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <CONDITIONS ID="Development tutorials">
+         <CONDITION ID="TSystem1PriorityC" TABLE="TSystem1" OPERATORNAME="EQUAL" VALUE="4158" />
+      </CONDITIONS>
+      <CONDITIONS ID="Selection tutorials">
+         <CONDITION ID="TSystem1PriorityC" TABLE="TSystem1" OPERATORNAME="EQUAL" VALUE="4161" />
+      </CONDITIONS>
+      <CONDITIONS ID="Has urgent activities">
+         <CONDITION ID="TSystem1SuperK" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0" SIMPLEVALUE="One or more">
+            <EXPRESSION>
+(SELECT COUNT(*) FROM $OTActivity _a 
+WHERE _a.ParentK = $T.SystemK AND 
+_a.table_number=1010 AND
+(SELECT COUNT(*) FROM $O{CODE}TCode _c WHERE _c.CodeK=_a.PriorityC AND _c.FRank &gt; 6) &gt; 0 AND
+_a.FDone = 0)
+            </EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with Activities not closed">
+         <CONDITION ID="TSystem1CountActivity" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with Projects not closed">
+         <CONDITION ID="TSystem1CountProject" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with Requests not closed">
+         <CONDITION ID="TSystem1CountRequest" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with articles">
+         <CONDITION ID="TSystem1CountArticle" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0" />
+      </CONDITIONS>
+      <CONDITIONS ID="Customer systems">
+         <CONDITION ID="TSystem1CountProperty" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FName" OPERATOR="0" VALUE="1" SIMPLEVALUE="Customer system"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <SELECTCONDITIONS>
+         <SELECTCONDITION ID="TSystem1PriorityC" TABLE="TSystem1"  />
+         <SELECTCONDITION ID="TSystem1SystemK-RequestNotDone" TABLE="TSystem1"  />
+      </SELECTCONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="d2b433ce-b381-4d39-85dc-819bd36eb6a5"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 3 then
+         R:SetValue('url','{"link": ["25CD6ED397DB44859FB0E18E78BB0FF4zoom"],"table":"TSystem1"}' )  return
+      elseif iColumn == 4 then
+         R:SetValue('url','{"link": ["8DE134A0A74C43E7896A256A644EDB92zoom"],"table":"TSystem1"}' )  return
+      elseif iColumn == 5 then
+         R:SetValue('url','{"link": ["AC8F938FFFFF45488251BD417A41656Fzoom"],"table":"TSystem1"}' )  return
+      elseif iColumn == 6 then
+         R:SetValue('url','{"link": ["BDF6B05C0CF66F46817740CD67DB4ADFzoom"],"table":"TSystem1"}' )  return
+      elseif iColumn == 7 then
+         R:SetValue('url','{"link": ["6751CF1641AE47C38F8E13FF46674C99zoom"],"table":"TSystem1"}' )  return
+      end
+   else
+      if iColumn == 3 then
+         R:SetValue('url','{"title":"Activities: edit","link": ["E011E9977E314F43B719979473167221"],"table":"TSystem1"}' )  return
+      elseif iColumn == 4 then
+         R:SetValue('url','{"title":"Requests: edit","link": ["ABD3CAB3AD27A5419FFB978647AF1E17"],"table":"TSystem1"}' )  return
+      elseif iColumn == 5 then
+         R:SetValue('url','{"title":"Projects: edit","link": ["AC8F938FFFFF45488251BD417A41656F"],"table":"TSystem1"}' )  return
+      elseif iColumn == 6 then
+         R:SetValue('url','{"title":"Books: edit","link": ["87595A00949C31499CE831438BA08D94"],"table":"TSystem1"}' )  return
+      elseif iColumn == 7 then
+         R:SetValue('url','{"title":"Todolist: edit","link": ["1E4485B89FCA8F4CB8D9A1DAFB00A498"],"table":"TSystem1"}' )  return
+      end
+   end
+end
+            
+   R:SetValue('url','[' .. 
+   '{"id": "activities","title":"Activities", "icon": "fa-align-justify", "table":"TSystem1", "link": ["25CD6ED397DB44859FB0E18E78BB0FF4result"]},' .. 
+   --'{"id": "activities","title":"Activities", "icon": "fa-folder-open", "table":"TSystem1", "link": ["25CD6ED397DB44859FB0E18E78BB0FF4zoom"]},' .. 
+   '{"id": "activities","title":"Activities: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["E011E9977E314F43B719979473167221"]},' .. 
+   '{"id": "projects_result","title":"Projects: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["AC8F938FFFFF45488251BD417A41656Fresult"]},' .. 
+   '{"id": "projects_edit","title":"Projects: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["AC8F938FFFFF45488251BD417A41656F"]},' ..
+   '{"id": "systemrequest","title":"Requests", "icon": "fa-align-justify", "table":"TSystem1", "link": ["8DE134A0A74C43E7896A256A644EDB92result"]},' ..    
+   '{"id": "systemrequest","title":"Todo items", "icon": "fa-align-justify", "table":"TSystem1", "link": ["6751CF1641AE47C38F8E13FF46674C99result"]},' ..    
+   '{"child": "Todos"},' .. 
+   '{"id": "todolist_edit","title":"Todolist: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["1E4485B89FCA8F4CB8D9A1DAFB00A498"]},' .. 
+   '{"id": "todolist_view","title":"Todolist: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["1E4485B89FCA8F4CB8D9A1DAFB00A498result"]},' ..
+   '{"id": "systemintent_edit","title":"Goals: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["8C0797AC0D60CF44A43E39B0949970ED"]},' ..
+   '{"id": "systemintent_view","title":"Goals: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["8C0797AC0D60CF44A43E39B0949970EDresult"]},' ..
+   '{"parent": 1},' ..
+   '{"child": "Support"},' .. 
+   '{"id": "systemrequest","title":"Requests: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["ABD3CAB3AD27A5419FFB978647AF1E17"]},' .. 
+   '{"id": "links","title":"Links: Add", "icon": "fa-edit", "table":"TSystem1", "link": ["78A78FCEB1784D1693A9699D30E1ED10"]},' .. 
+   '{"parent": 1},' ..
+   '{"child": "Presentation"},' .. 
+   '{"id": "books_result","title":"Books: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["BDF6B05C0CF66F46817740CD67DB4ADFresult"]},' .. 
+   '{"id": "books_edit","title":"Books: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["87595A00949C31499CE831438BA08D94"]},' .. 
+   '{"id": "article","title":"Articles: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["E09B7E7DFF434EBF9A3E24678E4D8815result"]},' .. 
+   '{"id": "article","title":"Articles: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["E9F72F7E7F2E354AB7FC7E2D67684274"]},' .. 
+   '{"id": "books_connect","title":"Connect books", "icon": "fa-sitemap", "table":"TSystem1", "link": ["EC6EF6AFA3554865A7DC39DA6222BE95"]},' .. 
+   '{"id": "presentation","title":"Add presentation", "icon": "fa-sitemap", "table":"TSystem1", "link": ["C655699FA17A224F8FB61AE637C9F52F"]},' .. 
+   '{"parent": 1},' .. 
+   '{"child": "Configure"},' .. 
+   '{"id": "systemversion","title":"Versions: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["DB7C2B1E88DF2B4EA265C49A3D7FB59C"]},' .. 
+   '{"id": "properties","title":"Properties: edit", "icon": "fa-edit", "table":"TSystem1", "link": ["4426B10022F6154E914DA4745769BD40"]},' .. 
+   '{"id": "connect_customer","title":"Customer: edit connected", "icon": "fa-edit", "table":"TSystem1", "link": ["66E465435EA9B04789754574AE0874D3"]},' .. 
+   '{"id": "system","title":"System: Add subs", "icon": "fa-edit", "table":"TSystem1", "link": ["05CC0280D7A3DB4883C3324C2D355A0A"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="View activities for system" KEY="25CD6ED397DB44859FB0E18E78BB0FF4" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="600" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Edit activities for system" KEY="E011E9977E314F43B719979473167221" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1900" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Articles"  DESCRIPTION="Articles active system" KEY="E09B7E7DFF434EBF9A3E24678E4D8815" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Articles"  DESCRIPTION="Articles active system edit" KEY="E9F72F7E7F2E354AB7FC7E2D67684274" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Books"  DESCRIPTION="Books" KEY="BDF6B05C0CF66F46817740CD67DB4ADF" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}"/>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="System books"  DESCRIPTION="Edit book" KEY="87595A00949C31499CE831438BA08D94" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="450" OUTPUT-POSITION="left-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Connect books"  DESCRIPTION="Connect books" KEY="EC6EF6AFA3554865A7DC39DA6222BE95" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="450" OUTPUT-POSITION="left-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Links"  DESCRIPTION="System links" KEY="78A78FCEB1784D1693A9699D30E1ED10" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="200" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Projects"  DESCRIPTION="Edit projects for system" KEY="AC8F938FFFFF45488251BD417A41656F" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-center"  />
+      </QUERYLINK>
+
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Todolist"  DESCRIPTION="Edit todolist" KEY="1E4485B89FCA8F4CB8D9A1DAFB00A498" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Todolist items"  DESCRIPTION="View todos" KEY="6751CF1641AE47C38F8E13FF46674C99" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Goals"  DESCRIPTION="Edit todolist" KEY="8C0797AC0D60CF44A43E39B0949970ED" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top"  />
+      </QUERYLINK>
+      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Requests"  DESCRIPTION="View requests for system" KEY="8DE134A0A74C43E7896A256A644EDB92" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="System requests"  DESCRIPTION="Edit requests for selected system" KEY="ABD3CAB3AD27A5419FFB978647AF1E17" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="300" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="System properties" DESCRIPTION="Set properties for system" KEY="4426B10022F6154E914DA4745769BD40" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES ALL-VARIABLE="1" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="System versions"  DESCRIPTION="Versions for active system" KEY="DB7C2B1E88DF2B4EA265C49A3D7FB59C" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Sub system"  DESCRIPTION="Sub systems to selected" KEY="05CC0280D7A3DB4883C3324C2D355A0A" EXPRESSION="SELECT SystemK value, 'SuperK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Connect customer"  DESCRIPTION="Edit connected customers" KEY="66E465435EA9B04789754574AE0874D3" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Edit presentation"  DESCRIPTION="Add presentation to system" KEY="C655699FA17A224F8FB61AE637C9F52F" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, FName AS simple FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="300" OUTPUT-POSITION="center-top" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="System goals" KEY="8C0797AC0D60CF44A43E39B0949970ED">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Todo,70</ATTRIBUTE>
+      <FIELD ID="TSystemIntent1SystemIntentK" ALIAS="ID" TABLE="TSystemIntent1"/>
+      <FIELD ID="TSystemIntent1FBrief" ALIAS="Brief" TABLE="TSystemIntent1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemIntent1FText" ALIAS="Text" TABLE="TSystemIntent1" FIELDFLAGNAMES="edit">
+      <FIELD ID="TSystemIntent1FText" ALIAS="Text" TABLE="TSystemIntent1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      </FIELD>
+      <FIELD ID="TSystemIntent1TypeC" ALIAS="Type" TABLE="TSystemIntent1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemIntent1StateC" ALIAS="State" TABLE="TSystemIntent1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemIntent1DifficultyC" ALIAS="Difficulty" TABLE="TSystemIntent1" FIELDFLAGNAMES="edit"/>
+      <FIELD ID="TSystemIntent1PriorityC" ALIAS="Priority" TABLE="TSystemIntent1" FIELDFLAGNAMES="edit"/>
+      <ROWEDIT>
+         <EDIT NAME="new_systemintent" SIMPLE="System intent" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSystem INT = {{==SystemK}};
+DECLARE @iUser INT = {#V user "@@user"};
+
+INSERT INTO $OTSystemIntent(SystemK,UserK,FBrief,FText,TypeC,StateC,DifficultyC,PriorityC,CreateD,UpdateD) 
+VALUES(@iSystem,@iUser,{=FBrief},{=FText},{=TypeC},{=StateC},{=DifficultyC},{=PriorityC},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSystemIntent')" />
+         </EDIT>
+         <EDIT NAME="delete goal" SIMPLE="Delete system goal" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTSystemIntent WHERE SystemIntentK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Connect Customer" KEY="66E465435EA9B04789754574AE0874D3">
+      <FIELD ID="TrSystemXCustomer1rSystemXCustomerK" ALIAS="ID" TABLE="TrSystemXCustomer1" />
+      <FIELD ID="TrSystemXCustomer1CustomerK" ALIAS="Customer" TABLE="TrSystemXCustomer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TrSystemXCustomer1TypeC" ALIAS="Type" TABLE="TrSystemXCustomer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TrSystemXCustomer1FDescription" ALIAS="Description" TABLE="TrSystemXCustomer1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_systemversion" SIMPLE="System version" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSystem INT = {{==SystemK}};                  
+INSERT INTO $OTrSystemXCustomer(SystemK,CustomerK,TypeC,FDescription) 
+VALUES(@iSystem,{==CustomerK},{=TypeC"0"},{=FDescription})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTrSystemXCustomer')" />
+         </EDIT>
+         <EDIT NAME="delete system" SIMPLE="Delete System - Customer relation" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTrSystemXCustomer WHERE rSystemXCustomerK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   
+   <QUERY ID="Versions" KEY="3DBCCD178CE77241A0FE9D2A73EE69EB">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary</ATTRIBUTE>
+      <FIELD ID="TSystemVersion1SystemVersionK" ALIAS="ID" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1" />
+      <FIELD ID="TSystemVersion1FName" ALIAS="Name" TABLE="TSystemVersion1" />
+      <FIELD ID="TSystemVersion1TypeC" ALIAS="Type" TABLE="TSystemVersion1" />
+      <FIELD ID="TSystemVersion1FVersion1" ALIAS="Major" TABLE="TSystemVersion1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TSystemVersion1FVersion2" ALIAS="Minor" TABLE="TSystemVersion1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TSystemVersion1FVersion3" ALIAS="Patch" TABLE="TSystemVersion1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TSystemVersion1FReleased" ALIAS="Released" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemVersion1FDeleted" ALIAS="Deleted" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TSystemVersion1FReleased" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      <CONDITION ID="TSystemVersion1FDeleted" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      <CONDITIONS ID="Active versions" SELECTED="1">
+         <CONDITION ID="TSystemVersion1FReleased" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+         <CONDITION ID="TSystemVersion1FDeleted" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="All versions">
+         <CONDITION ID="TSystemVersion1FDeleted" TABLE="TSystemVersion1" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0"/>
+      </CONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+'{"id": "changelog","title":"Changelog", "icon": "fa-align-justify", "table":"TSystemVersion1", "link": ["2AC749C19C8F7049BD8E16091EB40214result"]},' ..    
+'{"id": "activities","title":"Versioning Activities", "icon": "fa-edit", "table":"TSystemVersion1", "link": ["CA5A5A05098B4040A109E080F3778F10"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="Connect activities to version" KEY="CA5A5A05098B4040A109E080F3778F10" EXPRESSION="SELECT SystemK value, 'SystemK' AS name, (SELECT FName FROM $OTSystem s WHERE s.SystemK = SystemK) AS simple FROM $OSystemVersion WHERE SystemVersionK={{==TSystemVersion1}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Changelog"  DESCRIPTION="View changelog" KEY="2AC749C19C8F7049BD8E16091EB40214" EXPRESSION="SELECT SystemVersionK value, 'SystemVersionK' AS name, FName + (LPAD(FVersion1::text,2,'0') || ':' || LPAD(FVersion2::text,2,'0') || ':' || LPAD(FVersion3::text,3,'0')) simple  FROM $OSystemVersion WHERE SystemVersionK={{==TSystemVersion1}}" />
+   </QUERY>
+   
+   <QUERY ID="System links" DESCRIPTION="Links related to system" KEY="78A78FCEB1784D1693A9699D30E1ED10" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="TLink1LinkK" ALIAS="ID" TABLE="TLink1"/>
+      <FIELD ID="TLink1TypeC" ALIAS="Type" TABLE="TLink1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink1FUrl" ALIAS="Url" TABLE="TLink1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink1FName" ALIAS="Name" TABLE="TLink1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink1FDescription" ALIAS="Description" TABLE="TLink1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_systemversion" SIMPLE="System version" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSystem INT = {==SystemK}
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TSystem');                  
+INSERT INTO $OTLink(ParentK,table_number,FUrl,FName,FDescription,CreateD,UpdateD) 
+VALUES(@iSystem,@iTable,{=FUrl},{=FName},{=FDescription},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTLink')" />
+         </EDIT>
+         <EDIT NAME="delete system" SIMPLE="Delete System" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTLink WHERE LinkK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="System properties" DESCRIPTION="Properties for system" KEY="4426B10022F6154E914DA4745769BD40">
+      <FIELD ID="TPropertyName1PropertyNameK" ALIAS="ID (Property name)" TABLE="TPropertyName1"/>
+      <FIELD ID="TPropertyName1FName" ALIAS="Name" TABLE="TPropertyName1"/>
+      <FIELD ID="TPropertyName1FName" ALIAS="Value" TABLE="TPropertyName1" FORMAT="(SELECT _p.FValue FROM $OTProperty _p WHERE _p.PropertyNameK = $T.PropertyNameK AND _p.table_number = 1010 AND _p.ParentK = ${=SystemK})" FIELDFLAGNAMES="sql_format,edit">
+         <EDIT>
+DECLARE @sValue NVARCHAR(1000) = {=TPropertyName1FName}
+DELETE FROM $OTProperty WHERE table_number = 1010 AND ParentK = {==SystemK} AND PropertyNameK = ${@TPropertyName1PropertyNameK}
+IF @sValue IS NOT NULL AND  LEN( @sValue ) > 0
+BEGIN
+   INSERT INTO $OTProperty (ParentK,table_number,PropertyNameK,FValue) VALUES({==SystemK},1010,${@TPropertyName1PropertyNameK},@sValue)
+END
+         </EDIT>
+      </FIELD>
+      <CONDITION ID="TPropertyName1table_number" TABLE="TPropertyName1" OPERATOR="0" SIMPLEVALUE="1010" VALUE="1010" FLAGS="0"/>
+   </QUERY>
+   
+   <QUERY ID="System versions" KEY="DB7C2B1E88DF2B4EA265C49A3D7FB59C" FLAGNAMES="NOTLISTED">
+      <FIELD ID="TSystemVersion1SystemVersionK" ALIAS="ID (System version)" TABLE="TSystemVersion1"/>
+      <FIELD ID="TSystemVersion1FName" ALIAS="Name" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemVersion1TypeC" ALIAS="Type" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemVersion1FVersion1" ALIAS="Major" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemVersion1FVersion2" ALIAS="Minor" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemVersion1FVersion3" ALIAS="Patch" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemVersion1FTested" ALIAS="Tested" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TSystemVersion1FReleased" ALIAS="Released" TABLE="TSystemVersion1" FIELDFLAGNAMES="edit" />
+      <CONDITION ID="TSystemVersion1FDeleted" TABLE="TSystemVersion1" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <ROWEDIT>
+         <EDIT NAME="new_systemversion" SIMPLE="System version" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iSystem INT = {==SystemK}
+DECLARE @iVersion1 INT = {=FVersion1}
+DECLARE @iVersion2 INT = {=FVersion2}
+DECLARE @iVersion3 INT = {=FVersion3}
+
+IF @iVersion1 IS NULL
+   SET @iVersion1 = (SELECT ISNULL(MAX(FVersion1),1) FROM $OTSystemVersion WHERE SystemK=@iSystem)
+
+IF @iVersion2 IS NULL
+   SET @iVersion2 = (SELECT ISNULL( MAX(FVersion2), 0 ) FROM $OTSystemVersion WHERE FVersion1 = @iVersion1)
+   
+IF @iVersion3 IS NULL
+   SET @iVersion3 = 1 + (SELECT ISNULL( MAX(FVersion3), 0 ) FROM $OTSystemVersion WHERE FVersion1 = @iVersion1 AND FVersion2 = @iVersion2)
+   
+                  
+INSERT INTO $OTSystemVersion(SystemK,UserK,FName,FVersion1,FVersion2,FVersion3,TypeC,StateC,CreateD,UpdateD) 
+VALUES(@iSystem,{#V user "@@user"},{=FName"''"},@iVersion1,@iVersion2,@iVersion3,{=TypeC"0"},0,GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTSystemVersion')" />
+         </EDIT>
+         <EDIT NAME="delete system" SIMPLE="Delete System" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTSystemVersion WHERE SystemVersionK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+</SELECTION>

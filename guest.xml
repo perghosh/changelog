@@ -1,0 +1,311 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+   
+   <QUERY ID="Activities: Todo" DESCRIPTION="List activities that you need to do" KEY="A8AC9AC6698F874F83ED1AC9B2828D34">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Activities,20</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="TActivity2FBeginDFixed" ALIAS="Start" TABLE="TActivity2" />
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2" />
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" />
+      <FIELD ID="TActivity2UserK" ALIAS="User" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2FDone" ALIAS="Closed" TABLE="TActivity2" />
+      <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      <CONDITIONS ID="Select filter!" SELECTED="1">
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Not completed activites">
+         <CONDITION ID="TActivity2StateC" TABLE="TActivity2" OPERATORNAME="NOTEQUAL" VALUE="55" />
+         <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="0"/>
+      </CONDITIONS>
+   </QUERY>
+   
+   <QUERY ID="Activities for System" DESCRIPTION="Activities connected to system" KEY="25CD6ED397DB44859FB0E18E78BB0FF4">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TActivity2ActivityK" ALIAS="ID" TABLE="TActivity2"/>
+      <FIELD ID="TActivity2TypeC" ALIAS="Type" TABLE="TActivity2" />
+      <FIELD ID="TActivity2StateC" ALIAS="State" TABLE="TActivity2" />
+      <FIELD ID="TActivity2FDescription" ALIAS="Description" TABLE="TActivity2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 1px;max-width: 600px; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TActivity2Note" ALIAS="Docs" TABLE="TActivity2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TActivity');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TActivity2ActivityK},@iTable)
+   
+UPDATE $OTNote SET FNote={=TActivity2Note} WHERE RecordK=${@TActivity2ActivityK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TActivity2FDone" ALIAS="Closed" TABLE="TActivity2" />
+      <CONDITION ID="TActivity2FDeleted" TABLE="TActivity2" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.UpdateD" />
+      <ORDER FIELD="TActivity2ActivityK" INDEX="0" DESC="1" SQL="TActivity2.FDone" />
+   </QUERY>
+   
+   <QUERY ID="Activities: for selected Project" DESCRIPTION="Activities connected to project" KEY="EA5ED8A1C4E443D893B666953D572CBF">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TActivity4ActivityK" ALIAS="ID" TABLE="TActivity4"/>
+      <FIELD ID="TActivity4TypeC" ALIAS="Type" TABLE="TActivity4" />
+      <FIELD ID="TActivity4StateC" ALIAS="State" TABLE="TActivity4" />
+      <FIELD ID="TActivity4FDescription" ALIAS="Description" TABLE="TActivity4">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 2px;max-width: 300px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />         
+      </FIELD>
+      <FIELD ID="TActivity4Note" ALIAS="Documentation" TABLE="TActivity4">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 2px;max-width: 1000px;max-height: 500px; overflow-y: auto; overflow-x: hidden; white-space: normal;" />
+      </FIELD>
+      <FIELD ID="TActivity4UserK" ALIAS="User" TABLE="TActivity4" />
+      <FIELD ID="TActivity4FDone" ALIAS="Closed" TABLE="TActivity4" />
+      <FIELD ID="TActivity4UpdateD" ALIAS="Updated" TABLE="TActivity4" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <CONDITION ID="TActivity4FDeleted" TABLE="TActivity4" OPERATOR="5" SIMPLEVALUE="1" VALUE="1" FLAGS="16" />
+      <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.CreateD" />
+      <ORDERS NAME="Last created">
+         <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.CreateD" />
+      </ORDERS>
+      <ORDERS NAME="Last updated">
+         <ORDER FIELD="TActivity4ActivityK" INDEX="0" DESC="1" SQL="TActivity4.UpdateD" />
+      </ORDERS>
+   </QUERY>
+   
+   <QUERY ID="Articles: For System" KEY="E09B7E7DFF434EBF9A3E24678E4D8815">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TArticle1ArticleK" ALIAS="ID" TABLE="TArticle1"/>
+      <FIELD ID="TArticle1FHeader" ALIAS="Header" TABLE="TArticle1" />
+      <FIELD ID="TArticle1FText" ALIAS="Text" TABLE="TArticle1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 5px; font-size: 90%; max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TArticle1TypeC" ALIAS="Type" TABLE="TArticle1" />
+      <FIELD ID="TArticle1UpdateD" ALIAS="Updated" TABLE="TArticle1" FORMAT="CONVERT(CHAR(16), $T.$F, 120)" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticle1FSearchText" ALIAS="Search" TABLE="TArticle1" />
+   </QUERY>
+   
+   
+   <QUERY ID="Books" KEY="BDF6B05C0CF66F46817740CD67DB4ADF">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1Indent.FHeader" ALIAS="Indented header" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1UpdateD" ALIAS="Update" TABLE="TArticleBook1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticleBook1FReleased" ALIAS="Released" TABLE="TArticleBook1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook1.ArticleBookK AND _th.table_number=1170)" />
+      <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook1.ArticleBookK AND _t.table_number=1170)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1170 WHERE _t.FKey=TArticleBook1.ArticleBookK AND _th.table_number=1170)" />
+         <ORDER FIELD="TArticleBook1ArticleBookK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TArticleBook1.ArticleBookK AND _t.table_number=1170)" />
+      </ORDERS>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+R:SetValue('url','[' .. 
+   '{"id": "articles_view","title":"View book pages", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["AEA4B9753D454B6DAE0CDCE9922D6223result"]}' ..    
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Read pages"  DESCRIPTION="Read articles" KEY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK value, 'ArticleBookK' name, FHeader simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+   </QUERY>
+   
+   <QUERY ID="Books: List" DESCRIPTION="List books" KEY="8610140C5C7D4A42B42A32316C5BB3AA">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook1"/>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="TArticleBook1FHeader" ALIAS="Book" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1TypeC" ALIAS="Type" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1CountArticle" ALIAS="Pages" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1CreateD" ALIAS="Create" TABLE="TArticleBook1"/>
+      <CONDITION ID="TArticleBook1CountArticle" TABLE="TArticleBook1" OPERATORNAME="GREATER" SIMPLEVALUE="1 page or more" VALUE="0" />
+      <CONDITIONS ID="All books" SELECTED="1"/>
+      <CONDITIONS ID="Books with pages" SELECTED="1">
+         <CONDITION ID="TArticleBook1CountArticle" TABLE="TArticleBook1" OPERATORNAME="GREATER" SIMPLEVALUE="1 page or more" VALUE="0" />
+      </CONDITIONS>
+      <CONDITIONS ID="XML: Create systems">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="XML files for select configuration" VALUE="57" />
+      </CONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE>
+               <![CDATA[ return function(g) local R, db=g.result, g.db
+R:SetValue('url','[' .. 
+   '{"id": "articles_view","title":"View book pages", "icon": "fa-align-justify", "table":"TArticleBook1", "link": ["AEA4B9753D454B6DAE0CDCE9922D6223result"]}' ..    
+   ']') 
+end  ]]>
+            </CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Read pages"  DESCRIPTION="Read articles" KEY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK value, 'ArticleBookK' name, FHeader simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}" />
+   </QUERY>
+   
+   
+   <QUERY ID="Book pages" KEY="AEA4B9753D454B6DAE0CDCE9922D6223">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Articles,30</ATTRIBUTE>
+      <FIELD ID="TSystem1ShortName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="TArticle2FBrief" ALIAS="Brief" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="html|b|font-size:120%;" />
+      </FIELD>
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;" 
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+      </FIELD>
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" />
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" />
+      <FIELD ID="TArticle2FPage" ALIAS="Page" TABLE="TArticle2" />
+      <FIELD ID="TArticle2UpdateD" ALIAS="Updated" TABLE="TArticle2" FORMAT="CONVERT(VARCHAR, $T.$F, 12)" FIELDFLAGNAMES="sql_format" />
+      <ORDER FIELD="TArticle2FPage" INDEX="5" />
+   </QUERY>
+   
+   <QUERY ID="Changelog: List" KEY="65136A5A6EAF9A4795BD3C1B63BDBC2A" DESCRIPTION="Changelog information for systems">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <FIELD ID="TSystem1FName" ALIAS="System" TABLE="TSystem1"/>
+      <FIELD ID="VChangelog1VersionName" ALIAS="Version" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1TypeC" ALIAS="Type" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1FDescription" ALIAS="Description" TABLE="VChangelog1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+      </FIELD>
+      <FIELD ID="VChangelog1ImpactC" ALIAS="Impact" TABLE="VChangelog1"/>
+      <FIELD ID="VChangelog1CreateD" ALIAS="Date" TABLE="VChangelog1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+      <CONDITIONS ID="All" />
+      <CONDITIONS ID="Selection core" SELECTED="1">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+      </CONDITIONS>
+      <CONDITIONS ID="Selection core latest">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATOR="0" SIMPLEVALUE="28" VALUE="28" FLAGS="0"/>
+         <CONDITION ID="VChangelog1FVersion1" TABLE="VChangelog1" OPERATOR="0" SIMPLEVALUE="Latest version" 
+                    VALUE="($T.FVersion1 * 1000000 + $T.FVersion2 * 1000 + $T.FVersion3) = (SELECT MAX(s.FVersion1 * 1000000 + s.FVersion2 * 1000 + s.FVersion3) FROM application.TSystemVersion s WHERE s.SystemK = 28)" 
+                    CONDITIONFLAGS="1792" />
+      </CONDITIONS>
+      <CONDITIONS ID="Latest, all systems">
+         <CONDITION ID="TSystem1SystemK" TABLE="TSystem1" OPERATORNAME="IS NOT NULL" SIMPLEVALUE="empty" VALUE="0" FLAGS="0">
+            <EXPRESSION PART="from">
+JOIN (
+SELECT s.SystemK SystemK, MAX(s.FVersion1 * 1000000 + s.FVersion2 * 1000 + s.FVersion3) Version
+FROM application.TSystemVersion s
+GROUP BY s.SystemK
+) _max ON (VChangelog1.FVersion1 * 1000000 + VChangelog1.FVersion2 * 1000 + VChangelog1.FVersion3) = _max.Version AND "TSystem1"."SystemK" = _max.SystemK
+            </EXPRESSION>
+         </CONDITION>
+      </CONDITIONS>
+   </QUERY>
+   
+   
+   
+   <QUERY ID="Projects: for System" DESCRIPTION="Projects connected to system" KEY="AC8F938FFFFF45488251BD417A41656F">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Conditional,1000</ATTRIBUTE>
+      <FIELD ID="TProject1ProjectK" ALIAS="ID (Project)" TABLE="TProject1"/>
+      <FIELD ID="TProject1TypeC" ALIAS="Type" TABLE="TProject1" />
+      <FIELD ID="TProject1FName" ALIAS="Name" TABLE="TProject1" />
+      <FIELD ID="TProject1Note" ALIAS="Documentation" TABLE="TProject1">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TProject');
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TProject1ProjectK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number) VALUES(${@TProject1ProjectK},@iTable)
+   
+UPDATE $OTNote SET FNote={=TProject1Note} WHERE RecordK=${@TProject1ProjectK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      <FIELD ID="TProject1UserK" ALIAS="User" TABLE="TProject1" />
+      <FIELD ID="TProject1FBeginD" ALIAS="Begin" TABLE="TProject1" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "article","title":"Activities: view", "icon": "fa-align-justify", "table":"TProject1", "link": ["EA5ED8A1C4E443D893B666953D572CBFresult"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="View activities for project" KEY="EA5ED8A1C4E443D893B666953D572CBF" 
+                 EXPRESSION="SELECT ProjectK value, 'ProjectK' name, 'Project: ' + FName simple  FROM $OTProject WHERE ProjectK={{==TProject1}}" />
+   </QUERY>
+   
+   
+
+   <QUERY ID="System: tree" KEY="F12429A8B23A06449ABA71A4A88D853E" DESCRIPTION="View systems as tree">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Primary,1</ATTRIBUTE>
+      <FIELD ID="TSystem1SystemK" ALIAS="ID" TABLE="TSystem1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TSystem1Indent.FName" ALIAS="Indented Name" TABLE="TSystem1" DESCRIPTION="Indented System name to show where system is located in system tree" />
+      <FIELD ID="TSystem1TypeC" ALIAS="Type" TABLE="TSystem1" />
+      <FIELD ID="TSystem1CountActivity" ALIAS="act" TABLE="TSystem1" DESCRIPTION="Number of activities not closed for System">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <CONDITIONGROUP>
+            <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+         </CONDITIONGROUP>
+      </FIELD>
+      <FIELD ID="TSystem1CountRequest" ALIAS="req" TABLE="TSystem1" DESCRIPTION="Number of requests not closed for System">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <CONDITIONGROUP>
+            <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+         </CONDITIONGROUP>
+      </FIELD>
+      <FIELD ID="TSystem1CountProject" ALIAS="prj" TABLE="TSystem1" DESCRIPTION="Number of projects not closed for System">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <CONDITIONGROUP>
+            <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+         </CONDITIONGROUP>
+      </FIELD>
+      <FIELD ID="TSystem1CountBooks" ALIAS="book" TABLE="TSystem1" DESCRIPTION="Attached books with information about the system">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TSystem1ThreadShortName" ALIAS="Thread" TABLE="TSystem1"/>
+      <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1010 WHERE _t.FKey=TSystem1.SystemK AND _th.table_number=1010)" />
+      <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TSystem1.SystemK AND _t.table_number=1010)" />
+      <ORDERS NAME="Thread view">
+         <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _th.FThreadId FROM $Othread_header _th JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t.table_number=1010 WHERE _t.FKey=TSystem1.SystemK AND _th.table_number=1010)" />
+         <ORDER FIELD="TSystem1SystemK" INDEX="0" SQL="(SELECT TOP 1 _t.FPath FROM $Othread _t WHERE _t.FKey=TSystem1.SystemK AND _t.table_number=1010)" />
+      </ORDERS>
+      <CONDITIONS ID="Select filter!" SELECTED="1"/>
+      <CONDITIONS ID="Systems with Activities not closed">
+         <CONDITION ID="TSystem1CountActivity" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with Projects not closed">
+         <CONDITION ID="TSystem1CountProject" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with Requests not closed">
+         <CONDITION ID="TSystem1CountRequest" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0">
+            <CONDITIONGROUP>
+               <FIELDCONDITION ID="FDone" OPERATOR="0" VALUE="0" SIMPLEVALUE="NO"/>
+            </CONDITIONGROUP>
+         </CONDITION>
+      </CONDITIONS>
+      <CONDITIONS ID="Systems with articles">
+         <CONDITION ID="TSystem1CountArticle" TABLE="TSystem1" OPERATORNAME="GREATER" VALUE="0" />
+      </CONDITIONS>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "activities","title":"Activities", "icon": "fa-align-justify", "table":"TSystem1", "link": ["25CD6ED397DB44859FB0E18E78BB0FF4result"]},' .. 
+   '{"id": "books_result","title":"Books: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["BDF6B05C0CF66F46817740CD67DB4ADFresult"]},' .. 
+   '{"id": "projects_result","title":"Projects: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["AC8F938FFFFF45488251BD417A41656Fresult"]},' ..    
+   '{"id": "article","title":"Articles: view", "icon": "fa-align-justify", "table":"TSystem1", "link": ["E09B7E7DFF434EBF9A3E24678E4D8815result"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Activities"  DESCRIPTION="View activities for system" KEY="25CD6ED397DB44859FB0E18E78BB0FF4" EXPRESSION="SELECT SystemK value, 'SystemK' name, FName simple  FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Books"  DESCRIPTION="Books" KEY="BDF6B05C0CF66F46817740CD67DB4ADF" EXPRESSION="SELECT SystemK value, 'SystemK' name, FName simple  FROM $OTSystem WHERE SystemK={{==TSystem1}}"/>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Projects"  DESCRIPTION="Edit projects for system" KEY="AC8F938FFFFF45488251BD417A41656F" EXPRESSION="SELECT SystemK value, 'SystemK' name, FName simple  FROM $OTSystem WHERE SystemK={{==TSystem1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-center"  />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Articles"  DESCRIPTION="Articles active system" KEY="E09B7E7DFF434EBF9A3E24678E4D8815" EXPRESSION="SELECT SystemK value, 'SystemK' name, FName simple  FROM $OTSystem WHERE SystemK={{==TSystem1}}" />
+   </QUERY>
+</SELECTION>

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+   
+   <QUERY ID="Property names" KEY="852149CE4442B84780EBA9B9AE587D87">
+      <FIELD ID="TPropertyName1PropertyNameK" ALIAS="ID (Property name)" TABLE="TPropertyName1"/>
+      <FIELD ID="TPropertyName1Name.table_number" ALIAS="table" TABLE="TPropertyName1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPropertyName1FName" ALIAS="Name" TABLE="TPropertyName1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPropertyName1FDescription" ALIAS="Description" TABLE="TPropertyName1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPropertyName1FMultiple" ALIAS="Multiple" TABLE="TPropertyName1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPropertyName1FValid" ALIAS="Valid" TABLE="TPropertyName1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_name" SIMPLE="Property names" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+-- # Add record to Property name
+INSERT INTO $OTPropertyName (FName,FDescription,FMultiple,FValid,table_number) 
+VALUES({=FName},{=FDescription},{=FMultiple"0"},{=FValid},{=table_number"0"});
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTPropertyName')" />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+</SELECTION>

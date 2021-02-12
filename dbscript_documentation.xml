@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SELECTION xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="file:///C:/Program Files (x86)/Common Files/gorep/selection/select.xsd"
+           NAME="script for documentation tables"  DBID="DOCUMENTATION" DBSIMPLEID="DOCUMENTATION" OWNER="documentation." VERSION="1">
+   <DATABASENAMES>
+      <NAME ID="DOCUMENTATION" NAME="documentation." />
+   </DATABASENAMES>
+   
+   <SCRIPTS>
+      <SCRIPT ID="idLogin" VERSION="0" DBVERSION="1" TYPE="login" LANGUAGE="LUA">
+         <CODE>
+            <![CDATA[
+function main()
+   local app = Application.new()
+   local result = Result.new()
+   local alias = result:GetParam("alias", "guest")
+   
+   local user = app:GetUser( result:GetParam("user", ""), true )
+   if user == nil then
+      user = app:AddUser() 
+      user:SetName( alias )
+      user:LoadQueries()
+   end
+end
+main()         
+         ]]>
+         </CODE>
+      </SCRIPT>
+   </SCRIPTS>   
+   
+<!-- TDatabase -->   
+   <TABLETEMPLATE ID="documentation.database">
+      <FIELD NAME="DatabaseK" ALIAS="ID" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="Index" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="FName" TYPE="STR" CONDITION="1" />
+
+      <EDIT NAME="Index" ALIAS="Index" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="FName" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+   </TABLETEMPLATE>
+   
+<!-- TSchema -->
+   <TABLETEMPLATE ID="documentation.schema">
+      <FIELD NAME="SchemaK" ALIAS="ID" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="DatabaseK" ALIAS="DatabaseK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="Index" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="FName" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="FDescription" TYPE="STR" CONDITION="1" />
+
+      <EDIT NAME="Index" ALIAS="Index" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="FName" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FDescription" ALIAS="FDescription" TYPE="STR" MAX="2000" />
+   </TABLETEMPLATE>
+   
+<!-- TTable -->
+   <TABLETEMPLATE ID="documentation.table">
+      <FIELD NAME="TableK" ALIAS="ID" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SchemaK" ALIAS="SchemaK" TYPE="I4" CONDITION="1" />
+      <FIELD ID="SchemaKName" NAME="SchemaK" ALIAS="Schema name" TYPE="STR">
+         <EXPRESSION>(SELECT _s.FName FROM $O.TSchema _s WHERE _s.SchemaK=$T.SchemaK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="SchemaKName" NAME="SchemaK" SIMPLENAME="Schema" TYPE="STR">
+         <EXPRESSION>(SELECT _s.FName FROM $OTSchema _s WHERE _s.SchemaK=$T.SchemaK)</EXPRESSION>
+         <LOOKUP CACHE="schemas">SELECT DISTINCT TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES ORDER BY 1</LOOKUP>
+      </CONDITION>
+      <FIELD NAME="Index" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="FName" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FType" ALIAS="FType" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FNullable" ALIAS="FNullable" TYPE="BOOLEAN" CONDITION="1" />
+      <FIELD NAME="FLength" ALIAS="FLength" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="FDescription" TYPE="STR" CONDITION="1" />
+
+      <EDIT NAME="Index" ALIAS="Index" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="FName" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FType" ALIAS="FType" TYPE="STR" MAX="100" />
+      <EDIT NAME="FNullable" ALIAS="FNullable" TYPE="BOOLEAN" />
+      <EDIT NAME="FLength" ALIAS="FLength" TYPE="I4" />
+      <EDIT NAME="FDescription" ALIAS="FDescription" TYPE="STR" MAX="2000" />
+   </TABLETEMPLATE>
+   
+<!-- TColumn -->
+   <TABLETEMPLATE ID="documentation.column">
+      <FIELD NAME="ColumnK" ALIAS="ID" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="TableK" ALIAS="TableK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="Index" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="GroupTypeS" ALIAS="Group type" TYPE="I4" CONDITION="expression" DESCRIPTION="Simplified field type">
+         <EXPRESSION>(SELECT _lv."name" FROM $Olist_values WHERE _lv.number=$T.GroupTypeS)</EXPRESSION>
+         <LOOKUPEDIT CACHE="documentation.group_type">SELECT _lv.number, _lv."name" FROM $Olist_values WHERE _lv.number=$T.GroupTypeS</LOOKUPEDIT>
+      </FIELD>
+      <FIELD NAME="FName" ALIAS="FName" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FValueType" ALIAS="FValueType" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FSize" ALIAS="FSize" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FType" ALIAS="FType" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="FDescription" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLabel" ALIAS="FLabel" TYPE="STR" CONDITION="1" />
+
+      <EDIT NAME="Index" ALIAS="Index" TYPE="I4" />
+      <EDIT NAME="GroupTypeS" ALIAS="GroupTypeS" TYPE="I4">
+         <LOOKUP CACHE="documentation.group_type">SELECT _lv.number, _lv."name" FROM $Olist_values WHERE _lv.number=$T.GroupTypeS</LOOKUP>
+      </EDIT>
+      <EDIT NAME="FName" ALIAS="FName" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+      <EDIT NAME="FValueType" ALIAS="FValueType" TYPE="STR" MAX="100" />
+      <EDIT NAME="FSize" ALIAS="FSize" TYPE="I4" />
+      <EDIT NAME="FType" ALIAS="FType" TYPE="STR" MAX="100" />
+      <EDIT NAME="FDescription" ALIAS="FDescription" TYPE="STR" MAX="2000" />
+      <EDIT NAME="FLabel" ALIAS="FLabel" TYPE="STR" MAX="200" NULL="0" DEFAULT="&quot;&quot;" />
+   </TABLETEMPLATE>
+   
+<!-- TNote -->
+   <TABLETEMPLATE ID="documentation.note">
+      <FIELD ID="NoteKId" NAME="NoteK" ALIAS="ID" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ParentK" ALIAS="ParentK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ThreadK" ALIAS="ThreadK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="Branch" ALIAS="Branch" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="Path" ALIAS="Path" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TNoteCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TNoteUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FTimeD" ALIAS="FTimeD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FTimeD" SIMPLENAME="~TNoteFTimeD FTimeD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FBrief" ALIAS="FBrief" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FNote" ALIAS="FNote" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="FDeleted" TYPE="BOOLEAN" CONDITION="1" />
+
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="FTimeD" ALIAS="FTimeD" TYPE="DATE" />
+      <EDIT NAME="FBrief" ALIAS="FBrief" TYPE="STR" MAX="200" />
+      <EDIT NAME="FNote" ALIAS="FNote" TYPE="STR" />
+      <EDIT NAME="FDeleted" ALIAS="FDeleted" TYPE="BOOLEAN" />
+   </TABLETEMPLATE>   
+   
+   
+   <TABLE PREFIX="TDatabase1" NAME="TDatabase" ALIAS="TDatabase1" SIMPLENAME="~TDatabase Database">
+      <FIELD NAME="DatabaseK" ALIAS="DatabaseK" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.database" />
+   </TABLE>
+   
+   <TABLE PREFIX="TSchema1" NAME="TSchema" ALIAS="TSchema1" SIMPLENAME="~TSchema TSchema" PARENT="TDatabase1">
+      <JOIN TYPE="inner">[$parent].[DatabaseK]=[$this].[DatabaseK]</JOIN>
+      <FIELD NAME="SchemaK" ALIAS="SchemaK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.schema" />
+   </TABLE>
+
+   <TABLE PREFIX="TTable1" NAME="TTable" ALIAS="TTable1" SIMPLENAME="~TTable TTable" PARENT="TSchema1">
+      <JOIN TYPE="inner">[$parent].[SchemaK]=[$this].[SchemaK]</JOIN>
+      <FIELD NAME="TableK" ALIAS="TableK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.table" />
+   </TABLE>
+   
+   <TABLE PREFIX="TColumn1" NAME="TColumn" ALIAS="TColumn1" SIMPLENAME="~TColumn TColumn" PARENT="TTable1">
+      <JOIN TYPE="inner">[$parent].[TableK]=[$this].[TableK]</JOIN>
+      <FIELD NAME="ColumnK" ALIAS="ColumnK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.column" />
+   </TABLE>
+   
+   <TABLE PREFIX="TNote1" NAME="TNote" ALIAS="TNote1" SIMPLENAME="~TNote TNote" PARENT="TSchema1">
+      <JOIN TYPE="inner">$parent.SchemaK=$this.ParentK AND $this.table_number=20</JOIN>
+      <FIELD NAME="NoteK" ALIAS="NoteK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.note" />
+   </TABLE>
+   
+   <TABLE PREFIX="TNote2" NAME="TNote" ALIAS="TNote1" SIMPLENAME="~TNote TNote" PARENT="TTable1">
+      <JOIN TYPE="inner">$parent.TableK=$this.ParentK AND $this.table_number=30</JOIN>
+      <FIELD NAME="NoteK" ALIAS="NoteK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="documentation.note" />
+   </TABLE>
+   
+</SELECTION>

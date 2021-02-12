@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+Blog list - Fields from table TArticleBookList TArticleBookList and filter set to blog
+   Books in blog list - Fields from table TArticleBook with filter from selected blog
+      Blog post - Fields from TArticle filtered for book
+
+-->
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+   <QUERY ID="Book lists: edit" KEY="7B94D57F3C0E4ACE9CCD24931168082B" DESCRIPTION="Blog list, use this list to select blog to view">
+      <FIELD ID="TArticleBookList1ArticleBookListK" ALIAS="ID" TABLE="TArticleBookList1"/>
+      <FIELD ID="TArticleBookList1FName" ALIAS="Name" TABLE="TArticleBookList1" />
+      <FIELD ID="TArticleBookList1FDescription" ALIAS="Description" TABLE="TArticleBookList1" />
+      
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="b263932d-81ae-44d0-a643-f54ffbf51d46"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+   R:SetValue('url','[' .. 
+'{"id": "books","title":"Select blog", "icon": "fa-blog", "table":"TArticleBookList1", "link": ["536D18CD34572E4684CFC8E6FE3C06C0zoom"]}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" NAME="Books"  DESCRIPTION="View blog posts" KEY="536D18CD34572E4684CFC8E6FE3C06C0" EXPRESSION="SELECT ArticleBookListK value, 'ArticleBookListK' AS name, FName AS Simple FROM $OTArticleBookList WHERE ArticleBookListK={{==[0]}}">
+         <PROPERTIES OUTPUT-WIDTH="500" OUTPUT-HEIGHT="600" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+  
+   <QUERY ID="Books" KEY="536D18CD34572E4684CFC8E6FE3C06C0">
+      <FIELD ID="TArticleBook1ArticleBookK" ALIAS="ID (Book)" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1FHeader" ALIAS="Name" TABLE="TArticleBook1"/>
+      <FIELD ID="TArticleBook1UpdateD" ALIAS="Update" TABLE="TArticleBook1" FORMAT="CAST( $T.$F AS DATE )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TArticleBook1CountLink" ALIAS="Links" TABLE="TArticleBook1" DESCRIPTION="Number of added links for book">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE CACHE="b263932d-81ae-44d0-a643-f54ffbf51d46"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+   R:SetValue('url','[' .. 
+'{"id": "books","title":"View blog", "icon": "fa-blog", "table":"TArticleBookList1", "link": ["AEA4B9753D454B6DAE0CDCE9922D6223result"],"table":"TArticle2"}' ..
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      
+      <QUERYLINK TYPENAME="children" FIELD="" NAME="Read pages"  DESCRIPTION="View blog" KEY="AEA4B9753D454B6DAE0CDCE9922D6223" EXPRESSION="SELECT ArticleBookK AS value, 'ArticleBookK' AS name, FHeader AS simple  FROM $OTArticleBook WHERE ArticleBookK={{==TArticleBook1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Blog post" KEY="AEA4B9753D454B6DAE0CDCE9922D6223">
+      <FIELD ID="TArticle2ArticleK" ALIAS="ID" TABLE="TArticle2"/>
+      <FIELD ID="TArticle2FChapterName-Chapter" ALIAS="Chapter" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="html|b|letter-spacing: 3px;font-size:250%; color: black;|[rowbefore one]" />
+      </FIELD>
+      <FIELD ID="TArticle2FBrief-Indent" ALIAS="Brief" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='font-size:120%; font-weight: bold; color: #483D8B;'" />
+      </FIELD>
+      <FIELD ID="TArticle2CountLink" ALIAS="Links" TABLE="TArticle2" DESCRIPTION="Number of links for text">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TArticle2TypeC" ALIAS="Type" TABLE="TArticle2" />
+      <FIELD ID="TArticle2TargetC" ALIAS="Target" TABLE="TArticle2" />
+      <FIELD ID="TArticle2LevelC" ALIAS="Level" TABLE="TArticle2" />
+      <FIELD ID="TArticle2FText" ALIAS="Text" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|max-width: 1000px; overflow-x: auto; white-space: normal;|[row]|margin: 1em 3em; padding-left: 20px;max-width: 95%; border-left: 2px solid #CCC;"
+                     OUTPUT-STYLE="column|max-width: 20px;" />
+      </FIELD>
+      <FIELD ID="TArticle2FPage" ALIAS="Page" TABLE="TArticle2" />
+      <FIELD ID="TArticle2Picture" ALIAS="Pic" DESCRIPTION="Picture" TABLE="TArticle2">
+         <ATTRIBUTES OUTPUT-FORMAT="image| |[row]|padding-left: 50px; margin: 3px;"
+                     OUTPUT-STYLE="column|width: 20px;" />
+      </FIELD>
+      <ORDER FIELD="TArticle2FChapterName-Chapter" SQL="(SELECT TOP 1 ISNULL(_ac.FIndex,1000000) FROM $OTArticleChapter _ac JOIN $OTrArticleChapterXArticle x ON _ac.ArticleChapterK=x.ArticleChapterK WHERE x.ArticleK=$T.ArticleK)" />
+      <ORDER FIELD="TArticle2FPage" />
+      <ORDERS NAME="Chapters">
+         <ORDER FIELD="TArticle2FPage" SQL="(SELECT TOP 1 ISNULL(_ac.FIndex,1000000) FROM $OTArticleChapter _ac JOIN $OTrArticleChapterXArticle x ON _ac.ArticleChapterK=x.ArticleChapterK WHERE x.ArticleK=$T.ArticleK)" />
+         <ORDER FIELD="TArticle2FPage" />
+      </ORDERS>
+      <CONDITION ID="TArticle2LevelC-Rank" TABLE="TArticle2" OPERATORNAME="LESS" VALUE="6" />
+      <CONDITION ID="TArticle2FPage" TABLE="TArticle2" OPERATORNAME="GREATEREQUAL" VALUE="0" />
+      <CONDITIONS ID="Adminis" SELECTED="1">
+         <CONDITION ID="TArticle2LevelC-Rank" TABLE="TArticle2" OPERATORNAME="LESS" VALUE="6" />
+         <CONDITION ID="TArticle2FPage" TABLE="TArticle2" OPERATORNAME="GREATEREQUAL" VALUE="0" />
+      </CONDITIONS>
+      <CONDITIONS ID="Advanced">
+         <CONDITION ID="TArticle2FPage" TABLE="TArticle2" OPERATORNAME="GREATEREQUAL" VALUE="0" />
+      </CONDITIONS>
+      <CONDITIONS ID="All" />
+   </QUERY>
+   
+
+   <QUERY ID="Book links" DESCRIPTION="Links related to book" KEY="A406796504D34476B183AEECCF2724D4" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="TLink5LinkK" ALIAS="ID" TABLE="TLink5"/>
+      <FIELD ID="TLink5TypeC" ALIAS="Type" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink5FUrl" ALIAS="Url" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink5FName" ALIAS="Name" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink5FDescription" ALIAS="Description" TABLE="TLink5" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_systemversion" SIMPLE="System version" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iBook INT = {{=ArticleBookK}}
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TArticleBook');
+INSERT INTO $OTLink(ParentK,table_number,TypeC,FUrl,FName,FDescription,CreateD,UpdateD)
+VALUES(@iBook,@iTable,{=TypeC"0"},{=FUrl},{=FName},{=FDescription},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTLink')" />
+         </EDIT>
+         <EDIT NAME="delete link" SIMPLE="Delete link" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTLink WHERE LinkK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+
+
+</SELECTION>

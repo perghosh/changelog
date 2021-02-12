@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!-- SQL Server specific logic -->
+<DOCUMENT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="file:///C:/Program Files (x86)/Common Files/gorep/selection/select_subscript.xsd"
+          >
+   <TABLETEMPLATE ID="code.code">
+      <FIELD ID="Indent.FName" NAME="FName" ALIAS="Indented Name" CONDITION="1" TYPE="STR" DESCRIPTION="Indent code name dependent on the number of parents">
+         <EXPRESSION>(REPLICATE('+ ', COALESCE( (SELECT _t.FDepth FROM $Othread _t WHERE _t.FKey=$T.CodeK), 0 ) ) + $T.FName)</EXPRESSION>
+      </FIELD>
+   </TABLETEMPLATE>
+</DOCUMENT>

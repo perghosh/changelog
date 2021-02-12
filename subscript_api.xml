@@ -1,0 +1,770 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+ | "api.object" "api.objectchapter" "api.parameter" "api.function" "api.functionoverload" "api.example" "api.exampleremark"
+ -->
+<DOCUMENT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="file:///C:/Program Files (x86)/Common Files/gorep/selection/select_subscript.xsd">
+   <DATABASENAMES>
+      <NAME ID="API" NAME="api." />
+   </DATABASENAMES>
+
+   <INTELLISENSES>
+      <INTELLISENSE ID="object_thread_name" TABLE="TObject1" SQL="SELECT TOP 20 _o.FName FROM $O{api}TObject _o JOIN $Othread_header _th ON _o.ObjectK = _th.FThreadId AND _th.&quot;Table&quot;=10010 WHERE _o.FName like '{{=this}}%' ORDER BY 1" MASK="V" DESCRIPTION="Thread name" />
+   </INTELLISENSES>
+
+   <TABLETEMPLATE ID="application.system">
+      <FIELD ID="CountObject" NAME="SystemK" ALIAS="Count obj." SIMPLENAME="Number of objects" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{API}TObject _o JOIN $OTrSystemXApiObject _x ON _o.ObjectK=_x.ObjectK WHERE _x.SystemK = $T.SystemK AND _o.SuperK IS NULL)</EXPRESSION>
+      </FIELD>
+   </TABLETEMPLATE>
+
+
+   <TABLETEMPLATE ID="api.object">
+      <FIELD NAME="RepositoryK" ALIAS="Repository" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT _r.FName FROM $O{APP}TRepository _r WHERE _r.RepositoryK=$T.RepositoryK)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT COALESCE(_o.FName,_o.FDeclaration,'') FROM $O{APP}TObject _o WHERE _o.ObjectK=$T.SuperK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TObjectCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TObjectUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="EnvironmentC" ALIAS="Environment" TYPE="I4" DISPLAYTYPE="STR"  CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.object.environment">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10010 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="StateC" ALIAS="State" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.object.state">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10011 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.object.type">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10012 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="NamespaceC" ALIAS="Namespace" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.object.namespace">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10013 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="LanguageC" ALIAS="Language" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.object.language">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10014 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="ReturnC" ALIAS="return" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.object.language">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10015 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD ID="FName-Indent" NAME="FName" ALIAS="Indented name" CONDITION="1" TYPE="STR" DESCRIPTION="Indent name based on level in object tree if it belongs to any">
+         <FORMULA TYPE="HTML" />
+         <EXPRESSION>
+('&lt;span style="margin-left:' + CAST( ISNULL( (SELECT TOP 1 _t.FDepth FROM $O{}thread _t WHERE _t.FKey=$T.ObjectK AND _t."table_number" = 10010), 0 ) * 2 AS VARCHAR(10)) + 'em;"&gt;' + $T.FName + '&lt;/span&gt;')
+         </EXPRESSION>
+      </FIELD>
+      <FIELD NAME="FInternalName" ALIAS="Internal name" TYPE="STR" CONDITION="1" />      
+      <FIELD ID="Note" NAME="FDescription" ALIAS="Note" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _n.FNote FROM $O{}TNote _n WHERE _n.RecordK=$T.ObjectK AND _n.table_number=10010)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD ID="CountBook" NAME="ObjectK" ALIAS="Count book" SIMPLENAME="Number of books" TYPE="INT" CONDITION="expression" DESCRIPTION="Count number of books connected to object">
+         <EXPRESSION>(SELECT COUNT(*) FROM $OTrArticleBookXApiObject _r WHERE _r.ObjectK = $T.ObjectK)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FVersionBegin" ALIAS="VersionBegin" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FVersionEnd" ALIAS="VersionEnd" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FBeta" ALIAS="Beta" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+
+      <FIELD ID="CountBooks" NAME="ObjectK" ALIAS="Count link" SIMPLENAME="Number of links" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{}TrArticleBookXApiObject _x WHERE _x.ObjectK=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      
+      
+      <FIELD ID="CountExample" NAME="ObjectK" ALIAS="Count example" SIMPLENAME="Number of examples" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $OTExample _e WHERE _e.ParentK=$T.ObjectK AND _e.table_number = 10010)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD ID="CountFunction" NAME="ObjectK" ALIAS="Count function" SIMPLENAME="Number of functions" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $OTFunction _f WHERE _f.ObjectK=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD ID="CountParameter" NAME="ObjectK" ALIAS="Count parameter" SIMPLENAME="Number of parameters" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $OTParameter _p WHERE _p.ObjectK=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD ID="CountLink" NAME="ObjectK" ALIAS="Count link" SIMPLENAME="Number of links" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{}TLink _l WHERE _l.ParentK=$T.ObjectK AND _l.table_number=10010)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD ID="Hashtag" NAME="ObjectK" ALIAS="Hashtag" TYPE="STR" DESCRIPTION="Hastags connected to object">
+         <EXPRESSION>
+CAST( 
+STUFF( 
+   (SELECT ',' + _b.FName FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _r.ParentK=$T.ObjectK AND _r.table_number=10010),
+   1,1,'' )
+   AS NVARCHAR(512)
+)
+         </EXPRESSION>
+      </FIELD>
+      <CONDITION ID="Hashtag" NAME="ObjectK" SIMPLENAME="Hashtag" TYPE="STR" NOVALUE="1" INTELLISENSE="hashtag_name">
+         <EXPRESSION>
+$T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _b.FName $_condition AND _r.table_number=10010)
+         </EXPRESSION>
+         <OPERATORS>
+            <OPERATOR FROM="0" TO="11" />
+            <OPERATOR FROM="5" TO="12" />
+         </OPERATORS>
+      </CONDITION>
+      
+      <FIELD ID="ThreadNumber" NAME="ObjectK" ALIAS="Thread ID" TYPE="INT" CONDITION="expression" DESCRIPTION="The thread number, same as key to system root">
+         <EXPRESSION>(SELECT TOP 1 _th.FThreadId FROM $O{}thread_header _th JOIN $O{}thread _t ON _th.FThreadId = _t.FThreadId WHERE _t.FKey=$T.ObjectK AND _t."table_number" = 10010)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="ThreadName" NAME="ObjectK" ALIAS="Thread Name" TYPE="STR" CONDITION="expression" INTELLISENSE="object_thread_name" DESCRIPTION="The thread name, same as name to root object">
+         <EXPRESSION>(SELECT TOP 1 _o.FName FROM $OTObject _o JOIN $O{}thread_header _th ON _o.ObjectK = _th.FThreadId AND _th."table_number" = 10010 JOIN $Othread _t ON _th.FThreadId = _t.FThreadId AND _t."table_number" = 10010 WHERE _t.FKey=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      
+      
+      <EDIT NAME="CreateD" ALIAS="Create" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" />
+      <EDIT NAME="EnvironmentC" ALIAS="Environment" TYPE="I4">
+         <LOOKUP CACHE="api.object.environment.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10010 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="StateC" ALIAS="State" TYPE="I4">
+         <LOOKUP CACHE="api.object.state.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10011 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
+         <LOOKUP CACHE="api.object.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10012 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="NamespaceC" ALIAS="Namespace" TYPE="I4">
+         <LOOKUP CACHE="api.object.namespace.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10013 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="LanguageC" ALIAS="Language" TYPE="I4">
+         <LOOKUP CACHE="api.object.language.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10014 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="ReturnC" ALIAS="Return" TYPE="I4">
+         <LOOKUP CACHE="api.object.return.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10015 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="300" />
+      <EDIT NAME="FInternalName" ALIAS="Name" TYPE="STR" MAX="100" />
+      <EDIT NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FVersionBegin" ALIAS="VersionBegin" TYPE="I4" />
+      <EDIT NAME="FVersionEnd" ALIAS="VersionEnd" TYPE="I4" />
+      <EDIT NAME="FBeta" ALIAS="Beta" TYPE="I2" />
+      <EDIT NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="api.objectchapter">
+      <FIELD NAME="ObjectK" ALIAS="Object" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ParentObjectK" ALIAS="Parent object" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT COALESCE(_oc.FName,_oc.FHeader,'') FROM $O{APP}TObjectChapter _oc WHERE _oc.ObjectChapterK=$T.SuperK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TObjectChapterCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TObjectChapterUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="StateC" ALIAS="State" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="LanguageC" ALIAS="Language" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FHeader" ALIAS="Header" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FText" ALIAS="Text" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FHelp" ALIAS="Help" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FIndex" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FReleased" ALIAS="Released" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FReleased" SIMPLENAME="~TObjectChapterFReleased FReleased" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FReady" ALIAS="Ready" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+
+      <EDIT NAME="ObjectK" ALIAS="Object" TYPE="I4" />
+      <EDIT NAME="ParentObjectK" ALIAS="Parent object" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="Super" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="Create" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4" />
+      <EDIT NAME="StateC" ALIAS="State" TYPE="I4" />
+      <EDIT NAME="LanguageC" ALIAS="Language" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FHeader" ALIAS="Header" TYPE="STR" MAX="200" />
+      <EDIT NAME="FText" ALIAS="Text" TYPE="STR" />
+      <EDIT NAME="FHelp" ALIAS="Help" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FIndex" ALIAS="Index" TYPE="I4" />
+      <EDIT NAME="FReleased" ALIAS="Released" TYPE="DATE" />
+      <EDIT NAME="FReady" ALIAS="Ready" TYPE="I2" />
+      <EDIT NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="api.parameter">
+      <FIELD NAME="FunctionK" ALIAS="Function" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _o.FName FROM $OTObject _o WHERE _o.ObjectK=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="ObjectK" ALIAS="Object" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _o.FName FROM $OTObject _o WHERE _o.ObjectK=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="FunctionOrObject" ALIAS="Object owner" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(CASE WHEN $T.ObjectK IS NULL THEN (SELECT t.FName FROM $OTFunction t WHERE t.FunctionK=$T.FunctionK) ELSE (SELECT t.FName FROM $OTObject t WHERE t.ObjectK=$T.ObjectK) END)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="ParameterTypeK" ALIAS="Parameter type" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TParameterCreateD Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TParameterUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.parameter.type">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10050 ORDER BY 2</LOOKUP>
+      </FIELD>
+      
+      <FIELD NAME="ContextC" ALIAS="Context" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.parameter.context">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10052 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="AccessC" ALIAS="Access" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.parameter.access">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10053 ORDER BY 2</LOOKUP>
+      </FIELD>
+      
+      <FIELD ID="Hashtag" NAME="ParameterK" ALIAS="Hashtag" TYPE="STR" DESCRIPTION="Hastags connected to parameter">
+         <EXPRESSION>
+CAST( 
+STUFF( 
+   (SELECT ',' + _b.FName FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _r.ParentK=$T.ParameterK AND _r.table_number=10040),
+   1,1,'' )
+   AS NVARCHAR(512)
+)
+         </EXPRESSION>
+      </FIELD>
+      <CONDITION ID="Hashtag" NAME="ParameterK" SIMPLENAME="Hashtag" TYPE="STR" NOVALUE="1" INTELLISENSE="hashtag_name">
+         <EXPRESSION>
+$T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _b.FName $_condition AND _r.table_number=10040)
+         </EXPRESSION>
+         <OPERATORS>
+            <OPERATOR FROM="0" TO="11" />
+            <OPERATOR FROM="5" TO="12" />
+         </OPERATORS>
+      </CONDITION>
+      
+      
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FType" ALIAS="Type" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FVersionBegin" ALIAS="Version begin" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FVersionEnd" ALIAS="VersionEnd" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+      <FIELD ID="Note" NAME="FDescription" ALIAS="Note" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _n.FNote FROM $O{}TNote _n WHERE _n.RecordK=$T.ParameterK AND _n.table_number=10040)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD ID="ParameterK-Chapter" NAME="ParameterK" ALIAS="Chapter" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _ac.FName  FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiParameter _x ON _ac.ArticleChapterK=_x.ArticleChapterK WHERE _x.ParameterK = $T.ParameterK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="ParameterK-ArticleChapterK" NAME="ParameterK" ALIAS="ID (Chapter)" TYPE="INT">
+         <EXPRESSION>(SELECT TOP 1 _ac.ArticleChapterK  FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiParameter _x ON _ac.ArticleChapterK=_x.ArticleChapterK WHERE _x.ParameterK = $T.ParameterK)</EXPRESSION>
+      </CONDITION>
+      <FIELD ID="CountArticle" NAME="ParameterK" ALIAS="Count article" SIMPLENAME="Number of connected articles" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{}TrArticleXApiFunction _x WHERE _x.FunctionK=$T.$F)</EXPRESSION>
+      </FIELD>
+      
+
+      <EDIT NAME="FunctionK" ALIAS="FunctionK" TYPE="I4" NULL="0" DEFAULT="0" />
+      <EDIT NAME="ParameterTypeK" ALIAS="Parameter type" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="Super" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="Create" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4">
+         <LOOKUP CACHE="api.parameter.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10050 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="ContextC" ALIAS="Context" TYPE="I4">
+         <LOOKUP CACHE="api.parameter.context.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10052 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="AccessC" ALIAS="Access" TYPE="I4">
+         <LOOKUP CACHE="api.parameter.access.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10053 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="250" />
+      <EDIT NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" MAX="500" />
+      <EDIT NAME="FType" ALIAS="Type" TYPE="STR" MAX="250" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="2000" />
+      <EDIT NAME="FVersionBegin" ALIAS="VersionBegin" TYPE="I4" />
+      <EDIT NAME="FVersionEnd" ALIAS="VersionEnd" TYPE="I4" />
+      <EDIT NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+
+  
+
+   <TABLETEMPLATE ID="api.function">
+      <FIELD NAME="RepositoryK" ALIAS="Repository" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ObjectK" ALIAS="Object" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _o.FName FROM $OTObject _o WHERE _o.ObjectK=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TFunctionCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TFunctionUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT COALESCE(_f.FName,_f.FDeclaration,'') FROM $O{APP}TFunction _f WHERE _f.FunctionK=$T.SuperK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.function.type">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10030 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="StateC" ALIAS="State" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.function.state">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10031 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="LanguageC" ALIAS="Language" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1" />
+      <FIELD NAME="PriorityC" ALIAS="Priority" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.function.priority">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10035 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="AccessC" ALIAS="Access" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.function.access">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10036 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="ReturnC" ALIAS="return" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1" DESCRIPTION="Same code as in Object">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.object.language">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10015 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD ID="FName-Indent" NAME="FName" ALIAS="Indented name" CONDITION="1" TYPE="STR" DESCRIPTION="Indent name based on level in function tree if it belongs to any">
+         <FORMULA TYPE="HTML" />
+         <EXPRESSION>
+('&lt;code class="function" style="margin-left: ' + CAST( ISNULL( (SELECT TOP 1 _t.FDepth FROM $O{}thread _t WHERE _t.FKey=$T.FunctionK AND _t."table_number" = 10030), 0 ) * 2 AS VARCHAR(10)) + 'em;"&gt;' + $T.FName + '&lt;/code&gt;')
+         </EXPRESSION>
+      </FIELD>
+      
+      <FIELD NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FReturn" ALIAS="Return" TYPE="STR" CONDITION="1" />
+      <FIELD ID="CountParameter" NAME="FunctionK" ALIAS="Count parameter" SIMPLENAME="Number of doccumented parameters" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $OTParameter _p WHERE _p.FunctionK=$T.$F)</EXPRESSION>
+      </FIELD>
+      <FIELD ID="CountArticle" NAME="FunctionK" ALIAS="Count article" SIMPLENAME="Number of connected articles" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{}TrArticleXApiFunction _x WHERE _x.FunctionK=$T.$F)</EXPRESSION>
+      </FIELD>
+      
+      
+      <FIELD ID="Overload" NAME="FDeclaration" ALIAS="Overloads" TYPE="STR" ALIGN="L" FF="v" CONDITION="expression">
+         <EXPRESSION><![CDATA[
+CASE WHEN (SELECT COUNT(*) FROM $OTFunctionOverload _fo WHERE _fo.FunctionK=$T.FunctionK) > 0 THEN       
+ISNULL( REPLACE( $T.$F, '<', '&lt;' ) + '<br />', '') + (SELECT STRING_AGG( REPLACE( _t.FDeclaration, '<', '&lt;' ), '<br />' ) FROM (	SELECT TOP 100 _fo.FIndex, _fo.FDeclaration FROM api.TFunctionOverload _fo WHERE _fo.FunctionK=$T.FunctionK ORDER BY _fo.FIndex ) _t)
+ELSE REPLACE( $T.$F, '<', '&lt;' )
+END      ]]></EXPRESSION>
+      </FIELD>
+      <FIELD ID="Note" NAME="FDescription" ALIAS="Note" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _n.FNote FROM $O{}TNote _n WHERE _n.RecordK=$T.FunctionK AND _n.table_number=10030)</EXPRESSION>
+      </FIELD>
+      
+      
+      
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FVersionBegin" ALIAS="VersionBegin" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FVersionEnd" ALIAS="VersionEnd" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FBeta" ALIAS="Beta" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+      
+      <FIELD ID="CountExample" NAME="FunctionK" ALIAS="Count example" SIMPLENAME="Number of examples" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $OTExample _e WHERE _e.ParentK=$T.FunctionK AND _e.table_number=10030)</EXPRESSION>
+      </FIELD>
+      
+      <FIELD ID="FunctionK-Chapter" NAME="FunctionK" ALIAS="Chapter" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _ac.FName  FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiFunction _x ON _ac.ArticleChapterK=_x.ArticleChapterK WHERE _x.FunctionK = $T.FunctionK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="FunctionK-ArticleChapterK" NAME="FunctionK" ALIAS="ID (Chapter)" TYPE="INT">
+         <EXPRESSION>(SELECT TOP 1 _ac.ArticleChapterK  FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiFunction _x ON _ac.ArticleChapterK=_x.ArticleChapterK WHERE _x.FunctionK = $T.FunctionK)</EXPRESSION>
+      </CONDITION>
+      
+      
+      <FIELD ID="Hashtag" NAME="FunctionK" ALIAS="Hashtag" TYPE="STR" DESCRIPTION="Hastags connected to function">
+         <EXPRESSION>
+CAST( 
+STUFF( 
+   (SELECT ',' + _b.FName FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _r.ParentK=$T.FunctionK AND _r.table_number=10010),
+   1,1,'' )
+   AS NVARCHAR(512)
+)
+         </EXPRESSION>
+      </FIELD>
+      <CONDITION ID="Hashtag" NAME="FunctionK" SIMPLENAME="Hashtag" TYPE="STR" NOVALUE="1" INTELLISENSE="hashtag_name">
+         <EXPRESSION>
+$T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _b.FName $_condition AND _r.table_number=10030)
+         </EXPRESSION>
+         <OPERATORS>
+            <OPERATOR FROM="0" TO="11" />
+            <OPERATOR FROM="5" TO="12" />
+         </OPERATORS>
+      </CONDITION>
+
+      <EDIT NAME="RepositoryK" ALIAS="Repository" TYPE="I4" NULL="0" DEFAULT="0" />
+      <EDIT NAME="ObjectK" ALIAS="Object" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="Create" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" />
+      <EDIT NAME="SuperK" ALIAS="Super" TYPE="I4" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
+         <LOOKUP CACHE="api.function.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10030 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="StateC" ALIAS="State" TYPE="I4">
+         <LOOKUP CACHE="api.function.state.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10031 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="LanguageC" ALIAS="Language" TYPE="I4">
+         <LOOKUP CACHE="api.function.janguage.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10034 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="PriorityC" ALIAS="State" TYPE="I4">
+         <LOOKUP CACHE="api.function.priority.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10035 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="AccessC" ALIAS="Access" TYPE="I4">
+         <LOOKUP CACHE="api.function.access.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10036 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="ReturnC" ALIAS="Return" TYPE="I4" DESCRIPTION="Same as Object">
+         <LOOKUP CACHE="api.object.return.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10015 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" MAX="2000" />
+      <EDIT NAME="FReturn" ALIAS="Return" TYPE="STR" MAX="100" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
+      <EDIT NAME="FVersionBegin" ALIAS="Version begin" TYPE="I4" />
+      <EDIT NAME="FVersionEnd" ALIAS="Version end" TYPE="I4" />
+      <EDIT NAME="FBeta" ALIAS="Beta" TYPE="I2" />
+      <EDIT NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="api.functionoverload">
+      <FIELD NAME="FunctionK" ALIAS="FunctionK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TFunctionOverloadCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TFunctionOverloadUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FVersionBegin" ALIAS="Version begin" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FVersionEnd" ALIAS="Version end" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FIndex" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FBeta" ALIAS="Beta" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+
+      <EDIT NAME="FunctionK" ALIAS="Function" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="Create" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4" />
+      <EDIT NAME="FDeclaration" ALIAS="Declaration" TYPE="STR" MAX="2000" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FVersionBegin" ALIAS="Version begin" TYPE="I4" />
+      <EDIT NAME="FVersionEnd" ALIAS="Version end" TYPE="I4" />
+      <EDIT NAME="FIndex" ALIAS="Index" TYPE="INT" />
+      <EDIT NAME="FBeta" ALIAS="Beta" TYPE="I2" />
+      <EDIT NAME="FDepreciated" ALIAS="Depreciated" TYPE="I2" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="api.example">
+      <FIELD NAME="RepositoryK" ALIAS="Repository" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT COALESCE(_e.FBrief,'') FROM $O{APP}TExample _e WHERE _e.ExampleK=$T.SuperK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="ParentK" ALIAS="Parent" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.example.type">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10060 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="LevelC" ALIAS="Level" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.example.level">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10061 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="FBrief" ALIAS="Brief" TYPE="STR" CONDITION="1" />
+      <FIELD ID="FBrief-Indent" NAME="FBrief" ALIAS="Indented Brief" CONDITION="1" TYPE="STR">
+         <FORMULA TYPE="HTML" />
+         <EXPRESSION>
+('&lt;span style="margin-left:' + CAST( ISNULL( (SELECT TOP 1 _t.FDepth FROM $O{}thread _t WHERE _t.FKey=$T.ExampleK AND _t."table_number" = 10060), 0 ) * 2 AS VARCHAR(10)) + 'em;"&gt;' + $T.FBrief + '&lt;/span&gt;')
+         </EXPRESSION>
+      </FIELD>
+      <FIELD NAME="FIndex" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD ID="Note" NAME="FDescription" ALIAS="Note" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _n.FNote FROM $O{}TNote _n WHERE _n.RecordK=$T.ObjectK AND _n.table_number=10010)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="FText" ALIAS="Text" TYPE="STR" CONDITION="1" />
+      <!--
+      <FIELD ID="FText_RankOver7" NAME="FText" ALIAS="Text" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>CASE WHEN (SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.TypeC) &gt; 7 THEN FText ELSE NULL END</EXPRESSION>
+      </FIELD>
+      -->
+      
+      <FIELD ID="ExampleK-Chapter" NAME="ExampleK" ALIAS="Chapter" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _ac.FName  FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiExample _x ON _ac.ArticleChapterK=_x.ArticleChapterK WHERE _x.ExampleK = $T.ExampleK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="ExampleK-ArticleChapterK" NAME="ExampleK" ALIAS="ID (Chapter)" TYPE="INT">
+         <EXPRESSION>(SELECT TOP 1 _ac.ArticleChapterK  FROM $O{}TArticleChapter _ac JOIN $O{}TrArticleChapterXApiExample _x ON _ac.ArticleChapterK=_x.ArticleChapterK WHERE _x.ExampleK = $T.ExampleK)</EXPRESSION>
+      </CONDITION>
+      
+      
+      <FIELD ID="Hashtag" NAME="ExampleK" ALIAS="Hashtag" TYPE="STR" DESCRIPTION="Hastags connected to example">
+         <EXPRESSION>
+CAST( 
+STUFF( 
+   (SELECT ',' + _b.FName FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _r.ParentK=$T.$F AND _r.table_number=10060),
+   1,1,'' )
+   AS NVARCHAR(512)
+)
+         </EXPRESSION>
+      </FIELD>
+      <CONDITION ID="Hashtag" NAME="ExampleK" SIMPLENAME="Hashtag" TYPE="STR" NOVALUE="1" INTELLISENSE="hashtag_name">
+         <EXPRESSION>
+$T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _b.FName $_condition AND _r.table_number=10060)
+         </EXPRESSION>
+         <OPERATORS>
+            <OPERATOR FROM="0" TO="11" />
+            <OPERATOR FROM="5" TO="12" />
+         </OPERATORS>
+      </CONDITION>
+      
+      <FIELD ID="Remarks" NAME="ExampleK" ALIAS="Remarks" TYPE="STR" FF="v" CONDITION="expression">
+         <EXPRESSION><![CDATA[
+CASE WHEN (SELECT COUNT(*) FROM $OTExampleRemark _er WHERE _er.ExampleK=$T.ExampleK) > 0 THEN       
+(SELECT STRING_AGG( REPLACE( _er.FRemark, '<', '&lt;' ), '<br />' ) FROM $OTExampleRemark _er WHERE _er.ExampleK=$T.ExampleK)
+ELSE NULL END ]]></EXPRESSION>
+      </FIELD>
+      
+
+      <EDIT NAME="RepositoryK" ALIAS="Repository" TYPE="I4" NULL="0" DEFAULT="0" />
+      <EDIT NAME="SuperK" ALIAS="Super" TYPE="I4" />
+      <EDIT NAME="ParentK" ALIAS="Parent" TYPE="I4" />
+      <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
+         <LOOKUP CACHE="api.example.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10060 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="LevelC" ALIAS="Level" TYPE="I4">
+         <LOOKUP CACHE="api.example.level.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10061 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="FBrief" ALIAS="Brief" TYPE="STR" MAX="500" />
+      <EDIT NAME="FText" ALIAS="Text" TYPE="STR" />
+      <EDIT NAME="FIndex" ALIAS="Index" TYPE="INT" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="api.exampleremark">
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TExampleRemarkUpdateD Update" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="api.exampleremark.type">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10065 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="FRemark" ALIAS="Remark" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FList" ALIAS="List" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FRank" ALIAS="Rank" TYPE="I4" CONDITION="1" />
+
+      <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" NULL="0" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
+         <LOOKUP CACHE="api.exampleremark.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10065 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="FRemark" ALIAS="Remark" TYPE="STR" MAX="2000" />
+      <EDIT NAME="FList" ALIAS="List" TYPE="I4" />
+      <EDIT NAME="FRank" ALIAS="Rank" TYPE="I4" />
+   </TABLETEMPLATE>
+
+   
+   <TABLE PREFIX="Object1" NAME="TObject" SIMPLENAME="Object" PARENT="rSystemXApiObject1" OWNER="$API">
+      <JOIN TYPE="inner">[$parent].[ObjectK]=[$this].[ObjectK]</JOIN>
+      <FIELD NAME="ObjectK" ALIAS="Object" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="api.object" />
+   </TABLE>
+
+   <TABLE PREFIX="ObjectChapter1" NAME="TObjectChapter" SIMPLENAME="Object chapter" PARENT="Object1" OWNER="$API">
+      <JOIN TYPE="inner">[$parent].[ObjectK]=[$this].[ObjectK]</JOIN>
+      <FIELD NAME="ObjectChapterK" ALIAS="Object chapter" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="api.objectchapter" />
+   </TABLE>
+   
+   <TABLE PREFIX="Parameter1" NAME="TParameter" SIMPLENAME="~TParameter TParameter" PARENT="Function1" OWNER="$API">
+      <JOIN TYPE="inner">[$parent].[FunctionK]=[$this].[FunctionK]</JOIN>
+      <FIELD NAME="ParameterK" ALIAS="ParameterK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="api.parameter" />
+      <COPY PREFIX="Parameter2" PARENT="Object1" JOIN="$parent.ObjectK=$this.ObjectK"/>
+   </TABLE>
+   
+
+   <TABLE PREFIX="Function1" NAME="TFunction" SIMPLENAME="Function" PARENT="Object1" OWNER="$API">
+      <JOIN TYPE="inner">[$parent].[ObjectK]=[$this].[ObjectK]</JOIN>
+      <FIELD NAME="FunctionK" ALIAS="Function" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="api.function" />
+   </TABLE>
+   
+   <TABLE PREFIX="TrArticleXApiFunction1" NAME="TrArticleXApiFunction" SIMPLENAME="~TrArticleXApiFunction Sales - Todo list" PARENT="Function1" TYPE="R">
+      <JOIN TYPE="inner">$parent.FunctionK=$this.FunctionK</JOIN>
+      <FIELD NAME="rArticleXApiFunctionK" ALIAS="ID (Function - Article)" TYPE="INT" CONDITION="1" KEY="1" />
+      <FIELD NAME="FunctionK" ALIAS="Function" TYPE="INT" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT f.FName FROM $OTFunction f WHERE f.FunctionK=$T.FunctionK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="ArticleK" ALIAS="Article" TYPE="INT" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT a.FBrief FROM $OTArticle a WHERE a.ArticleK=$T.ArticleK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />      
+      <FIELD NAME="FOrder" ALIAS="Order" TYPE="INT" CONDITION="1" />      
+      <EDIT NAME="FunctionK" ALIAS="Function" TYPE="INT" />
+      <EDIT NAME="ArticleK" ALIAS="Article" TYPE="INT" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
+      <EDIT NAME="FOrder" ALIAS="Order" TYPE="INT" />
+   </TABLE>
+   
+   <TABLE PREFIX="TrArticleXApiParameter1" NAME="TrArticleXApiParameter" SIMPLENAME="~TrArticleXApiParameter Sales - Todo list" PARENT="Parameter1" TYPE="R">
+      <JOIN TYPE="inner">$parent.ParameterK=$this.ParameterK</JOIN>
+      <FIELD NAME="rArticleXApiParameterK" ALIAS="ID (Parameter - Article)" TYPE="INT" CONDITION="1" KEY="1" />
+      <FIELD NAME="ParameterK" ALIAS="Parameter" TYPE="INT" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT p.FName FROM $OTParameter p WHERE p.ParameterK=$T.ParameterK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="ArticleK" ALIAS="Article" TYPE="INT" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT a.FBrief FROM $OTArticle a WHERE a.ArticleK=$T.ArticleK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />      
+      <FIELD NAME="FOrder" ALIAS="Order" TYPE="INT" CONDITION="1" />      
+      <EDIT NAME="ParameterK" ALIAS="Parameter" TYPE="INT" />
+      <EDIT NAME="ArticleK" ALIAS="Article" TYPE="INT" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
+      <EDIT NAME="FOrder" ALIAS="Order" TYPE="INT" />
+   </TABLE>
+   
+   <TABLE PREFIX="FunctionOverload1" NAME="TFunctionOverload" SIMPLENAME="~TFunctionOverload Function overload" PARENT="Function1" OWNER="$API">
+      <JOIN TYPE="inner">[$parent].[FunctionK]=[$this].[FunctionK]</JOIN>
+      <FIELD NAME="FunctionOverloadK" ALIAS="ID" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="api.functionoverload" />
+   </TABLE>   
+
+   <TABLE PREFIX="Example1" NAME="TExample" SIMPLENAME="~TExample Example" PARENT="Function1" OWNER="$API">
+      <JOIN TYPE="inner">$parent.FunctionK=$this.ParentK AND $this.table_number=10030</JOIN>
+      <FIELD NAME="ExampleK" ALIAS="ID" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="api.example" />
+      <COPY PREFIX="Example1Rank8" PARENT="Function1" JOIN="$parent.FunctionK=$this.ParentK AND $this.table_number=10030 AND (SELECT _c.FRank FROM $O{CODE}TCode _c WHERE _c.CodeK=$this.TypeC) &gt; 7"/>
+      <COPY PREFIX="Example2" PARENT="Object1" JOIN="$parent.ObjectK=$this.ParentK AND $this.table_number=10010"/>
+      <COPY PREFIX="Example3" PARENT="Parameter1" JOIN="$parent.ParameterK=$this.ParentK AND $this.table_number=10060"/>
+   </TABLE>
+   
+   <TABLE PREFIX="ExampleRemark1" NAME="TExampleRemark" SIMPLENAME="~TExampleRemark ExampleRemark" PARENT="Example1" OWNER="$API">
+      <JOIN TYPE="inner">[$parent].[ExampleK]=[$this].[ExampleK]</JOIN>
+      <FIELD NAME="ExampleRemarkK" ALIAS="ExampleRemarkK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="api.exampleremark" />
+      <COPY PREFIX="ExampleRemark2" PARENT="Example2" />
+      <COPY PREFIX="ExampleRemark3" PARENT="Example3" />
+   </TABLE>
+   
+
+   <TABLE PREFIX="rSystemXApiObject1" NAME="TrSystemXApiObject" SIMPLENAME="~TrSystemXApiObject System - Object" PARENT="TSystem1">
+      <JOIN TYPE="inner">[$parent].[SystemK]=[$this].[SystemK]</JOIN>
+      <FIELD NAME="rSystemXApiObjectK" ALIAS="ID (System - Object)" TYPE="I4" CONDITION="1" KEY="1" />
+      <FIELD NAME="SystemK" ALIAS="SystemK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ObjectK" ALIAS="ObjectK" TYPE="I4" CONDITION="1" />
+   </TABLE>   
+   
+   <TABLE PREFIX="rArticleBookXApiObject1" NAME="TrArticleBookXApiObject" SIMPLENAME="~TrArticleBookXApiObject Book - Object" PARENT="TArticleBook1">
+      <JOIN TYPE="inner">[$parent].[ArticleBookK]=[$this].[ArticleBookK]</JOIN>
+      <FIELD NAME="rArticleBookXApiObjectK" ALIAS="ID (Book - Object)" TYPE="I4" CONDITION="1" KEY="1" />
+      <FIELD NAME="ArticleBookK" ALIAS="ArticleBookK" TYPE="INT" CONDITION="1">
+         <EXPRESSION>(SELECT COALESCE(ab.FName, ab.FHeader) FROM $OTArticleBook ab WHERE ab.ArticleBookK=$T.ArticleBookK)</EXPRESSION>         
+      </FIELD>
+      <FIELD NAME="ObjectK" ALIAS="ObjectK" TYPE="INT" CONDITION="1">
+         <EXPRESSION>(SELECT o.FName FROM $O{API}TObject o WHERE o.ObjectK=$T.ObjectK)</EXPRESSION>
+      </FIELD>
+      <EDIT NAME="ArticleBookK" ALIAS="Book" TYPE="INT" />
+      <EDIT NAME="ObjectK" ALIAS="Object" TYPE="INT" />
+      <COPY PREFIX="rArticleBookXApiObject2" PARENT="Object1" JOIN="$parent.ObjectK=$this.ObjectK"/>
+   </TABLE>
+   
+   <TABLE PREFIX="TArticleBook10010" NAME="TArticleBook" SIMPLENAME="~TArticleBook" PARENT="rArticleBookXApiObject2" DESCRIPTION="Books connected to object">
+      <JOIN TYPE="inner">$parent.ArticleBookK=$this.ArticleBookK</JOIN>
+      <FIELD NAME="ArticleBookK" ALIAS="ID (Book)" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="application.articlebook" />
+   </TABLE>
+   
+   <TABLE PREFIX="Link10010" NAME="TLink" SIMPLENAME="~TLink" PARENT="Object1" DESCRIPTION="Handle links attached to objects">
+      <JOIN TYPE="inner">$parent.ObjectK=$this.ParentK AND $this.table_number=10010</JOIN>
+      <FIELD NAME="LinkK" ALIAS="LinkK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="application.link" />
+   </TABLE>
+   
+   <TABLE PREFIX="TArticleChapter10010" NAME="TArticleChapter" SIMPLENAME="~TArticleChapter Chapter" PARENT="Object1">
+      <JOIN TYPE="inner">$parent.ObjectK=$this.ParentK AND $this.table_number=10010</JOIN>
+      <FIELD NAME="ArticleChapterK" ALIAS="ID (Chapter)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="application.articlechapter" />
+   </TABLE>
+   
+   <TABLE PREFIX="TArticle10010" NAME="TArticle" SIMPLENAME="~TArticle" PARENT="TrArticleXApiFunction1">
+      <JOIN TYPE="inner">$parent.ArticleK=$this.ArticleK</JOIN>
+      <FIELD NAME="ArticleK" ALIAS="ID (Article)" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="application.article" />
+   </TABLE>
+
+</DOCUMENT>
