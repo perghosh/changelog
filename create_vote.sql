@@ -1,6 +1,10 @@
 /*
    ### Table tree
    
+   TVoter
+      TVoterPassword
+      TVoterHistory
+      TVoterRule
    TLike
    TPoll
       TPollSection
@@ -14,50 +18,91 @@ BEGIN
 END
 
 
-
+IF OBJECT_ID('vote.TVoterPassword', 'U') IS NOT NULL  DROP TABLE vote.TVoterPassword;
 IF OBJECT_ID('vote.TVoterHistory', 'U') IS NOT NULL  DROP TABLE vote.TVoterHistory;
+IF OBJECT_ID('vote.TVoterRule', 'U') IS NOT NULL  DROP TABLE vote.TVoterRule;
 IF OBJECT_ID('vote.TVoter', 'U') IS NOT NULL  DROP TABLE vote.TVoter;
 IF OBJECT_ID('vote.TLike', 'U') IS NOT NULL  DROP TABLE vote.TLike;
-IF OBJECT_ID('vote.TPoll', 'U') IS NOT NULL  DROP TABLE vote.TPoll;
-IF OBJECT_ID('vote.TPollQuestion', 'U') IS NOT NULL  DROP TABLE vote.TPollQuestion;
-IF OBJECT_ID('vote.TPollAnswer', 'U') IS NOT NULL  DROP TABLE vote.TPollAnswer;
+IF OBJECT_ID('vote.TPollLimit', 'U') IS NOT NULL  DROP TABLE vote.TPollLimit;
 IF OBJECT_ID('vote.TPollVote', 'U') IS NOT NULL  DROP TABLE vote.TPollVote;
+IF OBJECT_ID('vote.TPollAnswer', 'U') IS NOT NULL  DROP TABLE vote.TPollAnswer;
+IF OBJECT_ID('vote.TPollComment', 'U') IS NOT NULL  DROP TABLE vote.TPollComment;
+IF OBJECT_ID('vote.TPollQuestion', 'U') IS NOT NULL  DROP TABLE vote.TPollQuestion;
+IF OBJECT_ID('vote.TPoll', 'U') IS NOT NULL  DROP TABLE vote.TPoll;
 
+/**
+ * TVoter is the main table that register information about each voter. It holds information about
+ * user for the user to able to function in system. 
+ */
 CREATE TABLE vote.TVoter (
 	VoterK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
-   ,UserK BIGINT
-   ,ContactK BIGINT
-   ,SuperK BIGINT           -- owner voter when used in hierarchical structure
-   ,CreateD DATETIME
-   ,FIp VARCHAR(100)
-   ,FUserAgent VARCHAR(100)
-   ,FUserKey BINARY(16)
-   ,FName NVARCHAR(100)
-   ,FAlias NVARCHAR(100)
-   ,FMail NVARCHAR(100)
-   ,FLastVote DATETIME
-   ,FDeleted SMALLINT DEFAULT 0    -- If voter is deleted, like old
+   ,UserK BIGINT           -- Reference to system user if voter is a user
+   ,SuperK BIGINT          -- owner voter when used in hierarchical structure
+   ,ContactK BIGINT        -- Some type of external connection, if voter is found in other systems
+   ,CreateD DATETIME       -- When voter was created
+   ,UpdateD DATETIME       -- Last update
+   ,FIp VARCHAR(100)       -- Last ip used
+   ,FUserAgent VARCHAR(100)-- Last user agent in use (browser)
+   ,FUserKey BINARY(16)    -- Universally unique identifier for user  
+   ,FName NVARCHAR(100)    -- User name
+   ,FAlias NVARCHAR(100)   -- Alias for user, this could be used in system when user comments or votes
+   ,FMail NVARCHAR(100)    -- Mail to user, if system needs to send something
+   ,FPhone NVARCHAR(100)   -- Phone number that may be used for sms or other types of feedback
+   ,FLastVote DATETIME     -- Last time when voter voted
+   ,FValidated INT         -- Number that marks how valid this voter is
+   ,FDeleted SMALLINT DEFAULT 0 -- If voter is deleted, like old
 );
 
+/**
+ * Voter password
+ */
+CREATE TABLE vote.TVoterPassword (
+   VoterPasswordK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   ,VoterK BIGINT          -- Reference to voter
+   ,CreateD DATETIME       -- When password was created
+   ,UpdateD DATETIME       -- last update
+   ,password_type SMALLINT -- type of password, like type of encryption algorithm
+   ,FPassword BINARY(100)  -- encrypted password
+   ,FId NVARCHAR(100)      -- associated id to password, like mail address, phone number, alias or something that is known to voter
+   ,FMail NVARCHAR(100)    -- Mail to user, if system needs to send something
+   ,FLastUse DATETIME      -- Last time password was used
+   ,FDeleted SMALLINT DEFAULT 0 -- If voter is deleted, like old
+   ,CONSTRAINT FK_TVoterPassword_VoterK FOREIGN KEY (VoterK) REFERENCES vote.TVoter(VoterK) ON DELETE CASCADE
+);
+CREATE CLUSTERED INDEX IC_TVoterPassword_VoterK ON vote.TVoterPassword (VoterK);
+
+/**
+ * Voter rules are rules voters can create to make it harder for someone to hack the user and abuse the system. 
+ * - It can be about the voter setting up a rule where voting may only be cast within a certain time interval of the day.
+ * - That voters are only allowed to vote X number of times in a week or similar.
+ * - Maybe if you vote once, it will take an hour before the next vote can be cast.
+ * 
+ * Rules need to be simple enough that a stored procedure can implement them. This is run and verifies that the voter is allowed to vote, the database manages the rule or rules.
+ */
 CREATE TABLE vote.TVoterRule (
    VoterRuleK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
-   ,VoterK BIGINT
-   ,rule_type SMALLINT    -- type of rule that limits vote cheating
-   ,UpdateD DATETIME      -- last update
-   ,FValue INT            -- rule value
-   ,FDate DATETIME        -- rule date
+   ,VoterK BIGINT          -- Reference to voter
+   ,CreateD DATETIME       -- When rule was created
+   ,UpdateD DATETIME       -- last update
+   ,rule_type SMALLINT     -- type of rule that limits vote cheating
+   ,FValue INT             -- rule value
+   ,FDate DATETIME         -- rule date
    ,FDescription NVARCHAR(200)
    ,CONSTRAINT FK_TVoterRule_VoterK FOREIGN KEY (VoterK) REFERENCES vote.TVoter(VoterK) ON DELETE CASCADE
 );
+CREATE CLUSTERED INDEX IC_TVoterRule_VoterK ON vote.TVoterRule (VoterK);
 
+/**
+ * History of what voters have done in the system, especially login history.
+ */
 CREATE TABLE vote.TVoterHistory (
    VoterHistoryK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
-	,VoterK BIGINT
-   ,CreateD DATETIME
-   ,FIp VARCHAR(100)
-   ,FUserAgent VARCHAR(100)
-   ,FName NVARCHAR(100)
-   ,FLastVote DATETIME
+	,VoterK BIGINT          -- Reference to voter
+   ,CreateD DATETIME       -- When post was created
+   ,FIp VARCHAR(100)       -- Ip used
+   ,FUserAgent VARCHAR(100)-- browser used
+   ,FName NVARCHAR(100)    -- History name, some type of descriptive name for history post
+   ,FLastVote DATETIME     -- date from TVoter if voter voted
    ,CONSTRAINT FK_TVoterHistory_VoterK FOREIGN KEY (VoterK) REFERENCES vote.TVoter(VoterK) ON DELETE CASCADE
 );
 CREATE CLUSTERED INDEX IC_TVoterHistory_VoterK ON vote.TVoterHistory (VoterK);
@@ -66,10 +111,11 @@ CREATE CLUSTERED INDEX IC_TVoterHistory_VoterK ON vote.TVoterHistory (VoterK);
 
 CREATE TABLE vote.TLike (
    LikeK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   ,VoterK BIGINT          -- Reference to voter
    ,ParentK BIGINT
-   ,table_number INT        -- Table number for describing what table TLike belongs to
+   ,table_number INT       -- Table number for describing what table TLike belongs to
    ,UpdateD DATETIME
-   ,TypeC INT               -- Type of like or dislike
+   ,TypeC INT              -- Type of like or dislike
    ,UserK BIGINT
    ,ContactK BIGINT
    ,FCount BIGINT
@@ -82,13 +128,13 @@ CREATE TABLE vote.TPoll (
    ,ParentK BIGINT
    ,table_number INT        -- Table number for describing what table TPoll belongs to
    ,SuperK BIGINT           -- owner Poll when used in hierarchical structure
-   ,UserK BIGINT
-   ,CreateD DATETIME
-   ,UpdateD DATETIME
+   ,UserK BIGINT            -- user that has created this poll
+   ,CreateD DATETIME        -- when poll was created
+   ,UpdateD DATETIME        -- last time poll was updated
    ,TypeC INT               -- Type of poll
    ,StateC INT              -- State of poll
-   ,FName NVARCHAR(500)
-   ,FDescription NVARCHAR(MAX)
+   ,FName NVARCHAR(500)     -- poll name
+   ,FDescription NVARCHAR(MAX)-- describe poll
    ,FBegin DATETIME         -- begin date, when poll starts
    ,FEnd DATETIME           -- end date, when poll ends
    ,FCount BIGINT           -- 
@@ -100,14 +146,44 @@ CREATE TABLE vote.TPoll (
 CREATE CLUSTERED INDEX IC_TPoll_ParentK ON vote.TPoll (ParentK);
 
 
+
 CREATE TABLE vote.TPollSection (
    PollSectionK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
    ,PollK BIGINT
    ,SuperK BIGINT           -- owner Poll section when used in hierarchical structure
+   ,FIndex INT              -- used to order sections
    ,FDescription NVARCHAR(100)
 );
 CREATE CLUSTERED INDEX IC_TPoll_PollK ON vote.TPollSection (PollK);
 
+CREATE TABLE vote.TPollComment (
+   PollCommentK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   ,PollK BIGINT
+   ,VoterK BIGINT           -- Voter reference
+   ,SuperK BIGINT           -- owner Poll section when used in hierarchical structure
+   ,CreateD DATETIME        -- when comment was created
+   ,UpdateD DATETIME        -- last time comment was modified
+   ,FormatS INT             -- Comment format type
+   ,TypeC INT               -- Type of comment
+   ,FText NVARCHAR(1000)    -- Comment text
+   ,FDeleted SMALLINT DEFAULT 0 -- if poll is deleted
+);
+CREATE CLUSTERED INDEX IC_TPollComment_PollK ON vote.TPollComment (PollK);
+CREATE INDEX I_TPollComment_VoterK ON vote.TPollComment (VoterK);
+
+
+CREATE TABLE vote.TPollLimit (
+   PollLimitK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   ,PollK BIGINT
+   ,UpdateD DATETIME
+   ,limit_type SMALLINT     -- limit type
+   ,FDescription NVARCHAR(200)-- Describe limit
+   ,FLimitInteger INT       -- Integer number for limit
+   ,FLimitDecimal FLOAT     -- Decimal value for poll limit
+   ,FLimitDate DATETIME     -- Date value for limit
+   ,FLimitText NVARCHAR(100)-- Text
+);
+CREATE CLUSTERED INDEX IC_TPollLimit_PollK ON vote.TPollLimit (PollK);
 
 CREATE TABLE vote.TPollQuestion (
 	PollQuestionK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
@@ -130,13 +206,13 @@ CREATE TABLE vote.TPollAnswer (
 	,PollK BIGINT
 	,PollQuestionK BIGINT
    ,SuperK BIGINT           -- owner answer when used in hierarchical structure
-   ,PollSectionK BIGINT
+   ,PollSectionK BIGINT     -- When poll is divided in sections
    ,CreateD DATETIME
    ,UpdateD DATETIME
    ,TypeC INT               -- Type of answer
    ,StateC INT              -- State of answer
-   ,FName NVARCHAR(500)
-   ,FDescription NVARCHAR(MAX)
+   ,FName NVARCHAR(500)     -- Answer name, this is used when answer is listed for voter to select
+   ,FDescription NVARCHAR(MAX)-- Answer description if there is a need to describe
    ,FCount BIGINT
    ,CONSTRAINT FK_TPollAnswer_PollQuestionK FOREIGN KEY (PollQuestionK) REFERENCES vote.TPollQuestion(PollQuestionK) ON DELETE CASCADE
 );
@@ -144,14 +220,17 @@ CREATE CLUSTERED INDEX IC_TPollAnswer_PollK ON vote.TPollAnswer (PollK);
 CREATE INDEX I_TPollAnswer_PollQuestionK ON vote.TPollAnswer (PollQuestionK);
 
 
+
 CREATE TABLE vote.TPollVote (
 	PollVoteK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
 	,PollQuestionK BIGINT
    ,PollAnswerK BIGINT
-   ,VoterK BIGINT
+   ,VoterK BIGINT           -- Voter reference
    ,TypeC INT               -- Type of vote
    ,StateC INT              -- State of vote
+   ,FSelect INT             -- Probably 1 if voter has selected this answer
    ,FWeight INT             -- If poll is weighted, how much weight voter has set
+   ,FComment NVARCHAR(500)  -- Comment for vote
    ,verified SMALLINT       -- Vote verification, references table vote.verify         
    ,CONSTRAINT FK_TPollVote_PollAnswerK FOREIGN KEY (PollAnswerK) REFERENCES vote.TPollAnswer(PollAnswerK) ON DELETE CASCADE
    ,CONSTRAINT FK_TPollVote_VoterK FOREIGN KEY (VoterK) REFERENCES vote.TVoter(VoterK) ON DELETE CASCADE
@@ -174,6 +253,26 @@ VALUES
    ,(5,0,'delay_minutes','')
    ,(6,0,'delay_hours','')
 
+/**
+ *
+ */
+CREATE TABLE vote.limit_type (
+   "type" SMALLINT NOT NULL
+   ,"active" SMALLINT
+   ,"description" NVARCHAR(32)
+   ,"simple" NVARCHAR(128)
+);
+
+INSERT INTO vote.limit_type
+VALUES 
+   (1,1,'min_count','Min selected')
+   ,(2,1,'max_count','Max selected')
+   ,(3,1,'min_value','Min value')
+   ,(4,1,'max_value','Max value')
+   ,(5,0,'start_date','Poll starts')
+   ,(6,0,'end_date','Poll ends')
+   ,(7,0,'max_change_count','Max changes')
+   ,(8,0,'delay_change_days','When voter are able to change vote')
 
 
 CREATE TABLE vote.verify (
@@ -202,11 +301,14 @@ INSERT INTO @tableTableNumber
 VALUES 
 (11000,'TLike','vote'),
 (11010,'TPoll','vote'),
-(11020,'TPollQuestion','vote'),
-(11030,'TPollAnswer','vote'),
-(11040,'TPollVote','vote'),
-(11050,'TVoter','vote'),
-(11060,'TVoterHistory','vote')
+(11020,'TPollLimit','vote'),
+(11030,'TPollQuestion','vote'),
+(11040,'TPollAnswer','vote'),
+(11050,'TPollVote','vote'),
+(11060,'TVoter','vote'),
+(11070,'TVoterRule','vote'),
+(11080,'TVoterHistory','vote'),
+(11090,'TVoterPassword','vote')
 
 INSERT INTO application.table_number
 SELECT * FROM @tableTableNumber
