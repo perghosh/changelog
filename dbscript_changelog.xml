@@ -2766,7 +2766,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.Ba
       </EDIT>
       <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
       <EDIT NAME="UpdateD" ALIAS="Update" TYPE="DATE" />
-      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4">
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
          <LOOKUP CACHE="system.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=10 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
       </EDIT>
       <EDIT NAME="StateC" ALIAS="State" TYPE="I4">

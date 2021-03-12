@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
+            TYPE="query" DESCRIPTION="Changelog queries">
+   
+   <QUERY ID="Motioner" DESCRIPTION="" KEY="91A3AA122FD8490DBF56E8885BDF358C">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Huvudfrågor,1</ATTRIBUTE>
+      <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1CountQuestion" ALIAS="Antal frågor" TABLE="TPoll1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TPoll1FBegin" ALIAS="Startdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      <FIELD ID="TPoll1FEnd" ALIAS="Slutdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
+      </FIELD>
+      
+      <ROWEDIT>
+         <EDIT NAME="new_poll" SIMPLE="Pol" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+INSERT INTO $O{VOTE}TPoll(FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
+VALUES({=FName"''"},{=FDescription},{=FStart},{=FEnd},GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPoll')" />
+         </EDIT>
+         <EDIT NAME="delete poll" SIMPLE="Radera proposition" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPoll WHERE PollK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 3 then
+         R:SetValue('url','{"link": ["13304CE1144D43C292D7589C322863D0zoom"],"table":"TPoll1"}' )  return
+      end
+   else
+      if iColumn == 3 then
+         R:SetValue('url','{"title":"Valfrågor - Lägg till","link": ["5599795A83B546C6A8CA34197D87A047"],"table":"TPoll1"}' ) return
+      end
+   end
+end
+            
+   R:SetValue('url','[' .. 
+   '{"id": "query","title":"Valfrågor - Visa", "icon": "fa-align-justify", "table":"TPoll1", "link": ["13304CE1144D43C292D7589C322863D0zoom"]},' .. 
+   '{"id": "query","title":"Valfrågor - Lägg till", "icon": "fa-edit", "table":"TPoll1", "link": ["5599795A83B546C6A8CA34197D87A047"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" NAME="Fråga"  DESCRIPTION="Visa frågor" KEY="13304CE1144D43C292D7589C322863D0" QUERY="7DF3032022F64E52A6473C283575ACFF" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}">
+         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top|-50,0" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Fråga"  DESCRIPTION="Lägg till frågor" KEY="5599795A83B546C6A8CA34197D87A047" QUERY="358497254151814E8F9273212F0CE565" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}">
+         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|10,60" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Frågor-visa" TITLE="Valfrågor - Visa" FLAGS="1" KEY="7DF3032022F64E52A6473C283575ACFF" DESCRIPTION="Listar frågor för motion">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Valfrågor,2</ATTRIBUTE>
+      <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollQuestion1"/>
+      <FIELD ID="TPollQuestion1PollK" ALIAS="Motion" TABLE="TPollQuestion1" />
+      <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1FDescription" ALIAS="Description" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1CountAnswer" ALIAS="Antal svar" TABLE="TPollQuestion1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
+      <FIELD ID="TPollQuestion1TypeC" ALIAS="TypeC" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1StateC" ALIAS="StateC" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
+if sE == "click" then
+   local iKeyPressed = R:GetParam("pressed")
+   local iColumn = R:GetParam("column")
+   if iKeyPressed == 0 then
+      if iColumn == 4 then
+         R:SetValue('url','{"link": ["5240B4EFCFFD47D29E43592FB488CA22zoom"],"table":"TPollQuestion1"}' )  return
+      end
+   else
+      if iColumn == 4 then
+         R:SetValue('url','{"title":"Svarsalternativ - ändra","link": ["70A70D58EE1048D2A174F5269E839616"],"table":"TPollQuestion1"}' ) return
+      end
+   end
+end
+            
+   R:SetValue('url','[' .. 
+   '{"id": "answer","title":"Svarsalternativ - visa", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["5240B4EFCFFD47D29E43592FB488CA22zoom"]},' .. 
+   '{"id": "answer","title":"Svarsalternativ - ändra", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["70A70D58EE1048D2A174F5269E839616"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" NAME="Fråga" DESCRIPTION="Svarsalternativ" KEY="5240B4EFCFFD47D29E43592FB488CA22" QUERY="80147C1CB4CC46ECAE4056BF9B2165D6" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{==TPollQuestion1}}">
+         <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top|0,150" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Fråga" DESCRIPTION="Svarsalternativ" KEY="70A70D58EE1048D2A174F5269E839616" QUERY="C0B3033897E2CD4EA3395F98512DD495" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{==TPollQuestion1}}">
+         <PROPERTIES OUTPUT-WIDTH="700" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   
+   <QUERY ID="Frågor-ändra" TITLE="Valfrågor - Lägg till" FLAGS="1" KEY="358497254151814E8F9273212F0CE565" DESCRIPTION="Editera frågor för motion">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Ändra/Lägg till,100</ATTRIBUTE>
+      <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollQuestion1"/>
+      <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1FDescription" ALIAS="Description" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1TypeC" ALIAS="TypeC" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1StateC" ALIAS="StateC" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_question" SIMPLE="Fråga" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iPoll INT = {{=PollK}};                  
+INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,FDescription,TypeC,StateC,CreateD,UpdateD) 
+VALUES(@iPoll,{=FName"''"},{=FDescription},{=TypeC},{=StateC},GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollQuestion')" />
+         </EDIT>
+         <EDIT NAME="delete poll" SIMPLE="Radera proposition" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+      <SCRIPTS>
+         <SCRIPT TYPENAME="action" NAME="RowCommand">
+            <CODE><![CDATA[ return function(g) local R, db=g.result, g.db
+   R:SetValue('url','[' .. 
+   '{"id": "answer","title":"Svarsalternativ", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["70A70D58EE1048D2A174F5269E839616"]}' .. 
+   ']') 
+end  ]]></CODE>
+         </SCRIPT>
+      </SCRIPTS>
+      <QUERYLINK TYPENAME="children" NAME="Fråga" DESCRIPTION="Svarsalternativ" KEY="70A70D58EE1048D2A174F5269E839616" QUERY="C0B3033897E2CD4EA3395F98512DD495" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollK={{==TPollQuestion1}}">
+         <PROPERTIES OUTPUT-WIDTH="700" OUTPUT-HEIGHT="700" OUTPUT-POSITION="left-bottom" />
+      </QUERYLINK>
+   </QUERY>
+   
+   <QUERY ID="Svarsalternativ-visa" TITLE="Svarsalternativ - Visa" FLAGS="1" KEY="80147C1CB4CC46ECAE4056BF9B2165D6">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Valfrågor,2</ATTRIBUTE>
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1TypeC" ALIAS="TypeC" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+   </QUERY>   
+   
+   
+   <QUERY ID="Svarsalternativ-ändra" TITLE="Svarsalternativ - Lägg till" FLAGS="1" KEY="C0B3033897E2CD4EA3395F98512DD495">
+      <ATTRIBUTE NAME="OUTPUT-LIST">Ändra/Lägg till,100</ATTRIBUTE>
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1TypeC" ALIAS="TypeC" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_answer" SIMPLE="Answer" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iPoll INT                  
+DECLARE @iPollQuestionK INT = {{=PollQuestionK}};                  
+IF @iPollQuestionK IS NOT NULL
+   SET @iPoll = (SELECT PollK FROM $O{VOTE}TPollQuestion WHERE PollQuestionK=@iPollQuestionK)
+
+INSERT INTO $O{VOTE}TPollAnswer(PollK,PollQuestionK,FName,FDescription,TypeC,CreateD,UpdateD) 
+VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},GETDATE(),GETDATE());
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollAnswer')" />
+         </EDIT>
+         <EDIT NAME="delete poll" SIMPLE="Radera proposition" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPollAnswer WHERE PollAnswerK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>   
+   
+   
+</SELECTION>   

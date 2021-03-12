@@ -17,18 +17,21 @@ BEGIN
     EXEC sp_executesql N'CREATE SCHEMA "vote";';
 END
 
+IF OBJECT_ID('vote.TrPollGroupXPoll', 'U') IS NOT NULL  DROP TABLE vote.TrPollGroupXPoll;
 
 IF OBJECT_ID('vote.TVoterPassword', 'U') IS NOT NULL  DROP TABLE vote.TVoterPassword;
 IF OBJECT_ID('vote.TVoterHistory', 'U') IS NOT NULL  DROP TABLE vote.TVoterHistory;
 IF OBJECT_ID('vote.TVoterRule', 'U') IS NOT NULL  DROP TABLE vote.TVoterRule;
-IF OBJECT_ID('vote.TVoter', 'U') IS NOT NULL  DROP TABLE vote.TVoter;
 IF OBJECT_ID('vote.TLike', 'U') IS NOT NULL  DROP TABLE vote.TLike;
 IF OBJECT_ID('vote.TPollLimit', 'U') IS NOT NULL  DROP TABLE vote.TPollLimit;
 IF OBJECT_ID('vote.TPollVote', 'U') IS NOT NULL  DROP TABLE vote.TPollVote;
 IF OBJECT_ID('vote.TPollAnswer', 'U') IS NOT NULL  DROP TABLE vote.TPollAnswer;
 IF OBJECT_ID('vote.TPollComment', 'U') IS NOT NULL  DROP TABLE vote.TPollComment;
 IF OBJECT_ID('vote.TPollQuestion', 'U') IS NOT NULL  DROP TABLE vote.TPollQuestion;
+IF OBJECT_ID('vote.TPollSection', 'U') IS NOT NULL  DROP TABLE vote.TPollSection;
 IF OBJECT_ID('vote.TPoll', 'U') IS NOT NULL  DROP TABLE vote.TPoll;
+IF OBJECT_ID('vote.TPollGroup', 'U') IS NOT NULL  DROP TABLE vote.TPollGroup;
+IF OBJECT_ID('vote.TVoter', 'U') IS NOT NULL  DROP TABLE vote.TVoter;
 
 /**
  * TVoter is the main table that register information about each voter. It holds information about
@@ -123,9 +126,33 @@ CREATE TABLE vote.TLike (
 CREATE CLUSTERED INDEX IC_TLike_ParentK ON vote.TLike (ParentK);
 
 
+CREATE TABLE vote.TPollGroup (
+   PollGroupK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   ,ParentK BIGINT
+   ,table_number INT          -- Table number for describing what table group belongs to
+   ,SuperK INT                -- owner group when used in hierarchical structure
+   ,UserK INT                 -- responsible user
+   ,CreateD DATETIME          -- when group was created
+   ,UpdateD DATETIME          -- when group was updated
+   ,TypeC INT                 -- Type of group, application dependent
+   ,StateC INT                -- State group is in, application dependent
+   ,PriorityC INT             -- Priority for group
+   ,AreaC INT                 -- area system belongs to, could be areas in the organization or geographical areas
+   ,FName NVARCHAR(100)       -- Group name
+   ,FAbbreviation NVARCHAR(100)-- abbreviation for poll group, sometimes a short name is needed
+   ,FDescription NVARCHAR(1000)-- Group description if needed
+   ,FIdle SMALLINT DEFAULT 0  -- group is set on idle (resting)
+   ,FDeleted SMALLINT DEFAULT 0-- group is deleted
+);
+
+CREATE CLUSTERED INDEX "vote.IC_TPollGroup_SuperK" ON vote.TPollGroup (SuperK);
+CREATE INDEX "vote.IC_TPollGroup_ParentK" ON vote.TPollGroup (ParentK);
+
+
 CREATE TABLE vote.TPoll (
    PollK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
-   ,ParentK BIGINT
+   ,PollGroupK BIGINT       -- main poll group that poll is connected to if any
+   ,ParentK BIGINT          -- if poll is connected to any other table compare to normal connection
    ,table_number INT        -- Table number for describing what table TPoll belongs to
    ,SuperK BIGINT           -- owner Poll when used in hierarchical structure
    ,UserK BIGINT            -- user that has created this poll
@@ -143,7 +170,8 @@ CREATE TABLE vote.TPoll (
    ,FWeight INT             -- Poll weight is used for polls that are weighted.
    ,FDeleted SMALLINT DEFAULT 0 -- if poll is deleted
 );
-CREATE CLUSTERED INDEX IC_TPoll_ParentK ON vote.TPoll (ParentK);
+CREATE CLUSTERED INDEX "vote.IC_TPoll_ParentK" ON vote.TPoll (ParentK);
+CREATE INDEX "vote.I_TPoll_PollGroupK" ON vote.TPoll (PollGroupK);
 
 
 
@@ -237,6 +265,20 @@ CREATE TABLE vote.TPollVote (
 );
 CREATE CLUSTERED INDEX IC_TPollVote_PollQuestionK ON vote.TPollVote (PollQuestionK);
 
+
+CREATE TABLE vote.TrPollGroupXPoll (
+   rPollGroupXPollK BIGINT IDENTITY(1,1) NOT NULL
+   ,PollGroupK BIGINT NOT NULL
+   ,PollK BIGINT NOT NULL
+   ,CONSTRAINT "PK_TrPollGroupXPoll_rPollGroupXPollK" PRIMARY KEY NONCLUSTERED (rPollGroupXPollK)
+   ,CONSTRAINT "FK_TrPollGroupXPoll_PollGroupK" FOREIGN KEY (PollGroupK) REFERENCES vote.TPollGroup(PollGroupK) ON DELETE CASCADE
+   ,CONSTRAINT "FK_TrPollGroupXPoll_PollK" FOREIGN KEY (PollK) REFERENCES vote.TPoll(PollK) ON DELETE CASCADE
+);
+CREATE CLUSTERED INDEX "vote.IC_PollGroupXPoll_PollGroupK" ON vote.TrPollGroupXPoll (PollGroupK);
+
+
+
+IF OBJECT_ID('vote.rule_type', 'U') IS NOT NULL  DROP TABLE vote.rule_type;
 CREATE TABLE vote.rule_type (
    "type" SMALLINT NOT NULL
    ,"active" SMALLINT
@@ -253,8 +295,9 @@ VALUES
    ,(5,0,'delay_minutes','')
    ,(6,0,'delay_hours','')
 
+IF OBJECT_ID('vote.limit_type', 'U') IS NOT NULL  DROP TABLE vote.limit_type;
 /**
- *
+ * Table with type of limit rules for each poll. This is a system type
  */
 CREATE TABLE vote.limit_type (
    "type" SMALLINT NOT NULL
@@ -275,6 +318,7 @@ VALUES
    ,(8,0,'delay_change_days','When voter are able to change vote')
 
 
+IF OBJECT_ID('vote.verify', 'U') IS NOT NULL  DROP TABLE vote.verify;
 CREATE TABLE vote.verify (
    "type" SMALLINT NOT NULL
    ,"description" NVARCHAR(32)
@@ -300,15 +344,20 @@ DECLARE @tableTableNumber TABLE(
 INSERT INTO @tableTableNumber
 VALUES 
 (11000,'TLike','vote'),
-(11010,'TPoll','vote'),
-(11020,'TPollLimit','vote'),
-(11030,'TPollQuestion','vote'),
-(11040,'TPollAnswer','vote'),
-(11050,'TPollVote','vote'),
-(11060,'TVoter','vote'),
-(11070,'TVoterRule','vote'),
-(11080,'TVoterHistory','vote'),
-(11090,'TVoterPassword','vote')
+(11010,'TPollGroup','vote'),
+(11020,'TPoll','vote'),
+(11030,'TPoll','vote'),
+(11040,'TPollLimit','vote'),
+(11050,'TPollQuestion','vote'),
+(11060,'TPollAnswer','vote'),
+(11070,'TPollVote','vote'),
+(11080,'TPollComment','vote'),
+(11090,'TVoter','vote'),
+(11100,'TVoterRule','vote'),
+(11110,'TVoterHistory','vote'),
+(11120,'TVoterPassword','vote')
+
+DELETE FROM application.table_number WHERE "number" >= 11000 AND "number" < 12000
 
 INSERT INTO application.table_number
 SELECT * FROM @tableTableNumber

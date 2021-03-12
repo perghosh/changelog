@@ -1,0 +1,561 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+ | "api.object" "api.objectchapter" "api.parameter" "api.function" "api.functionoverload" "api.example" "api.exampleremark"
+ -->
+<DOCUMENT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="file:///C:/Program Files (x86)/Common Files/gorep/selection/select_subscript.xsd">
+   <DATABASENAMES>
+      <NAME ID="VOTE" NAME="vote." />
+   </DATABASENAMES>
+
+   <TABLETEMPLATE ID="vote.like">
+      <FIELD NAME="VoterK" ALIAS="Voter" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ParentK" ALIAS="Parent" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TLikeUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="UserK" ALIAS="User" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ContactK" ALIAS="Contact" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FCount" ALIAS="Count" TYPE="I4" CONDITION="1" />
+
+      <EDIT NAME="VoterK" ALIAS="Voter" TYPE="I4" />
+      <EDIT NAME="ParentK" ALIAS="Parent" TYPE="I4" />
+      <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4" />
+      <EDIT NAME="UserK" ALIAS="User" TYPE="I4" />
+      <EDIT NAME="ContactK" ALIAS="Contact" TYPE="I4" />
+      <EDIT NAME="FCount" ALIAS="Count" TYPE="I4" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="vote.pollgroup">
+      <FIELD NAME="ParentK" ALIAS="Parent" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="UserK" ALIAS="User" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TPollGroupCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="Update" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TPollGroupUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.TypeC)</EXPRESSION>
+         <LOOKUP CACHE="pollgroup.type">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11010 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="StateC" ALIAS="State" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.StateC)</EXPRESSION>
+         <LOOKUP CACHE="pollgroup.state">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11011 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="PriorityC" ALIAS="Priority" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.PriorityC)</EXPRESSION>
+         <LOOKUP CACHE="pollgroup.priority">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11012 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="AreaC" ALIAS="Area" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.AreaC)</EXPRESSION>
+         <LOOKUP CACHE="pollgroup.area">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11013 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FAbbreviation" ALIAS="Abbreviation" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FIdle" ALIAS="Idle" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+
+      <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
+      <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
+      <EDIT NAME="UserK" ALIAS="UserK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
+         <LOOKUP CACHE="pollgroup.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11010 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="StateC" ALIAS="State" TYPE="I4">
+         <LOOKUP CACHE="pollgroup.state.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11012 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="PriorityC" ALIAS="Priority" TYPE="I4">
+         <LOOKUP CACHE="pollgroup.priority.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11012 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="AreaC" ALIAS="Area" TYPE="I4">
+         <LOOKUP CACHE="pollgroup.priority.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11013 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="100" />
+      <EDIT NAME="FAbbreviation" ALIAS="Abbreviation" TYPE="STR" MAX="100" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FIdle" ALIAS="Idle" TYPE="I2" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+
+   <TABLETEMPLATE ID="vote.poll">
+      <FIELD NAME="ParentK" ALIAS="ParentK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="UserK" ALIAS="UserK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TPollCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TPollUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FBegin" ALIAS="Begin" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FBegin" SIMPLENAME="~TPollFBegin FBegin" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FEnd" ALIAS="End" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FEnd" SIMPLENAME="~TPollFEnd FEnd" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FCount" ALIAS="Count" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDelay" ALIAS="Delay" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDelayVote" ALIAS="DelayVote" TYPE="R8" CONDITION="1" />
+      <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+      <FIELD ID="CountQuestion" NAME="PollK" ALIAS="Count questions" SIMPLENAME="Number of questions" TYPE="INT" CONDITION="expression" DESCRIPTION="Count number questions for poll">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{VOTE}TPollQuestion _pq WHERE _pq.PollK = $T.PollK)</EXPRESSION>
+      </FIELD>
+      <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
+      <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
+      <EDIT NAME="UserK" ALIAS="UserK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
+      <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
+      <EDIT NAME="FBegin" ALIAS="Begin" TYPE="DATE" />
+      <EDIT NAME="FEnd" ALIAS="End" TYPE="DATE" />
+      <EDIT NAME="FCount" ALIAS="Count" TYPE="I4" />
+      <EDIT NAME="FDelay" ALIAS="Delay" TYPE="I4" />
+      <EDIT NAME="FDelayVote" ALIAS="DelayVote" TYPE="R8" />
+      <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="vote.pollanswer">
+      <FIELD NAME="PollK" ALIAS="PollK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="PollSectionK" ALIAS="PollSectionK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TPollAnswerCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TPollAnswerUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FCount" ALIAS="Count" TYPE="I4" CONDITION="1" />
+
+      <EDIT NAME="PollK" ALIAS="PollK" TYPE="I4" />
+      <EDIT NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
+      <EDIT NAME="PollSectionK" ALIAS="PollSectionK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
+      <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
+      <EDIT NAME="FCount" ALIAS="Count" TYPE="I4" />
+   </TABLETEMPLATE>
+   <TABLETEMPLATE ID="vote.pollcomment">
+      <FIELD NAME="PollK" ALIAS="PollK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="VoterK" ALIAS="VoterK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TPollCommentCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TPollCommentUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FormatS" ALIAS="FormatS" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FText" ALIAS="Text" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+
+      <EDIT NAME="PollK" ALIAS="PollK" TYPE="I4" />
+      <EDIT NAME="VoterK" ALIAS="VoterK" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="FormatS" ALIAS="FormatS" TYPE="I4" />
+      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
+      <EDIT NAME="FText" ALIAS="Text" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   <TABLETEMPLATE ID="vote.polllimit">
+      <FIELD NAME="PollK" ALIAS="PollK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TPollLimitUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="limit_type" ALIAS="limit_type" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLimitInteger" ALIAS="LimitInteger" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FLimitDecimal" ALIAS="LimitDecimal" TYPE="R8" CONDITION="1" />
+      <FIELD NAME="FLimitDate" ALIAS="LimitDate" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FLimitDate" SIMPLENAME="~TPollLimitFLimitDate FLimitDate" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FLimitText" ALIAS="LimitText" TYPE="STR" CONDITION="1" />
+
+      <EDIT NAME="PollK" ALIAS="PollK" TYPE="I4" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="limit_type" ALIAS="limit_type" TYPE="I2" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="200" />
+      <EDIT NAME="FLimitInteger" ALIAS="LimitInteger" TYPE="I4" />
+      <EDIT NAME="FLimitDecimal" ALIAS="LimitDecimal" TYPE="R8" />
+      <EDIT NAME="FLimitDate" ALIAS="LimitDate" TYPE="DATE" />
+      <EDIT NAME="FLimitText" ALIAS="LimitText" TYPE="STR" MAX="100" />
+   </TABLETEMPLATE>
+   
+   
+   <TABLETEMPLATE ID="vote.pollquestion">
+      <FIELD NAME="PollK" ALIAS="Poll" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT FName FROM $O{VOTE}TPoll p WHERE $T.PollK = p.PollK)</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="PollSectionK" ALIAS="PollSectionK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TPollQuestionCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TPollQuestionUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
+      <FIELD ID="CountAnswer" NAME="PollQuestionK" ALIAS="Count answer" SIMPLENAME="Number of answer" TYPE="INT" CONDITION="expression" DESCRIPTION="Count number answers for poll">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{VOTE}TPollAnswer _pa WHERE _pa.PollQuestionK = $T.PollQuestionK)</EXPRESSION>
+      </FIELD>
+      <EDIT NAME="PollK" ALIAS="PollK" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
+      <EDIT NAME="PollSectionK" ALIAS="PollSectionK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
+      <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
+      <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
+   </TABLETEMPLATE>
+
+   <TABLETEMPLATE ID="vote.pollsection">
+      <FIELD NAME="PollK" ALIAS="PollK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FIndex" ALIAS="Index" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+
+      <EDIT NAME="PollK" ALIAS="PollK" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
+      <EDIT NAME="FIndex" ALIAS="Index" TYPE="I4" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="100" />
+   </TABLETEMPLATE>
+   
+   <TABLETEMPLATE ID="vote.pollvote">
+      <FIELD NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="PollAnswerK" ALIAS="PollAnswerK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="VoterK" ALIAS="VoterK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FSelect" ALIAS="Select" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FComment" ALIAS="Comment" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="verified" ALIAS="verified" TYPE="I2" CONDITION="1" />
+
+      <EDIT NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" />
+      <EDIT NAME="PollAnswerK" ALIAS="PollAnswerK" TYPE="I4" />
+      <EDIT NAME="VoterK" ALIAS="VoterK" TYPE="I4" />
+      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
+      <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
+      <EDIT NAME="FSelect" ALIAS="Select" TYPE="I4" />
+      <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
+      <EDIT NAME="FComment" ALIAS="Comment" TYPE="STR" MAX="500" />
+      <EDIT NAME="verified" ALIAS="verified" TYPE="I2" />
+   </TABLETEMPLATE>
+   <TABLETEMPLATE ID="vote.voter">
+      <FIELD NAME="UserK" ALIAS="UserK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="ContactK" ALIAS="ContactK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TVoterCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TVoterUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FIp" ALIAS="Ip" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FUserAgent" ALIAS="UserAgent" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FUserKey" ALIAS="UserKey" TYPE="BIN" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FAlias" ALIAS="Alias" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FMail" ALIAS="Mail" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FPhone" ALIAS="Phone" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLastVote" ALIAS="LastVote" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FLastVote" SIMPLENAME="~TVoterFLastVote FLastVote" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FValidated" ALIAS="Validated" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+
+      <EDIT NAME="UserK" ALIAS="UserK" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
+      <EDIT NAME="ContactK" ALIAS="ContactK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="FIp" ALIAS="Ip" TYPE="STR" MAX="100" />
+      <EDIT NAME="FUserAgent" ALIAS="UserAgent" TYPE="STR" MAX="100" />
+      <EDIT NAME="FUserKey" ALIAS="UserKey" TYPE="BIN" MAX="16" />
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="100" />
+      <EDIT NAME="FAlias" ALIAS="Alias" TYPE="STR" MAX="100" />
+      <EDIT NAME="FMail" ALIAS="Mail" TYPE="STR" MAX="100" />
+      <EDIT NAME="FPhone" ALIAS="Phone" TYPE="STR" MAX="100" />
+      <EDIT NAME="FLastVote" ALIAS="LastVote" TYPE="DATE" />
+      <EDIT NAME="FValidated" ALIAS="Validated" TYPE="I4" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   <TABLETEMPLATE ID="vote.voterhistory">
+      <FIELD NAME="VoterK" ALIAS="VoterK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TVoterHistoryCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FIp" ALIAS="Ip" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FUserAgent" ALIAS="UserAgent" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLastVote" ALIAS="LastVote" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FLastVote" SIMPLENAME="~TVoterHistoryFLastVote FLastVote" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+
+      <EDIT NAME="VoterK" ALIAS="VoterK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="FIp" ALIAS="Ip" TYPE="STR" MAX="100" />
+      <EDIT NAME="FUserAgent" ALIAS="UserAgent" TYPE="STR" MAX="100" />
+      <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="100" />
+      <EDIT NAME="FLastVote" ALIAS="LastVote" TYPE="DATE" />
+   </TABLETEMPLATE>
+   <TABLETEMPLATE ID="vote.voterpassword">
+      <FIELD NAME="VoterK" ALIAS="VoterK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TVoterPasswordCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TVoterPasswordUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="password_type" ALIAS="password_type" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FPassword" ALIAS="Password" TYPE="BIN" CONDITION="1" />
+      <FIELD NAME="FId" ALIAS="Id" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FMail" ALIAS="Mail" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLastUse" ALIAS="LastUse" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FLastUse" SIMPLENAME="~TVoterPasswordFLastUse FLastUse" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+
+      <EDIT NAME="VoterK" ALIAS="VoterK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="password_type" ALIAS="password_type" TYPE="I2" />
+      <EDIT NAME="FPassword" ALIAS="Password" TYPE="BIN" MAX="100" />
+      <EDIT NAME="FId" ALIAS="Id" TYPE="STR" MAX="100" />
+      <EDIT NAME="FMail" ALIAS="Mail" TYPE="STR" MAX="100" />
+      <EDIT NAME="FLastUse" ALIAS="LastUse" TYPE="DATE" />
+      <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
+   </TABLETEMPLATE>
+   <TABLETEMPLATE ID="vote.voterrule">
+      <FIELD NAME="VoterK" ALIAS="VoterK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="CreateD" SIMPLENAME="~TVoterRuleCreateD CreateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="UpdateD" ALIAS="UpdateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="UpdateD" SIMPLENAME="~TVoterRuleUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="rule_type" ALIAS="rule_type" TYPE="I2" CONDITION="1" />
+      <FIELD NAME="FValue" ALIAS="Value" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FDate" ALIAS="Date" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
+      <CONDITION NAME="FDate" SIMPLENAME="~TVoterRuleFDate FDate" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+
+      <EDIT NAME="VoterK" ALIAS="VoterK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
+      <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
+      <EDIT NAME="rule_type" ALIAS="rule_type" TYPE="I2" />
+      <EDIT NAME="FValue" ALIAS="Value" TYPE="I4" />
+      <EDIT NAME="FDate" ALIAS="Date" TYPE="DATE" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="200" />
+   </TABLETEMPLATE>
+
+   <TABLE PREFIX="TLike1" NAME="TLike" ALIAS="TLike1" SIMPLENAME="~TLike TLike" PARENT="TPollComment1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.PollCommentK=$this.ParentK AND $this.table_number=11080</JOIN>
+      <FIELD NAME="LikeK" ALIAS="ID (Like)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.like" />
+   </TABLE>
+   <TABLE PREFIX="TPollGroup1" NAME="TPollGroup" ALIAS="TPollGroup1" SIMPLENAME="~TPollGroup TPollGroup" PARENT="TSystem1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent].SystemK=$this.ParentK AND $this.table_number=1010</JOIN>
+      <FIELD NAME="PollGroupK" ALIAS="ID (Poll group)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.pollgroup" />
+   </TABLE>
+   <TABLE PREFIX="TPoll1" NAME="TPoll" ALIAS="TPoll1" SIMPLENAME="~TPoll TPoll" PARENT="TPollGroup1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.PollGroupK=$this.PollGroup</JOIN>
+      <FIELD NAME="PollK" ALIAS="ID (Poll)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.poll" />
+   </TABLE>
+   <TABLE PREFIX="TPollComment1" NAME="TPollComment" ALIAS="TPollComment1" SIMPLENAME="~TPollComment Poll Comment" PARENT="TPoll1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.PollK=$this.PollK</JOIN>
+      <FIELD NAME="PollCommentK" ALIAS="ID (Comment)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.pollcomment" />
+   </TABLE>
+   <TABLE PREFIX="TPollLimit1" NAME="TPollLimit" ALIAS="TPollLimit1" SIMPLENAME="~TPollLimit Poll Limit" PARENT="TPoll1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.PollK=$this.PollK</JOIN>
+      <FIELD NAME="PollLimitK" ALIAS="ID (Limit)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.polllimit" />
+   </TABLE>
+   <TABLE PREFIX="TPollQuestion1" NAME="TPollQuestion" ALIAS="TPollQuestion1" SIMPLENAME="~TPollQuestion Poll Question" PARENT="TPoll1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.PollK=$this.PollK</JOIN>
+      <FIELD NAME="PollQuestionK" ALIAS="ID (Question)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.pollquestion" />
+   </TABLE>
+   <TABLE PREFIX="TPollSection1" NAME="TPollSection" ALIAS="TPollSection1" SIMPLENAME="~TPollSection Poll Section" PARENT="TPoll1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.PollK=$this.PollK</JOIN>
+      <FIELD NAME="PollSectionK" ALIAS="ID (Section)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.pollsection" />
+   </TABLE>
+   <TABLE PREFIX="TPollAnswer1" NAME="TPollAnswer" ALIAS="TPollAnswer1" SIMPLENAME="~TPollAnswer TPollAnswer" PARENT="TPollQuestion1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.PollQuestionK=$this.PollQuestionK</JOIN>
+      <FIELD NAME="PollAnswerK" ALIAS="ID (Answer)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.pollanswer" />
+   </TABLE>
+   <TABLE PREFIX="TPollVote1" NAME="TPollVote" ALIAS="TPollVote1" SIMPLENAME="~TPollVote TPollVote" PARENT="TPollAnswer1" OWNER="$VOTE">
+      <JOIN TYPE="inner">[$parent].[?]=[$this].[?]</JOIN>
+      <FIELD NAME="PollVoteK" ALIAS="ID (Vote)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.pollvote" />
+   </TABLE>
+   <TABLE PREFIX="TVoter1" NAME="TVoter" ALIAS="TVoter1" SIMPLENAME="~TVoter TVoter" PARENT="TUser1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.UserK=$this.UserK</JOIN>
+      <FIELD NAME="VoterK" ALIAS="ID (Voter)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.voter" />
+   </TABLE>
+   <TABLE PREFIX="TVoterHistory1" NAME="TVoterHistory" ALIAS="TVoterHistory1" SIMPLENAME="~TVoterHistory TVoterHistory" PARENT="TVoter1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.VoterK=$this.VoterK</JOIN>
+      <FIELD NAME="VoterHistoryK" ALIAS="ID (History)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.voterhistory" />
+   </TABLE>
+   <TABLE PREFIX="TVoterPassword1" NAME="TVoterPassword" ALIAS="TVoterPassword1" SIMPLENAME="~TVoterPassword TVoterPassword" PARENT="TVoter1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.VoterK=$this.VoterK</JOIN>
+      <FIELD NAME="VoterPasswordK" ALIAS="ID (Voter password)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.voterpassword" />
+   </TABLE>
+   <TABLE PREFIX="TVoterRule1" NAME="TVoterRule" ALIAS="TVoterRule1" SIMPLENAME="~TVoterRule TVoterRule" PARENT="TVoter1" OWNER="$VOTE">
+      <JOIN TYPE="inner">$parent.VoterK=$this.VoterK</JOIN>
+      <FIELD NAME="VoterRuleK" ALIAS="ID (Voter rule)" TYPE="INT" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="vote.voterrule" />
+   </TABLE>
+</DOCUMENT>
