@@ -155,6 +155,30 @@ end  ]]></CODE>
       <FIELD ID="TPollAnswer1TypeC" ALIAS="TypeC" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
    </QUERY>   
    
+   <QUERY ID="poll_list" FLAGS="1" KEY="00000000000000000000000000000002" DESCRIPTION="List active polls for voter">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+   </QUERY>   
+   
+
+   <QUERY ID="poll_question" FLAGS="1" KEY="00000000000000000000000000000003">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollQuestion1"/>
+      <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+   </QUERY>   
+   
+   
+   <QUERY ID="poll_answer" FLAGS="1" KEY="00000000000000000000000000000004">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+   </QUERY>   
+   
+   
    
    <QUERY ID="Svarsalternativ-ändra" TITLE="Svarsalternativ - Lägg till" FLAGS="1" KEY="C0B3033897E2CD4EA3395F98512DD495">
       <ATTRIBUTE NAME="OUTPUT-LIST">Ändra/Lägg till,100</ATTRIBUTE>
@@ -181,6 +205,13 @@ VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},GETDATE(),G
             <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPollAnswer WHERE PollAnswerK={{=[0]}}' />
          </EDIT>
       </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="login" KEY="00000000000000000000000000000001">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FAlias" ALIAS="Alias" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FMail" ALIAS="Mail" TABLE="TVoter1"/>
    </QUERY>   
    
    
