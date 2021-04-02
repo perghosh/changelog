@@ -161,6 +161,7 @@ CREATE TABLE vote.TPoll (
    ,TypeC INT               -- Type of poll
    ,StateC INT              -- State of poll
    ,FName NVARCHAR(500)     -- poll name
+   ,FHeader NVARCHAR(200)   -- poll header
    ,FDescription NVARCHAR(MAX)-- describe poll
    ,FBegin DATETIME         -- begin date, when poll starts
    ,FEnd DATETIME           -- end date, when poll ends
@@ -254,10 +255,12 @@ CREATE TABLE vote.TPollVote (
 	,PollQuestionK BIGINT
    ,PollAnswerK BIGINT
    ,VoterK BIGINT           -- Voter reference
+   ,CreateD DATETIME        -- Date when vote is created
    ,TypeC INT               -- Type of vote
    ,StateC INT              -- State of vote
    ,FSelect INT             -- Probably 1 if voter has selected this answer
    ,FWeight INT             -- If poll is weighted, how much weight voter has set
+   ,FIp NVARCHAR(100)       -- Ip number used for vote
    ,FComment NVARCHAR(500)  -- Comment for vote
    ,verified SMALLINT       -- Vote verification, references table vote.verify         
    ,CONSTRAINT FK_TPollVote_PollAnswerK FOREIGN KEY (PollAnswerK) REFERENCES vote.TPollAnswer(PollAnswerK) ON DELETE CASCADE
@@ -346,7 +349,7 @@ VALUES
 (11000,'TLike','vote'),
 (11010,'TPollGroup','vote'),
 (11020,'TPoll','vote'),
-(11030,'TPoll','vote'),
+(11030,'TPollSection','vote'),
 (11040,'TPollLimit','vote'),
 (11050,'TPollQuestion','vote'),
 (11060,'TPollAnswer','vote'),

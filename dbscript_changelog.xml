@@ -8,7 +8,10 @@
       <NAME ID="SYSTEM" NAME="system." />
       <NAME ID="DOCUMENTATION" NAME="documentation." />
    </DATABASENAMES>
-
+   <!-- 
+get "alias" parameter that holds login id
+get ip , ip is enabled calling 
+   -->
    <SCRIPTS>
       <SCRIPT ID="idLogin" VERSION="0" DBVERSION="1" TYPE="login" LANGUAGE="LUA">
          <CODE>
@@ -17,6 +20,7 @@ function main()
    local app = Application.new()
    local result = Result.new()
    local alias = result:GetParam("alias", "guest") -- default alias is guest
+   local ip = result:GetParam("ip", "") 
 
    local batch = SqlBatch.new()
    batch:AddStatement("select_user","SELECT UserK FROM $OTUser WHERE FLoginName={=name}","select" )
@@ -26,6 +30,11 @@ function main()
       batch:SetValue("user",iUserKey)
       batch:AddStatement("update_count","UPDATE $OTUser SET FLoginCount = ISNULL(FLoginCount,0) + 1 WHERE UserK={=user}","update" )
       batch:Execute("update_count")
+      if string.len( ip ) > 0 then
+         batch:SetValue("ip",ip)
+         batch:AddStatement("add_ip","INSERT INTO $OTUserHistory (UserK,FValue,FFind) VALUES({=user},{=ip},'ip')","insert" )
+         batch:Execute("add_ip")
+      end
    else return; end
 
    if alias == "guest" then
@@ -42,6 +51,7 @@ function main()
       user:LoadQueries()
       user:SetVariable( "@@user", iUserKey );
       user:SetVariable( "@@global", 1 );
+      user:SetVariable( "@@ip", ip );
    elseif user:GetVariable( "@@global", false ) == "" then
       user:SetVariable( "@@user", iUserKey );
       user:SetVariable( "@@global", 1 );

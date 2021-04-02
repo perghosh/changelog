@@ -7,25 +7,30 @@
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1">
          <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
       </FIELD>
+      <FIELD ID="TPoll1FHeader" ALIAS="Rubrik" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPoll1CountQuestion" ALIAS="Antal frågor" TABLE="TPoll1">
-         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
-         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
-      </FIELD>
       <FIELD ID="TPoll1FBegin" ALIAS="Startdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
       </FIELD>
       <FIELD ID="TPoll1FEnd" ALIAS="Slutdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
       </FIELD>
+      <FIELD ID="TPoll1CountQuestion" ALIAS="Antal frågor" TABLE="TPoll1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+         <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
+      </FIELD>
       
       <ROWEDIT>
          <EDIT NAME="new_poll" SIMPLE="Pol" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
-INSERT INTO $O{VOTE}TPoll(FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
-VALUES({=FName"''"},{=FDescription},{=FStart},{=FEnd},GETDATE(),GETDATE());
+DECLARE @sDescription NVARCHAR(MAX) = {=FDescription};                    
+INSERT INTO $O{VOTE}TPoll(FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
+VALUES({=FHeader},{=FName"''"},@sDescription,{=FStart},{=FEnd},GETDATE(),GETDATE());
+
+DECLARE @iPoll BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPoll'));
+EXEC $OPROCEDURE_UpdateBadge @sDescription, 'vote.TPoll', @iPoll
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPoll')" />
@@ -53,7 +58,8 @@ end
             
    R:SetValue('url','[' .. 
    '{"id": "query","title":"Valfrågor - Visa", "icon": "fa-align-justify", "table":"TPoll1", "link": ["13304CE1144D43C292D7589C322863D0zoom"]},' .. 
-   '{"id": "query","title":"Valfrågor - Lägg till", "icon": "fa-edit", "table":"TPoll1", "link": ["5599795A83B546C6A8CA34197D87A047"]}' .. 
+   '{"id": "query","title":"Valfrågor - Lägg till", "icon": "fa-edit", "table":"TPoll1", "link": ["5599795A83B546C6A8CA34197D87A047"]},' .. 
+   '{"id": "add_link","title":"Länk: Lägg till", "icon": "fa-edit", "table":"TPoll1", "link": ["E2328BC89E074AE48D7E70895C9F36CE"]}' .. 
    ']') 
 end  ]]></CODE>
          </SCRIPT>
@@ -64,6 +70,7 @@ end  ]]></CODE>
       <QUERYLINK TYPENAME="children" NAME="Fråga"  DESCRIPTION="Lägg till frågor" KEY="5599795A83B546C6A8CA34197D87A047" QUERY="358497254151814E8F9273212F0CE565" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}">
          <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|10,60" />
       </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Add link"  DESCRIPTION="Add link" KEY="E2328BC89E074AE48D7E70895C9F36CE" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
    </QUERY>
    
    <QUERY ID="Frågor-visa" TITLE="Valfrågor - Visa" FLAGS="1" KEY="7DF3032022F64E52A6473C283575ACFF" DESCRIPTION="Listar frågor för motion">
@@ -160,26 +167,84 @@ end  ]]></CODE>
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
       <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
-   </QUERY>   
+   </QUERY>
+
+   <QUERY ID="poll_overview" FLAGS="1" KEY="00000000000000000000000000000003">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" 
+             FORMAT="ISNULL( $T.FHeader, $T.FName )" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1CountQuestion" ALIAS="Count question" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CountLink" ALIAS="Count link" TABLE="TPoll1" />
+   </QUERY>
+   
+   <QUERY ID="poll_links" FLAGS="1" KEY="00000000000000000000000000000009">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TLink11020LinkK" ALIAS="ID" TABLE="TLink11020" />
+      <FIELD ID="TLink11020FUrl-Goto" ALIAS="Link" TABLE="TLink11020" />
+      <FIELD ID="TLink11020FDescription" ALIAS="Description" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
+   </QUERY>
    
 
-   <QUERY ID="poll_question" FLAGS="1" KEY="00000000000000000000000000000003">
+   <QUERY ID="poll_question_list" FLAGS="1" KEY="00000000000000000000000000000004">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID" TABLE="TPollQuestion1" />
+      <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+   </QUERY>
+
+   <QUERY ID="poll_question" FLAGS="1" KEY="00000000000000000000000000000005">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollQuestion1"/>
       <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
    </QUERY>   
    
-   
-   <QUERY ID="poll_answer" FLAGS="1" KEY="00000000000000000000000000000004">
+   <!-- List answers in selected poll -->
+   <QUERY ID="poll_answer" FLAGS="1" KEY="00000000000000000000000000000006">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollAnswer1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollAnswer1"/>
       <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
-      <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
-   </QUERY>   
+      <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1FDescription" ALIAS="Beskrivning" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+   </QUERY>
+
+   <!-- When voter is voting this will register the vote in database -->
+   <QUERY ID="poll_vote" FLAGS="1" KEY="00000000000000000000000000000007">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollVote1PollVoteK" ALIAS="ID (Vote)" TABLE="TPollVote1"/>
+      <FIELD ID="TPollVote1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollVote1"  />
+      <FIELD ID="TPollVote1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollVote1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_vote" TYPENAME="new_row" DESCRIPTION="Add new vote">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iPoll BIGINT = {{=PollK}}
+DECLARE @iPollAnswer BIGINT = {{=PollAnswerK}}
+DECLARE @iPollQuestion BIGINT = (SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollAnswerK=@iPollAnswer)
+DECLARE @iSelect INT = {{=FSelect}}
+
+IF @iSelect IS NULL
+   SET @iSelect = 1
+
+INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, FSelect, FIp, CreateD)
+VALUES(@iPollAnswer,@iPollAnswer,@iSelect,'{#V user "@@user"}',GETDATE())
+               </EXPRESSION>
+            </SQL>
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
    
+   <QUERY ID="poll_answer_count" FLAGS="1" KEY="00000000000000000000000000000008">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollAnswer1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" />
+      <FIELD ID="TPollAnswer1CountVote" ALIAS="Antal röster" TABLE="TPollAnswer1" />
+   </QUERY>
    
-   
+
+
    <QUERY ID="Svarsalternativ-ändra" TITLE="Svarsalternativ - Lägg till" FLAGS="1" KEY="C0B3033897E2CD4EA3395F98512DD495">
       <ATTRIBUTE NAME="OUTPUT-LIST">Ändra/Lägg till,100</ATTRIBUTE>
       <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
@@ -206,6 +271,32 @@ VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},GETDATE(),G
          </EDIT>
       </ROWEDIT>
    </QUERY>
+   
+   <QUERY ID="Poll: Edit links" DESCRIPTION="Object links" KEY="E2328BC89E074AE48D7E70895C9F36CE" FLAGNAMES="NOTLISTED">
+      <ATTRIBUTE NAME="OUTPUT-TRUNCATE">[20,50,200]|50</ATTRIBUTE>
+      <FIELD ID="LinkK" ALIAS="ID" TABLE="TLink11020"/>
+      <FIELD ID="TypeC" ALIAS="Type" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FUrl" ALIAS="Url" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FName" ALIAS="Name" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FDescription" ALIAS="Description" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_link" SIMPLE="Object link" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iObject BIGINT = {{=PollK}}
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TPoll' AND "schema"='vote' );
+INSERT INTO $OTLink(ParentK,table_number,TypeC,FUrl,FName,FDescription,CreateD,UpdateD)
+VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FName},{=FDescription},GETDATE(),GETDATE())
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTLink')" />
+         </EDIT>
+         <EDIT NAME="delete link" SIMPLE="Delete link" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $OTLink WHERE LinkK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
    
    <QUERY ID="login" KEY="00000000000000000000000000000001">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>

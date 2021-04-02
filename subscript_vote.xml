@@ -74,7 +74,7 @@
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FIdle" ALIAS="Idle" TYPE="I2" CONDITION="1" />
       <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
-
+      
       <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
       <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
       <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
@@ -122,6 +122,7 @@
       <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
       <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FHeader" ALIAS="Header" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FBegin" ALIAS="Begin" TYPE="ODATE">
          <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
@@ -145,6 +146,9 @@
       <FIELD ID="CountQuestion" NAME="PollK" ALIAS="Count questions" SIMPLENAME="Number of questions" TYPE="INT" CONDITION="expression" DESCRIPTION="Count number questions for poll">
          <EXPRESSION>(SELECT COUNT(*) FROM $O{VOTE}TPollQuestion _pq WHERE _pq.PollK = $T.PollK)</EXPRESSION>
       </FIELD>
+      <FIELD ID="CountLink" NAME="PollK" ALIAS="Count link" SIMPLENAME="Number of links" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{}TLink _l WHERE _l.ParentK=$T.PollK AND _l.table_number=11020)</EXPRESSION>
+      </FIELD>
       <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
       <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
       <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
@@ -154,6 +158,7 @@
       <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
       <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FHeader" ALIAS="Header" TYPE="STR" MAX="200" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
       <EDIT NAME="FBegin" ALIAS="Begin" TYPE="DATE" />
       <EDIT NAME="FEnd" ALIAS="End" TYPE="DATE" />
@@ -165,8 +170,8 @@
    </TABLETEMPLATE>
    
    <TABLETEMPLATE ID="vote.pollanswer">
-      <FIELD NAME="PollK" ALIAS="PollK" TYPE="I4" CONDITION="1" />
-      <FIELD NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="PollK" ALIAS="PollK" TYPE="I4" CONDITION="1" FKEY="TPoll1" />
+      <FIELD NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" CONDITION="1" FKEY="TPollQuestion1" />
       <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
       <FIELD NAME="PollSectionK" ALIAS="PollSectionK" TYPE="I4" CONDITION="1" />
       <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
@@ -188,6 +193,11 @@
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FCount" ALIAS="Count" TYPE="I4" CONDITION="1" />
+      
+      <FIELD ID="CountVote" NAME="PollAnswerK" ALIAS="Count votes" SIMPLENAME="Number of votes" TYPE="INT" CONDITION="expression" DESCRIPTION="Count number votes for answer">
+         <EXPRESSION>(SELECT COUNT(*) FROM $O{VOTE}TPollVote _pv WHERE _pv.PollAnswerK = $T.PollAnswerK)</EXPRESSION>
+      </FIELD>
+      
 
       <EDIT NAME="PollK" ALIAS="PollK" TYPE="I4" />
       <EDIT NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" />
@@ -323,20 +333,27 @@
       <FIELD NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" CONDITION="1" />
       <FIELD NAME="PollAnswerK" ALIAS="PollAnswerK" TYPE="I4" CONDITION="1" />
       <FIELD NAME="VoterK" ALIAS="VoterK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+         <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
+         <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
+      </FIELD>
       <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
       <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FSelect" ALIAS="Select" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FIp" ALIAS="Ip" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FComment" ALIAS="Comment" TYPE="STR" CONDITION="1" />
       <FIELD NAME="verified" ALIAS="verified" TYPE="I2" CONDITION="1" />
 
       <EDIT NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" />
       <EDIT NAME="PollAnswerK" ALIAS="PollAnswerK" TYPE="I4" />
       <EDIT NAME="VoterK" ALIAS="VoterK" TYPE="I4" />
+      <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
       <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
       <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
       <EDIT NAME="FSelect" ALIAS="Select" TYPE="I4" />
       <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
+      <EDIT NAME="FIp" ALIAS="Ip" TYPE="STR" MAX="100" />
       <EDIT NAME="FComment" ALIAS="Comment" TYPE="STR" MAX="500" />
       <EDIT NAME="verified" ALIAS="verified" TYPE="I2" />
    </TABLETEMPLATE>
@@ -558,4 +575,11 @@
       <FIELD NAME="VoterRuleK" ALIAS="ID (Voter rule)" TYPE="INT" CONDITION="1" KEY="1" />
       <USETABLETEMPLATE ID="vote.voterrule" />
    </TABLE>
+
+   <TABLE PREFIX="TLink11020" NAME="TLink" SIMPLENAME="~TLink" PARENT="TPoll1" DESCRIPTION="Handle links attached to objects">
+      <JOIN TYPE="inner">$parent.PollK=$this.ParentK AND $this.table_number=11020</JOIN>
+      <FIELD NAME="LinkK" ALIAS="LinkK" TYPE="I4" CONDITION="1" KEY="1" />
+      <USETABLETEMPLATE ID="application.link" />
+   </TABLE>
+   
 </DOCUMENT>

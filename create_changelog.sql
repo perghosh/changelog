@@ -188,6 +188,8 @@ IF OBJECT_ID('application.TCustomerContact', 'U') IS NOT NULL  DROP TABLE applic
 IF OBJECT_ID('application.TCustomerChapter', 'U') IS NOT NULL  DROP TABLE application.TCustomerChapter;
 IF OBJECT_ID('application.TCustomer', 'U') IS NOT NULL  DROP TABLE application.TCustomer;
 IF OBJECT_ID('application.TSystem', 'U') IS NOT NULL  DROP TABLE application.TSystem;
+IF OBJECT_ID('application.TUserPinned', 'U') IS NOT NULL  DROP TABLE application.TUserPinned;
+IF OBJECT_ID('application.TUserHistory', 'U') IS NOT NULL  DROP TABLE application.TUserHistory;
 IF OBJECT_ID('application.TUserGroup', 'U') IS NOT NULL  DROP TABLE application.TUserGroup;
 IF OBJECT_ID('application.TUser', 'U') IS NOT NULL  DROP TABLE application.TUser;
 IF OBJECT_ID('application.TGlobal', 'U') IS NOT NULL  DROP TABLE application.TGlobal;
@@ -367,7 +369,7 @@ CREATE CLUSTERED INDEX "application.IC_TState_ParentK"  ON application.TState ("
 
 
 
-PRINT('CREATE TABLE TUser, Users in system'); CREATE TABLE application.TUser (
+CREATE TABLE application.TUser (
    UserK INT IDENTITY(1,1) NOT NULL
    ,UserGroupK INT
    ,GlobalK INT NOT NULL
@@ -392,6 +394,7 @@ PRINT('CREATE TABLE TUser, Users in system'); CREATE TABLE application.TUser (
    ,FDeleted SMALLINT DEFAULT 0
    ,FPassword VARCHAR(256)
    ,FLastLoginD DATETIME
+   ,FLastIp NVARCHAR(100)
    ,CONSTRAINT "PK_TUser_UserK" PRIMARY KEY NONCLUSTERED ("UserK")
    ,CONSTRAINT "FK_TUser_GlobalK" FOREIGN KEY ("GlobalK") REFERENCES application.TGlobal("GlobalK") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -414,8 +417,7 @@ PRINT('CREATE TABLE TUserGroup'); CREATE TABLE application.TUserGroup (
    ,CONSTRAINT "PK_TUserGroup_UserGroupK" PRIMARY KEY (UserGroupK)
 );
 
-IF OBJECT_ID('application.TUserPinned', 'U') IS NOT NULL  DROP TABLE application.TUserPinned;
-PRINT('CREATE TABLE TUserPinned'); CREATE TABLE application.TUserPinned (
+CREATE TABLE application.TUserPinned (
    UserPinnedK BIGINT IDENTITY(1,1) NOT NULL
    ,UserK INT NOT NULL
    ,table_number INT          -- Table number for describing what table note belongs to
@@ -430,6 +432,22 @@ PRINT('CREATE TABLE TUserPinned'); CREATE TABLE application.TUserPinned (
 
 CREATE CLUSTERED INDEX "application.IC_TUserPinned_UserK"  ON application.TUserPinned ("UserK");
 CREATE INDEX I_TUserPinned_RecordK ON application.TUserPinned (RecordK);
+
+CREATE TABLE application.TUserHistory (
+   UserHistoryK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   ,UserK INT NOT NULL
+   ,table_number INT          -- Table number for describing what table note belongs to
+   ,CreateD DATETIME DEFAULT GETDATE()
+   ,RecordK BIGINT
+   ,TypeC INT DEFAULT 0       -- Type of history item, this is for some customization
+   ,FNumber INT               -- Number related to history post
+   ,FValue NVARCHAR(100)      -- Value related to history post, could ip number or something else
+   ,FFind NVARCHAR(100)       -- simple word or words to search for if filtering is needed
+   ,FDescription NVARCHAR(1000)-- describe history item
+);
+
+CREATE CLUSTERED INDEX "application.IC_TUserHistory_UserK"  ON application.TUserHistory ("UserK");
+
 
 PRINT('CREATE TABLE TrUserGroupXUser'); CREATE TABLE application.TrUserGroupXUser (
    rUserGroupXUserK BIGINT IDENTITY(1,1) NOT NULL

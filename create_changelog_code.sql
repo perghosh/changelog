@@ -1507,7 +1507,90 @@ BEGIN
             BEGIN
                SET @i = @i + 1
                SET @iTest = UNICODE( SUBSTRING( @sTag, @i, 1 ) )
-               IF @iTest < 36 @iTest = 44 -- if less than ascii code for '$'
+               IF @iTest < 36 OR @iTest = 44 -- if less than ascii code for '$' or ','
+                  SET @sTag = SUBSTRING( @sTag, 1, @i - 1 )
+            END
+
+-- If more than one character # + character
+            IF LEN( @sTag ) > 1
+               SET @sTag = SUBSTRING( @sTag, 2, 255 )
+            ELSE
+               SET @sTag = NULL
+
+            IF @sTag IS NOT NULL
+            BEGIN
+               IF (SELECT COUNT(*) FROM @tTag WHERE tag = @sTag) = 0
+               BEGIN
+                  INSERT INTO @tTag VALUES( @sTag )
+               END
+            END
+         END
+      END
+
+      SET @iPosition = CHARINDEX('#',@sText, @iPosition + 1)
+   END
+
+   RETURN
+END
+
+GO
+
+CREATE FUNCTION application.PullWordTagsFromText( @sText NVARCHAR(MAX) )
+RETURNS @tTag TABLE
+(
+  tag NVARCHAR(256)
+)
+AS
+BEGIN
+
+   DECLARE @iPosition INT     -- Current position in string
+   DECLARE @iFront INT        -- Char code before current position
+   DECLARE @iBack INT         -- Char code after current position
+   DECLARE @iEnd INT          -- Find string end
+   DECLARE @i INT             -- Loop variable
+   DECLARE @iTest INT         -- Test character
+
+   DECLARE @sTag NVARCHAR(256)-- tag's found in text
+
+   SET @iPosition = CHARINDEX('#',@sText)
+
+-- Replace tab(9), new line(10), carriage return(13)
+   IF @iPosition > 0
+      SET @sText = REPLACE(REPLACE(REPLACE( @sText, CHAR(9), ' '), CHAR(10), ' '), CHAR(13), ' ')
+
+   WHILE @iPosition > 0 
+   BEGIN
+
+-- Get character code before #
+      IF @iPosition = 1
+         SET @iFront = 32 -- simulate space
+      ELSE
+         SET @iFront = UNICODE( SUBSTRING( @sText, @iPosition - 1, 1 ) ) -- ASCII code before current position
+
+      SET @iBack = UNICODE( SUBSTRING( @sText, @iPosition + 1, 1 ) ) -- ASCII code after current position
+
+-- Check for non character and not # before '#' and character after
+      IF ((@iFront < 48 AND @iFront <> 35) OR (@iFront > 57 AND @iFront < 65)) AND( @iBack >= 36 AND @iBack <>  44)
+      BEGIN
+-- Find last character
+         SET @iEnd = CHARINDEX( CHAR(32), @sText, @iPosition ) 
+
+-- If no space then get end of complete string
+         IF @iEnd = 0
+            SET @iEnd = LEN( @sText )
+
+-- More than one character then we have a hashtag
+         IF (@iEnd - @iPosition) > 0
+         BEGIN
+            SET @sTag = SUBSTRING( @sText, @iPosition, @iEnd - @iPosition + 1 )
+
+-- Check for non valid character in hashtag
+            SET @i = 1  -- Skip #
+            WHILE @i < LEN( @sTag )
+            BEGIN
+               SET @i = @i + 1
+               SET @iTest = UNICODE( SUBSTRING( @sTag, @i, 1 ) )
+               IF (@iTest < 48) OR (@iTest > 57 AND @iTest < 65) OR (@iTest > 90 AND @iTest < 95) -- number or character (check ascii codes for what ranges that isn't valid)
                   SET @sTag = SUBSTRING( @sTag, 1, @i - 1 )
             END
 
@@ -1536,7 +1619,8 @@ END
 GO
 
 
-DROP PROCEDURE IF EXISTS application.PROCEDURE_ConnectHashtags;
+
+DROP PROCEDURE IF EXISTS application.PROCEDURE_UpdateBadge;
 GO
 /**
  * Update hashtag connections for table TrXBadge and TBadge
@@ -1550,24 +1634,80 @@ CREATE PROCEDURE application.PROCEDURE_UpdateBadge
    @sTable VARCHAR(200),
    @iRecord BIGINT
 AS
-   DECLARE @iTable INT = (SELECT number FROM application.table_number WHERE "name" = @sTable); -- Get table id
+   DECLARE @iTable INT
+   DECLARE @sSchema NVARCHAR(100)
+   DECLARE @iPosition INT = CHARINDEX('.', @sTable)
+   IF @iPosition > 0
+   BEGIN
+	   SET @sSchema = SUBSTRING( @sTable, 0,  @iPosition )
+	   SET @sTable = SUBSTRING( @sTable, @iPosition + 1, LEN( @sTable ) - @iPosition )
+   END
+
+   IF @sSchema IS NULL
+      SET @iTable = (SELECT number FROM application.table_number WHERE "name" = @sTable); -- Get table id
+   ELSE
+      SET @iTable = (SELECT number FROM application.table_number WHERE "name" = @sTable AND "schema" = @sSchema); -- Get table id
 
    -- Remove old connections to hashtag
    DELETE FROM application.TrXBadge WHERE ParentK = @iRecord AND table_number = @iTable
 
-IF LEN( @sText ) > 2 -- Net to be at least three characters with the hashtag symbol
-BEGIN
-   -- Add missing hashtags to Badge table
-   INSERT INTO application.TBadge (FName)
-   SELECT tag FROM application.PullTagsFromText( @sText ) LEFT JOIN application.TBadge _b ON tag = _b.FName WHERE _b.FName IS NULL
+   IF LEN( @sText ) > 2 -- Need to be at least three characters with the hashtag symbol
+   BEGIN
+      -- Add missing hashtags to Badge table
+      INSERT INTO application.TBadge (FName)
+      SELECT tag FROM application.PullTagsFromText( @sText ) LEFT JOIN application.TBadge _b ON tag = _b.FName WHERE _b.FName IS NULL
    
-   -- Connect hashtags to  record
-   INSERT INTO application.TrXBadge (ParentK,table_number,BadgeK)
-   SELECT @iRecord, @iTable, _b.BadgeK
-   FROM application.TBadge _b JOIN application.PullTagsFromText( @sText ) ON _b.FName = tag
-END
-
+      -- Connect hashtags to  record
+      INSERT INTO application.TrXBadge (ParentK,table_number,BadgeK)
+      SELECT @iRecord, @iTable, _b.BadgeK
+      FROM application.TBadge _b JOIN application.PullTagsFromText( @sText ) ON _b.FName = tag
+   END
 GO
+
+DROP PROCEDURE IF EXISTS application.PROCEDURE_UpdateBadgeWord;
+GO
+/**
+ * Update hashtag connections for table TrXBadge and TBadge
+ * Adds missing hashtags from text into TBadge table and then connects those to record with key sent and table number
+ * @param {NVARCHAR} @sText Text to scan for hashtags
+ * @param {NVARCHAR} @sTable table name hashtag is connected to
+ * @param {BIGINT} @iRecord key to record hashtags are connected to
+ */
+CREATE PROCEDURE application.PROCEDURE_UpdateBadgeWord
+   @sText NVARCHAR(MAX),
+   @sTable VARCHAR(200),
+   @iRecord BIGINT
+AS
+   DECLARE @iTable INT
+   DECLARE @sSchema NVARCHAR(100)
+   DECLARE @iPosition INT = CHARINDEX('.', @sTable)
+   IF @iPosition > 0
+   BEGIN
+	   SET @sSchema = SUBSTRING( @sTable, 0,  @iPosition )
+	   SET @sTable = SUBSTRING( @sTable, @iPosition + 1, LEN( @sTable ) - @iPosition )
+   END
+
+   IF @sSchema IS NULL
+      SET @iTable = (SELECT number FROM application.table_number WHERE "name" = @sTable); -- Get table id
+   ELSE
+      SET @iTable = (SELECT number FROM application.table_number WHERE "name" = @sTable AND "schema" = @sSchema); -- Get table id
+
+   -- Remove old connections to hashtag
+   DELETE FROM application.TrXBadge WHERE ParentK = @iRecord AND table_number = @iTable
+
+   IF LEN( @sText ) > 2 -- Need to be at least three characters with the hashtag symbol
+   BEGIN
+      -- Add missing hashtags to Badge table
+      INSERT INTO application.TBadge (FName)
+      SELECT tag FROM application.PullWordTagsFromText( @sText ) LEFT JOIN application.TBadge _b ON tag = _b.FName WHERE _b.FName IS NULL
+   
+      -- Connect hashtags to  record
+      INSERT INTO application.TrXBadge (ParentK,table_number,BadgeK)
+      SELECT @iRecord, @iTable, _b.BadgeK
+      FROM application.TBadge _b JOIN application.PullWordTagsFromText( @sText ) ON _b.FName = tag
+   END
+GO
+
 
 
 DROP PROCEDURE IF EXISTS application.PROCEDURE_UpdateImage;
