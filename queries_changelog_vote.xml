@@ -300,9 +300,35 @@ VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FName},{=FDescription},GETDATE(),G
    
    <QUERY ID="login" KEY="00000000000000000000000000000001">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TVoter1VoterK" ALIAS="ID" TABLE="TVoter1"/>
       <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
       <FIELD ID="TVoter1FAlias" ALIAS="Alias" TABLE="TVoter1"/>
       <FIELD ID="TVoter1FMail" ALIAS="Mail" TABLE="TVoter1"/>
+      <ROWEDIT>
+         <EDIT NAME="new_voter" SIMPLE="Voter" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION><![CDATA[
+DECLARE @iUser BIGINT = {#V user "@@user"}
+DECLARE @sAlias NVARCHAR(100) = {=FAlias}
+IF @sAlias IS NULL OR LEN(@sAlias) < 3
+   THROW 50000, 'Alias value error', 1;
+INSERT INTO $O{VOTE}TVoter(UserK,FName,FAlias,FMail,CreateD,UpdateD) 
+VALUES(@iUser,{=FName},{=FAlias},{=FMail},GETDATE(),GETDATE());
+               ]]></EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TVoter')" />
+         </EDIT>
+         <EDIT NAME="delete poll" SIMPLE="Radera proposition" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TVoter WHERE VoterK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>   
+
+   <QUERY ID="find_voter" KEY="00000000000000000000000000000010">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TVoter1VoterK" ALIAS="ID" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FAlias" ALIAS="Alias" TABLE="TVoter1"/>
    </QUERY>   
    
    
