@@ -175,8 +175,9 @@ end  ]]></CODE>
       <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" 
              FORMAT="ISNULL( $T.FHeader, $T.FName )" FIELDFLAGNAMES="sql_format" />
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPoll1CountQuestion" ALIAS="Count question" TABLE="TPoll1" />
-      <FIELD ID="TPoll1CountLink" ALIAS="Count link" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CountQuestion" ALIAS="CountQuestion" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CountLink" ALIAS="CountLink" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CountMyVoterCount" ALIAS="MyCount" TABLE="TPoll1" />
    </QUERY>
    
    <QUERY ID="poll_links" FLAGS="1" KEY="00000000000000000000000000000009">
@@ -218,18 +219,25 @@ end  ]]></CODE>
       <ROWEDIT>
          <EDIT NAME="new_vote" TYPENAME="new_row" DESCRIPTION="Add new vote">
             <SQL TYPENAME="insert" COMMAND="insert-row">
-               <EXPRESSION>
+               <EXPRESSION><![CDATA[
 DECLARE @iPoll BIGINT = {{=PollK}}
+DECLARE @iVoter BIGINT = {{=VoterK}}
 DECLARE @iPollAnswer BIGINT = {{=PollAnswerK}}
 DECLARE @iPollQuestion BIGINT = (SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollAnswerK=@iPollAnswer)
 DECLARE @iSelect INT = {{=FSelect}}
 
 IF @iSelect IS NULL
    SET @iSelect = 1
+   
+IF @iVoter IS NOT NULL
+BEGIN
+   IF (SELECT COUNT(*) FROM $O{VOTE}TPollVote WHERE VoterK=@iVoter AND PollQuestionK IN(SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollK=@iPoll) ) > 0
+      THROW 50001, 'Voter can not vote more than once', 1;
+END
 
-INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, FSelect, FIp, CreateD)
-VALUES(@iPollAnswer,@iPollAnswer,@iSelect,'{#V user "@@user"}',GETDATE())
-               </EXPRESSION>
+INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, VoterK, FSelect, FIp, CreateD)
+VALUES(@iPollAnswer,@iPollAnswer,@iVoter,@iSelect,'{#V user "@@ip"}',GETDATE())
+               ]]></EXPRESSION>
             </SQL>
          </EDIT>
       </ROWEDIT>
@@ -301,16 +309,16 @@ VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FName},{=FDescription},GETDATE(),G
    <QUERY ID="login" KEY="00000000000000000000000000000001">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TVoter1VoterK" ALIAS="ID" TABLE="TVoter1"/>
-      <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
-      <FIELD ID="TVoter1FAlias" ALIAS="Alias" TABLE="TVoter1"/>
-      <FIELD ID="TVoter1FMail" ALIAS="Mail" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FAlias" ALIAS="Användarnamn" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FName" ALIAS="Namn" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FMail" ALIAS="Mejladress" TABLE="TVoter1"/>
       <ROWEDIT>
          <EDIT NAME="new_voter" SIMPLE="Voter" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION><![CDATA[
 DECLARE @iUser BIGINT = {#V user "@@user"}
 DECLARE @sAlias NVARCHAR(100) = {=FAlias}
-IF @sAlias IS NULL OR LEN(@sAlias) < 3
+IF @sAlias IS NULL OR LEN(@sAlias) < 3 OR LEN(@sAlias) > 30
    THROW 50000, 'Alias value error', 1;
 INSERT INTO $O{VOTE}TVoter(UserK,FName,FAlias,FMail,CreateD,UpdateD) 
 VALUES(@iUser,{=FName},{=FAlias},{=FMail},GETDATE(),GETDATE());
@@ -324,11 +332,24 @@ VALUES(@iUser,{=FName},{=FAlias},{=FMail},GETDATE(),GETDATE());
       </ROWEDIT>
    </QUERY>   
 
+   <!-- Get voter key and Name -->
    <QUERY ID="find_voter" KEY="00000000000000000000000000000010">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <ATTRIBUTE NAME="LUA-GETRESULT"><![CDATA[
+return function( g )
+if g.on == 2 then
+   local q = g.q
+   local alias = q:GetCondition("FAlias"):GetValue()
+   local iVoter = g.db:Ask("SELECT VoterK FROM $O{VOTE}TVoter WHERE FAlias='"..alias.."'");
+   if type(iVoter) == "number" then
+      g.user:SetVariable( "@@voter", iVoter );
+   end
+end   
+end
+      ]]></ATTRIBUTE>
       <FIELD ID="TVoter1VoterK" ALIAS="ID" TABLE="TVoter1"/>
-      <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
       <FIELD ID="TVoter1FAlias" ALIAS="Alias" TABLE="TVoter1"/>
+      <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
    </QUERY>   
    
    
