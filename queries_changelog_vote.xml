@@ -169,6 +169,7 @@ end  ]]></CODE>
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
    </QUERY>
 
+   <!-- Stats for selected poll, used to infor voter about the poll and if user has voted or not -->
    <QUERY ID="poll_overview" FLAGS="1" KEY="00000000000000000000000000000003">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
@@ -178,6 +179,7 @@ end  ]]></CODE>
       <FIELD ID="TPoll1CountQuestion" ALIAS="CountQuestion" TABLE="TPoll1" />
       <FIELD ID="TPoll1CountLink" ALIAS="CountLink" TABLE="TPoll1" />
       <FIELD ID="TPoll1CountMyVoterCount" ALIAS="MyCount" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CountIpVoterCount" ALIAS="IpCount" TABLE="TPoll1" />
    </QUERY>
    
    <QUERY ID="poll_links" FLAGS="1" KEY="00000000000000000000000000000009">
@@ -243,6 +245,7 @@ VALUES(@iPollAnswer,@iPollAnswer,@iVoter,@iSelect,'{#V user "@@ip"}',GETDATE())
       </ROWEDIT>
    </QUERY>
    
+   <!-- Calculate total number of votes for each answer -->
    <QUERY ID="poll_answer_count" FLAGS="1" KEY="00000000000000000000000000000008">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPollAnswer1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollAnswer1"/>

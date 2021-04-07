@@ -149,13 +149,20 @@
       <FIELD ID="CountLink" NAME="PollK" ALIAS="Count link" SIMPLENAME="Number of links" TYPE="INT" CONDITION="expression">
          <EXPRESSION>(SELECT COUNT(*) FROM $O{}TLink _l WHERE _l.ParentK=$T.PollK AND _l.table_number=11020)</EXPRESSION>
       </FIELD>
-      <FIELD ID="CountMyVoterCount" NAME="PollK" ALIAS="Count link" SIMPLENAME="Number of links" TYPE="INT" CONDITION="expression">
+      <FIELD ID="CountMyVoterCount" NAME="PollK" ALIAS="Count my votes" SIMPLENAME="Number of links" TYPE="INT" CONDITION="expression">
          <EXPRESSION>
-(SELECT COUNT(*) 
- FROM $O{VOTE}TPollVote _pv JOIN $O{VOTE}TPollQuestion _pq ON _pv.PollQuestionK=_pq.PollQuestionK
- WHERE _pq.PollK=$T.PollK AND _pv.VoterK=${{__user.get_value(...2, &quot;@@voter&quot;, &quot;-1&quot;)}})
+(SELECT COUNT(*) FROM $O{VOTE}TPollVote _pv JOIN $O{VOTE}TPollQuestion _pq ON _pv.PollQuestionK=_pq.PollQuestionK
+WHERE _pq.PollK=$T.PollK AND _pv.VoterK=${{__user.get_value(...2, &quot;@@voter&quot;, &quot;-1&quot;)}})
          </EXPRESSION>
       </FIELD>
+      <FIELD ID="CountIpVoterCount" NAME="PollK" ALIAS="Count ip votes" SIMPLENAME="Number of user ip votes" TYPE="INT" CONDITION="expression">
+         <EXPRESSION>
+(SELECT COUNT(*) FROM $O{VOTE}TPollVote _pv JOIN $O{VOTE}TPollQuestion _pq ON _pv.PollQuestionK=_pq.PollQuestionK
+WHERE _pq.PollK=$T.PollK AND _pv.FIp='${{__user.get_value(...2, &quot;@@ip&quot;, &quot;&quot;)}}')
+         </EXPRESSION>
+      </FIELD>
+      
+      
       <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
       <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
       <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
