@@ -355,5 +355,12 @@ end
       <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
    </QUERY>   
    
+   <!-- Calculate total number of votes for each answer -->
+   <QUERY ID="poll_hashtags" FLAGS="1" KEY="00000000000000000000000000000011">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TBadge11020BadgeK" ALIAS="ID" TABLE="TBadge11020"/>
+      <FIELD ID="TPoll1PollK" ALIAS="ID (Poll)" TABLE="TPoll1"/>
+      <FIELD ID="TBadge11020FName" ALIAS="Name" TABLE="TBadge11020" />
+   </QUERY>
    
 </SELECTION>   

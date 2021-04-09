@@ -596,4 +596,13 @@ WHERE _pq.PollK=$T.PollK AND _pv.FIp='${{__user.get_value(...2, &quot;@@ip&quot;
       <USETABLETEMPLATE ID="application.link" />
    </TABLE>
    
+   <TABLE PREFIX="TrXBadge11020" NAME="TrXBadge" SIMPLENAME="~TrXBadge System - Hashtag" PARENT="TPoll1" TYPE="R">
+      <JOIN TYPE="inner">$parent.PollK=$this.ParentK AND $this.table_number=11020</JOIN>
+      <FIELD NAME="rXBadgeK" ALIAS="ID" TYPE="INT" CONDITION="1" KEY="1" />
+   </TABLE>
+   
+   <TABLE PREFIX="TBadge11020" NAME="TBadge" SIMPLENAME="~TBadge Hashtag" PARENT="TrXBadge11020">
+      <JOIN TYPE="inner">$parent.BadgeK=$this.BadgeK</JOIN>
+      <USETABLETEMPLATE ID="application.badge" />
+   </TABLE>
 </DOCUMENT>
