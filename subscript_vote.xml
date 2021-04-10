@@ -162,6 +162,25 @@ WHERE _pq.PollK=$T.PollK AND _pv.FIp='${{__user.get_value(...2, &quot;@@ip&quot;
          </EXPRESSION>
       </FIELD>
       
+      <CONDITION ID="Hashtag" NAME="PollK" SIMPLENAME="Hashtag" TYPE="STR" NOVALUE="1" INTELLISENSE="hashtag_name">
+         <EXPRESSION>
+$T.$F $_operator (SELECT _r.ParentK FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _b.FName $_condition AND _r.table_number=11020)
+         </EXPRESSION>
+         <OPERATORS>
+            <OPERATOR FROM="0" TO="11" />
+            <OPERATOR FROM="5" TO="12" />
+         </OPERATORS>
+      </CONDITION>
+      
+      <CONDITION ID="HashtagKey" NAME="PollK" SIMPLENAME="Hashtag" TYPE="INT" NOVALUE="1">
+         <EXPRESSION>
+$T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _b.BadgeK = _r.BadgeK WHERE _b.BadgeK $_condition AND _r.table_number=11020)
+         </EXPRESSION>
+         <OPERATORS>
+            <OPERATOR FROM="0" TO="11" />
+            <OPERATOR FROM="5" TO="12" />
+         </OPERATORS>
+      </CONDITION>
       
       <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
       <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
@@ -603,6 +622,7 @@ WHERE _pq.PollK=$T.PollK AND _pv.FIp='${{__user.get_value(...2, &quot;@@ip&quot;
    
    <TABLE PREFIX="TBadge11020" NAME="TBadge" SIMPLENAME="~TBadge Hashtag" PARENT="TrXBadge11020">
       <JOIN TYPE="inner">$parent.BadgeK=$this.BadgeK</JOIN>
+      <FIELD NAME="BadgeK" ALIAS="ID" TYPE="INT" CONDITION="1" KEY="1" />
       <USETABLETEMPLATE ID="application.badge" />
    </TABLE>
 </DOCUMENT>

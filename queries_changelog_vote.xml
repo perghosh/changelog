@@ -9,7 +9,9 @@
       </FIELD>
       <FIELD ID="TPoll1FHeader" ALIAS="Rubrik" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit">
+         <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=TPoll1FDescription}, 'vote.TPoll', ${@TPoll1PollK}","formula":"1"}</EDIT>         
+      </FIELD>
       <FIELD ID="TPoll1FBegin" ALIAS="Startdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
       </FIELD>
