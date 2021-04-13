@@ -262,11 +262,13 @@ CREATE TABLE vote.TPollVote (
    ,FWeight INT             -- If poll is weighted, how much weight voter has set
    ,FIp NVARCHAR(100)       -- Ip number used for vote
    ,FComment NVARCHAR(500)  -- Comment for vote
-   ,verified SMALLINT       -- Vote verification, references table vote.verify         
+   ,verified SMALLINT       -- Vote verification, references table vote.verify
+   ,FTie UNIQUEIDENTIFIER
    ,CONSTRAINT FK_TPollVote_PollAnswerK FOREIGN KEY (PollAnswerK) REFERENCES vote.TPollAnswer(PollAnswerK) ON DELETE CASCADE
    ,CONSTRAINT FK_TPollVote_VoterK FOREIGN KEY (VoterK) REFERENCES vote.TVoter(VoterK) ON DELETE CASCADE
 );
 CREATE CLUSTERED INDEX IC_TPollVote_PollQuestionK ON vote.TPollVote (PollQuestionK);
+CREATE INDEX I_TPollVote_FTie ON vote.TPollVote (FTie);
 
 
 CREATE TABLE vote.TrPollGroupXPoll (
@@ -278,6 +280,14 @@ CREATE TABLE vote.TrPollGroupXPoll (
    ,CONSTRAINT "FK_TrPollGroupXPoll_PollK" FOREIGN KEY (PollK) REFERENCES vote.TPoll(PollK) ON DELETE CASCADE
 );
 CREATE CLUSTERED INDEX "vote.IC_PollGroupXPoll_PollGroupK" ON vote.TrPollGroupXPoll (PollGroupK);
+
+
+CREATE TABLE vote.tie (
+   FKey BIGINT
+   ,FTie UNIQUEIDENTIFIER
+);
+CREATE CLUSTERED INDEX IC_tie_FTie ON vote.tie (FTie);
+
 
 
 

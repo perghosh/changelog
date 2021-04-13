@@ -27,12 +27,27 @@
          <EDIT NAME="new_poll" SIMPLE="Pol" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
-DECLARE @sDescription NVARCHAR(MAX) = {=FDescription};                    
+DECLARE @sName NVARCHAR(MAX) = {=FName};
+DECLARE @sDescription NVARCHAR(MAX) = {=FDescription};
+DECLARE @Start DATETIME = {=FStart}
+DECLARE @End DATETIME = {=FEnd}
+IF @Start IS NULL
+   SET @Start = DATEADD(day,0,DATEDIFF(day,0,GETDATE()))
+
+IF @End IS NULL
+   SET @End = DATEADD(month,1,@Start)
+   
 INSERT INTO $O{VOTE}TPoll(FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
-VALUES({=FHeader},{=FName"''"},@sDescription,{=FStart},{=FEnd},GETDATE(),GETDATE());
+VALUES({=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE());
 
 DECLARE @iPoll BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPoll'));
-EXEC $OPROCEDURE_UpdateBadge @sDescription, 'vote.TPoll', @iPoll
+EXEC $OPROCEDURE_UpdateBadge @sDescription,'vote.TPoll', @iPoll
+
+IF @sName IS NOT NULL
+BEGIN
+   INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,CreateD,UpdateD) 
+   VALUES(@iPoll,@sName,GETDATE(),GETDATE());
+END
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPoll')" />
@@ -221,6 +236,16 @@ end  ]]></CODE>
       <FIELD ID="TPollVote1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollVote1"  />
       <FIELD ID="TPollVote1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollVote1" FIELDFLAGNAMES="edit" />
       <ROWEDIT>
+         <EDIT NAME="new_vote" TYPENAME="begin" DESCRIPTION="Add new vote">
+            <SQL TYPENAME="insert">
+               <EXPRESSION><![CDATA[
+DROP TABLE IF EXISTS #event;            
+CREATE TABLE #event(v UNIQUEIDENTIFIER)
+INSERT INTO #event VALUES(NEWID())
+            ]]></EXPRESSION>
+            </SQL>
+         </EDIT>
+         
          <EDIT NAME="new_vote" TYPENAME="new_row" DESCRIPTION="Add new vote">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION><![CDATA[
@@ -240,8 +265,13 @@ BEGIN
 END
 
 INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, VoterK, FSelect, FIp, CreateD)
-VALUES(@iPollAnswer,@iPollAnswer,@iVoter,@iSelect,'{#V user "@@ip"}',GETDATE())
-               ]]></EXPRESSION>
+VALUES(@iPollQuestion,@iPollAnswer,@iVoter,@iSelect,'{#V user "@@ip"}',GETDATE())
+
+DECLARE @event UNIQUEIDENTIFIER = (SELECT TOP 1 v FROM #event);
+DECLARE @iPollVote BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPollVote'));
+INSERT INTO $O{VOTE}tie VALUES( @iPollVote, @event )
+UPDATE $O{VOTE}TPollVote SET FTie=@event WHERE PollVoteK = @iPollVote
+            ]]></EXPRESSION>
             </SQL>
          </EDIT>
       </ROWEDIT>
@@ -251,12 +281,22 @@ VALUES(@iPollAnswer,@iPollAnswer,@iVoter,@iSelect,'{#V user "@@ip"}',GETDATE())
    <QUERY ID="poll_answer_count" FLAGS="1" KEY="00000000000000000000000000000008">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPollAnswer1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollAnswer1"/>
-      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID_Answer" TABLE="TPollAnswer1"/>
       <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" />
       <FIELD ID="TPollAnswer1CountVote" ALIAS="Antal röster" TABLE="TPollAnswer1" />
    </QUERY>
    
-
+   <!-- Calculate total number of votes for each answer -->
+   <QUERY ID="poll_answer_filtercount" FLAGS="1" KEY="0000000000000000000000000000000A">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID" TABLE="TPollQuestion1" GROUPBY="1"/>
+      <FIELD ID="TPollQuestion1FName" ALIAS="Question" TABLE="TPollQuestion1" GROUPBY="1" />
+      <FIELD ID="TPollAnswer1FName" ALIAS="Answer" TABLE="TPollAnswer1" GROUPBY="1" />
+      <FIELD ID="TPollVote1PollVoteK" ALIAS="Count" TABLE="TPollVote1" FORMAT="COUNT($T.$F)" FIELDFLAGNAMES="sql_format" />
+      <ORDER FIELD="TPollQuestion1FName" />
+      <ORDER FIELD="TPollVote1PollVoteK" DESC="1" />
+   </QUERY>
+   
 
    <QUERY ID="Svarsalternativ-ändra" TITLE="Svarsalternativ - Lägg till" FLAGS="1" KEY="C0B3033897E2CD4EA3395F98512DD495">
       <ATTRIBUTE NAME="OUTPUT-LIST">Ändra/Lägg till,100</ATTRIBUTE>
@@ -358,11 +398,11 @@ end
    </QUERY>   
    
    <!-- Calculate total number of votes for each answer -->
-   <QUERY ID="poll_hashtags" FLAGS="1" KEY="00000000000000000000000000000011">
+   <QUERY ID="poll_hashtags" FLAGS="8" KEY="00000000000000000000000000000011">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
-      <FIELD ID="TBadge11020BadgeK" ALIAS="ID" TABLE="TBadge11020"/>
-      <FIELD ID="TPoll1PollK" ALIAS="ID (Poll)" TABLE="TPoll1"/>
+      <FIELD ID="TrXBadge11020BadgeK" ALIAS="ID" TABLE="TrXBadge11020"/>
       <FIELD ID="TBadge11020FName" ALIAS="Name" TABLE="TBadge11020" />
+      <CONDITION ID="TrXBadge11020table_number" TABLE="TrXBadge11020" OPERATOR="0" VALUE="11020" FLAGS="0"/>
    </QUERY>
    
 </SELECTION>   

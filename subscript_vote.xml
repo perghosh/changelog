@@ -370,13 +370,23 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
          <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
          <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
       </FIELD>
-      <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
-      <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="StateC" ALIAS="State" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FSelect" ALIAS="Select" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FIp" ALIAS="Ip" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FComment" ALIAS="Comment" TYPE="STR" CONDITION="1" />
       <FIELD NAME="verified" ALIAS="verified" TYPE="I2" CONDITION="1" />
+
+      <CONDITION ID="TieFilterAnswer" NAME="FTie" SIMPLENAME="Answer filter" TYPE="INT" NOVALUE="1">
+         <EXPRESSION>
+$T.$F $_operator (SELECT t.FTie FROM $Otie t JOIN $OTPollVote pv ON t.FKey=pv.PollVoteK WHERE t.FTie = $T.FTie AND pv.PollAnswerK $_condition)
+         </EXPRESSION>
+         <OPERATORS>
+            <OPERATOR FROM="0" TO="11" />
+            <OPERATOR FROM="0" TO="12" />
+         </OPERATORS>
+      </CONDITION>
 
       <EDIT NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" />
       <EDIT NAME="PollAnswerK" ALIAS="PollAnswerK" TYPE="I4" />
@@ -584,7 +594,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <USETABLETEMPLATE ID="vote.pollanswer" />
    </TABLE>
    <TABLE PREFIX="TPollVote1" NAME="TPollVote" ALIAS="TPollVote1" SIMPLENAME="~TPollVote TPollVote" PARENT="TPollAnswer1" OWNER="$VOTE">
-      <JOIN TYPE="inner">[$parent].[?]=[$this].[?]</JOIN>
+      <JOIN TYPE="inner">$parent.PollAnswerK=$this.PollAnswerK</JOIN>
       <FIELD NAME="PollVoteK" ALIAS="ID (Vote)" TYPE="INT" CONDITION="1" KEY="1" />
       <USETABLETEMPLATE ID="vote.pollvote" />
    </TABLE>
@@ -618,6 +628,8 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
    <TABLE PREFIX="TrXBadge11020" NAME="TrXBadge" SIMPLENAME="~TrXBadge System - Hashtag" PARENT="TPoll1" TYPE="R">
       <JOIN TYPE="inner">$parent.PollK=$this.ParentK AND $this.table_number=11020</JOIN>
       <FIELD NAME="rXBadgeK" ALIAS="ID" TYPE="INT" CONDITION="1" KEY="1" />
+      <FIELD NAME="BadgeK" ALIAS="ID (Hashtag)" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="table_number" ALIAS="Table number" TYPE="INT" CONDITION="1" />
    </TABLE>
    
    <TABLE PREFIX="TBadge11020" NAME="TBadge" SIMPLENAME="~TBadge Hashtag" PARENT="TrXBadge11020">
