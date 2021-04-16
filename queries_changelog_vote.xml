@@ -184,6 +184,7 @@ end  ]]></CODE>
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
       <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TPoll1PollK" DESC="1" />
    </QUERY>
 
    <!-- Stats for selected poll, used to infor voter about the poll and if user has voted or not -->
