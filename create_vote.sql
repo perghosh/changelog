@@ -226,6 +226,7 @@ CREATE TABLE vote.TPollQuestion (
    ,FName NVARCHAR(500)
    ,FDescription NVARCHAR(MAX)
    ,FWeight INT             -- Poll question weight, if different answers is weighted
+   ,FOrder INT              -- order question in poll
    ,CONSTRAINT FK_TPollQuestion_PollK FOREIGN KEY (PollK) REFERENCES vote.TPoll(PollK) ON DELETE CASCADE
 );
 CREATE CLUSTERED INDEX IC_TPollQuestion_PollK ON vote.TPollQuestion (PollK);
@@ -243,6 +244,7 @@ CREATE TABLE vote.TPollAnswer (
    ,FName NVARCHAR(500)     -- Answer name, this is used when answer is listed for voter to select
    ,FDescription NVARCHAR(MAX)-- Answer description if there is a need to describe
    ,FCount BIGINT
+   ,FOrder INT              -- order answer for question
    ,CONSTRAINT FK_TPollAnswer_PollQuestionK FOREIGN KEY (PollQuestionK) REFERENCES vote.TPollQuestion(PollQuestionK) ON DELETE CASCADE
 );
 CREATE CLUSTERED INDEX IC_TPollAnswer_PollK ON vote.TPollAnswer (PollK);

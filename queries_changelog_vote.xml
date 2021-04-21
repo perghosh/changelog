@@ -399,6 +399,17 @@ end
    </QUERY>   
    
    <!-- Calculate total number of votes for each answer -->
+   <QUERY ID="poll_search" FLAGS="8" KEY="0000000000000000000000000000000B">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FBegin" ALIAS="Start" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FEnd" ALIAS="Slut" TABLE="TPoll1" />
+   </QUERY>
+   
+   
+   <!-- Calculate total number of votes for each answer -->
    <QUERY ID="poll_hashtags" FLAGS="8" KEY="00000000000000000000000000000011">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TrXBadge11020BadgeK" ALIAS="ID" TABLE="TrXBadge11020"/>
