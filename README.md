@@ -9,6 +9,7 @@ Changelog has a table structure to manage data related to software development.
 
 ### Main areas
 - API documentation
+- Books and articles
 - Project management
 - Documentation like describing how the software work, configuration, tutorial e.t.c.
 - Customers
