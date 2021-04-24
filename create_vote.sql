@@ -291,6 +291,19 @@ CREATE TABLE vote.tie (
 CREATE CLUSTERED INDEX IC_tie_FTie ON vote.tie (FTie);
 
 
+DROP TRIGGER IF EXISTS vote.TRIGGER_TPollVote_DELETE; 
+GO
+CREATE TRIGGER vote.TRIGGER_TPollVote_DELETE ON vote.TPollVote FOR DELETE AS
+BEGIN
+   IF OBJECT_ID('tempdb..#DisableTrigger') IS NOT NULL RETURN;
+   CREATE TABLE #DisableTrigger(ID INT) 
+   DELETE FROM vote.tie WHERE FTie IN(SELECT FTie FROM DELETED);
+   DELETE FROM vote.TPollVote WHERE FTie IN(SELECT FTie FROM DELETED);
+   DROP TABLE #DisableTrigger
+END
+GO
+
+
 
 
 IF OBJECT_ID('vote.rule_type', 'U') IS NOT NULL  DROP TABLE vote.rule_type;
@@ -377,3 +390,4 @@ DELETE FROM application.table_number WHERE "number" >= 11000 AND "number" < 1200
 INSERT INTO application.table_number
 SELECT * FROM @tableTableNumber
 WHERE "number" NOT IN (SELECT "number" FROM application.table_number)
+
