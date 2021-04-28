@@ -404,8 +404,16 @@ end
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
       <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" />
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" />
-      <FIELD ID="TPoll1FBegin" ALIAS="Start" TABLE="TPoll1" />
-      <FIELD ID="TPoll1FEnd" ALIAS="Slut" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FBegin" ALIAS="Start" TABLE="TPoll1" FORMAT="FORMAT($T.$F,'yyMMdd')" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TPoll1FEnd" ALIAS="Slut" TABLE="TPoll1" FORMAT="FORMAT($T.$F,'yyMMdd')" FIELDFLAGNAMES="sql_format" />
+      <CONDITIONS ID="Alla" SELECTED="1" />
+      <CONDITIONS ID="Aktiva omröstningar">
+         <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
+         <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
+      </CONDITIONS>
+      <CONDITIONS ID="Kommande">
+         <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &lt; $T.$F)" CONDITIONFLAGNAMES="no_value" />
+      </CONDITIONS>
    </QUERY>
    
    

@@ -254,6 +254,7 @@ CREATE INDEX I_TPollAnswer_PollQuestionK ON vote.TPollAnswer (PollQuestionK);
 
 CREATE TABLE vote.TPollVote (
 	PollVoteK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   --PollVoteK UNIQUEIDENTIFIER PRIMARY KEY NONCLUSTERED DEFAULT NEWID()
 	,PollQuestionK BIGINT
    ,PollAnswerK BIGINT
    ,VoterK BIGINT           -- Voter reference
