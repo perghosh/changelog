@@ -18,6 +18,7 @@
       <FIELD ID="TPoll1FEnd" ALIAS="Slutdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
       </FIELD>
+      <FIELD ID="TPoll1Type" ALIAS="Type" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1CountQuestion" ALIAS="Antal frågor" TABLE="TPoll1">
          <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
          <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
@@ -37,8 +38,8 @@ IF @Start IS NULL
 IF @End IS NULL
    SET @End = DATEADD(month,1,@Start)
    
-INSERT INTO $O{VOTE}TPoll(FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
-VALUES({=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPoll(TypeC,FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
+VALUES({=TypeC"0"},{=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE());
 
 DECLARE @iPoll BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPoll'));
 EXEC $OPROCEDURE_UpdateBadge @sDescription,'vote.TPoll', @iPoll
@@ -406,8 +407,16 @@ end
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" />
       <FIELD ID="TPoll1FBegin" ALIAS="Start" TABLE="TPoll1" FORMAT="FORMAT($T.$F,'yyMMdd')" FIELDFLAGNAMES="sql_format" />
       <FIELD ID="TPoll1FEnd" ALIAS="Slut" TABLE="TPoll1" FORMAT="FORMAT($T.$F,'yyMMdd')" FIELDFLAGNAMES="sql_format" />
-      <CONDITIONS ID="Alla" SELECTED="1" />
-      <CONDITIONS ID="Aktiva omröstningar">
+      <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
+      <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
+      <CONDITION ID="TPoll1TypeC" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="Ja/Nej" VALUE="6381" />
+      <CONDITIONS ID="Alla" />
+      <CONDITIONS ID="Aktiva Ja/Nej frågor" SELECTED="1">
+         <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
+         <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
+         <CONDITION ID="TPoll1TypeC" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="Ja/Nej" VALUE="6381" />
+      </CONDITIONS>
+      <CONDITIONS ID="Aktiva">
          <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
          <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
       </CONDITIONS>

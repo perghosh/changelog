@@ -119,8 +119,14 @@
       <CONDITION NAME="UpdateD" SIMPLENAME="~TPollUpdateD UpdateD" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
          <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
       </CONDITION>
-      <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
-      <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="TypeC" ALIAS="Type" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="vote.poll.type">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11020 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="StateC" ALIAS="State" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="vote.poll.state">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11021 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </FIELD>
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FHeader" ALIAS="Header" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
@@ -188,8 +194,12 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <EDIT NAME="UserK" ALIAS="UserK" TYPE="I4" />
       <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
       <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
-      <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
-      <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
+      <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
+         <LOOKUP CACHE="vote.poll.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11020 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="StateC" ALIAS="State" TYPE="I4">
+         <LOOKUP CACHE="vote.poll.state.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11021 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
       <EDIT NAME="FHeader" ALIAS="Header" TYPE="STR" MAX="200" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />

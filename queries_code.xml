@@ -44,8 +44,8 @@ end  ]]></CODE>
          <EDIT NAME="new_group" SIMPLE="New code group" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
-INSERT INTO $O"TGroup" ("GroupK","FName", "FDescription", "FLabel", "FMainTable","FSchema") 
-VALUES({=GroupK},{=FName},{=FDescription"''"},{=FLabel"''"},{=FTable"''"},{=FMainTable"''"},{=FSchema"''"})
+INSERT INTO $O"TGroup" ("GroupK","FName", "FDescription", "FLabel", "FTable", "FMainTable","FSchema") 
+VALUES({{=GroupK}},{=FName},{=FDescription"''"},{=FLabel"''"},{=FTable"''"},{=FMainTable"''"},{=FSchema"''"})
                </EXPRESSION>
             </SQL>
          </EDIT>
