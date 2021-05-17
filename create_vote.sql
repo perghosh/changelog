@@ -23,6 +23,7 @@ IF OBJECT_ID('vote.TVoterPassword', 'U') IS NOT NULL  DROP TABLE vote.TVoterPass
 IF OBJECT_ID('vote.TVoterHistory', 'U') IS NOT NULL  DROP TABLE vote.TVoterHistory;
 IF OBJECT_ID('vote.TVoterRule', 'U') IS NOT NULL  DROP TABLE vote.TVoterRule;
 IF OBJECT_ID('vote.TLike', 'U') IS NOT NULL  DROP TABLE vote.TLike;
+IF OBJECT_ID('vote.TrPollXPoll', 'U') IS NOT NULL  DROP TABLE vote.TrPollXPoll;
 IF OBJECT_ID('vote.TPollLimit', 'U') IS NOT NULL  DROP TABLE vote.TPollLimit;
 IF OBJECT_ID('vote.TPollVote', 'U') IS NOT NULL  DROP TABLE vote.TPollVote;
 IF OBJECT_ID('vote.TPollAnswer', 'U') IS NOT NULL  DROP TABLE vote.TPollAnswer;
@@ -165,7 +166,12 @@ CREATE TABLE vote.TPoll (
    ,FDescription NVARCHAR(MAX)-- describe poll
    ,FBegin DATETIME         -- begin date, when poll starts
    ,FEnd DATETIME           -- end date, when poll ends
-   ,FCount BIGINT           -- 
+   ,FRate FLOAT             -- If poll is weighted, then this can be used to calculate outcome FRate * TAnswer FWeight * TAnswer vote count
+                            -- Using multiple questions in a poll, The vote for each voter may be estimated based on how voter has voted
+                            -- in supporting questions and the weight they have based on answers.
+                            -- A Yes/No question in sports, those that are trainers in that sport may have FWeight = 20, Athletes FWeight = 10, public has FWeight = 1
+                            -- 1 trainer vote will then be like 20 public votes. FRate isn't needed but may be used to get better numbers in charts
+   ,FCount BIGINT           -- may be used as a cache for vote count
    ,FDelay INT              -- 
    ,FDelayVote FLOAT        -- Time to delay before vote is counted 
    ,FWeight INT             -- Poll weight is used for polls that are weighted.
@@ -204,6 +210,7 @@ CREATE INDEX I_TPollComment_VoterK ON vote.TPollComment (VoterK);
 CREATE TABLE vote.TPollLimit (
    PollLimitK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
    ,PollK BIGINT
+   ,PollQuestionK BIGINT
    ,UpdateD DATETIME
    ,limit_type SMALLINT     -- limit type
    ,FDescription NVARCHAR(200)-- Describe limit
@@ -211,8 +218,11 @@ CREATE TABLE vote.TPollLimit (
    ,FLimitDecimal FLOAT     -- Decimal value for poll limit
    ,FLimitDate DATETIME     -- Date value for limit
    ,FLimitText NVARCHAR(100)-- Text
+   ,CONSTRAINT FK_TPollLimit_PollK FOREIGN KEY (PollK) REFERENCES vote.TPoll(PollK)
+   ,CONSTRAINT FK_TPollLimit_PollQuestionK FOREIGN KEY (PollQuestionK) REFERENCES vote.TPollQuestion(PollQuestionK) ON DELETE CASCADE
 );
 CREATE CLUSTERED INDEX IC_TPollLimit_PollK ON vote.TPollLimit (PollK);
+CREATE INDEX I_TPollLimit_PollQuestionK ON vote.TPollLimit (PollQuestionK);
 
 CREATE TABLE vote.TPollQuestion (
 	PollQuestionK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
@@ -243,6 +253,7 @@ CREATE TABLE vote.TPollAnswer (
    ,StateC INT              -- State of answer
    ,FName NVARCHAR(500)     -- Answer name, this is used when answer is listed for voter to select
    ,FDescription NVARCHAR(MAX)-- Answer description if there is a need to describe
+   ,FWeight INT             -- If answer is weighted, how much weight this answer give the voter
    ,FCount BIGINT
    ,FOrder INT              -- order answer for question
    ,CONSTRAINT FK_TPollAnswer_PollQuestionK FOREIGN KEY (PollQuestionK) REFERENCES vote.TPollQuestion(PollQuestionK) ON DELETE CASCADE
@@ -272,6 +283,7 @@ CREATE TABLE vote.TPollVote (
 );
 CREATE CLUSTERED INDEX IC_TPollVote_PollQuestionK ON vote.TPollVote (PollQuestionK);
 CREATE INDEX I_TPollVote_FTie ON vote.TPollVote (FTie);
+CREATE INDEX I_TPollVote_FIp ON vote.TPollVote (FIp);
 
 
 CREATE TABLE vote.TrPollGroupXPoll (
@@ -284,13 +296,25 @@ CREATE TABLE vote.TrPollGroupXPoll (
 );
 CREATE CLUSTERED INDEX "vote.IC_PollGroupXPoll_PollGroupK" ON vote.TrPollGroupXPoll (PollGroupK);
 
+CREATE TABLE vote.TrPollXPoll (
+   rPollXPollK BIGINT IDENTITY(1,1) PRIMARY KEY NONCLUSTERED
+   ,PollK BIGINT NOT NULL
+   ,ToPollK BIGINT NOT NULL
+   ,TypeC INT               -- Type of relation
+   ,FDescription NVARCHAR(500)  -- describe relation
+   ,CONSTRAINT "FK_TrPollXPoll_PollK" FOREIGN KEY (PollK) REFERENCES vote.TPoll(PollK)
+   ,CONSTRAINT "FK_TrPollXPoll_ToPollK" FOREIGN KEY (ToPollK) REFERENCES vote.TPoll(PollK)
+);
+CREATE CLUSTERED INDEX "vote.IC_TrPollXPoll_PollK"  ON vote.TrPollXPoll (PollK);
+GO
+
+
 
 CREATE TABLE vote.tie (
    FKey BIGINT
    ,FTie UNIQUEIDENTIFIER
 );
 CREATE CLUSTERED INDEX IC_tie_FTie ON vote.tie (FTie);
-
 
 DROP TRIGGER IF EXISTS vote.TRIGGER_TPollVote_DELETE; 
 GO
@@ -304,6 +328,16 @@ BEGIN
 END
 GO
 
+
+
+DROP TRIGGER IF EXISTS vote.TRIGGER_TPoll_DELETE; 
+GO
+CREATE TRIGGER vote.TRIGGER_TPoll_DELETE ON vote.TPoll FOR DELETE AS
+BEGIN
+   DELETE FROM vote.TrPollXPoll WHERE PollK IN(SELECT PollK FROM DELETED);
+   DELETE FROM vote.TrPollXPoll WHERE ToPollK IN(SELECT PollK FROM DELETED);
+END
+GO
 
 
 
@@ -384,7 +418,10 @@ VALUES
 (11090,'TVoter','vote'),
 (11100,'TVoterRule','vote'),
 (11110,'TVoterHistory','vote'),
-(11120,'TVoterPassword','vote')
+(11120,'TVoterPassword','vote'),
+(11200,'TrPollXPoll','vote')
+
+
 
 DELETE FROM application.table_number WHERE "number" >= 11000 AND "number" < 12000
 

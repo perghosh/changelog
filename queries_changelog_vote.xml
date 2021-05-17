@@ -1,6 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+poll_overview = information about selected poll
+poll_links = links connected to poll
+poll_question = Single question for selected poll
+poll_answer = Answers for question
+
+poll_hashtags = Get hash-tags for poll's
+
+
+-->
 <SELECTION  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../queries.xsd"
             TYPE="query" DESCRIPTION="Changelog queries">
+
+
+   <QUERY ID="Koppla motioner" DESCRIPTION="" KEY="8FB1E7238C2B4E45A6304D70C3712B76">
+      <FIELD ID="TrPollXPoll1rPollXPollK" ALIAS="ID" TABLE="TrPollXPoll1">
+         <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
+      </FIELD>
+      <FIELD ID="TrPollXPoll1ToPollK" ALIAS="Motion" TABLE="TrPollXPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TrPollXPoll1FDescription" ALIAS="Beskrivning" TABLE="TrPollXPoll1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new poll connection" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iPoll BIGINT = {{=PollK}}
+INSERT INTO $O{VOTE}TrPollXPoll(PollK,ToPollK,FDescription)
+VALUES(@iPoll,{{==ToPollK}},{=FDescription})
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TrPollXPoll')" />
+         </EDIT>
+         <EDIT NAME="delete connection" SIMPLE="Delete connection" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TrPollXPoll WHERE rPollXPollK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
    
    <QUERY ID="Motioner" DESCRIPTION="" KEY="91A3AA122FD8490DBF56E8885BDF358C">
       <ATTRIBUTE NAME="OUTPUT-LIST">Huvudfrågor,1</ATTRIBUTE>
@@ -12,6 +46,19 @@
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=TPoll1FDescription}, 'vote.TPoll', ${@TPoll1PollK}","formula":"1"}</EDIT>         
       </FIELD>
+
+      <FIELD ID="TPoll1Note" ALIAS="Note" TABLE="TPoll1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 3px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 50px;"
+                     OUTPUT-STYLE="column|max-width: 25px;" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $O{}table_number WHERE "name" = 'TPoll' AND "schema" = 'vote' );
+IF (SELECT COUNT(*) FROM $O{}TNote WHERE RecordK=${@TPoll1PollK} AND table_number=@iTable) = 0
+   INSERT INTO $O{}TNote (RecordK, table_number) VALUES(${@TPoll1PollK},@iTable)
+
+UPDATE $O{}TNote SET FNote={=TPoll1Note} WHERE RecordK=${@TPoll1PollK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      
       <FIELD ID="TPoll1FBegin" ALIAS="Startdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
       </FIELD>
@@ -27,9 +74,10 @@
       <ROWEDIT>
          <EDIT NAME="new_poll" SIMPLE="Pol" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
-               <EXPRESSION>
+               <EXPRESSION CACHE="D088118B-A789-48B3-9825-B5DF0C95B765">
 DECLARE @sName NVARCHAR(MAX) = {=FName};
 DECLARE @sDescription NVARCHAR(MAX) = {=FDescription};
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TPoll' AND "schema" = 'vote' );
 DECLARE @Start DATETIME = {=FStart}
 DECLARE @End DATETIME = {=FEnd}
 IF @Start IS NULL
@@ -43,6 +91,9 @@ VALUES({=TypeC"0"},{=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE
 
 DECLARE @iPoll BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPoll'));
 EXEC $OPROCEDURE_UpdateBadge @sDescription,'vote.TPoll', @iPoll
+
+INSERT INTO $OTNote(RecordK,table_number,FNote,CreateD,UpdateD)
+VALUES(@iPoll,@iTable,{=TPoll1Note},GETDATE(),GETDATE());
 
 IF @sName IS NOT NULL
 BEGIN
@@ -77,7 +128,9 @@ end
    R:SetValue('url','[' .. 
    '{"id": "query","title":"Valfrågor - Visa", "icon": "fa-align-justify", "table":"TPoll1", "link": ["13304CE1144D43C292D7589C322863D0zoom"]},' .. 
    '{"id": "query","title":"Valfrågor - Lägg till", "icon": "fa-edit", "table":"TPoll1", "link": ["5599795A83B546C6A8CA34197D87A047"]},' .. 
-   '{"id": "add_link","title":"Länk: Lägg till", "icon": "fa-edit", "table":"TPoll1", "link": ["E2328BC89E074AE48D7E70895C9F36CE"]}' .. 
+   '{"id": "add_link","title":"Länk: Lägg till", "icon": "fa-edit", "table":"TPoll1", "link": ["E2328BC89E074AE48D7E70895C9F36CE"]},' .. 
+   '{"id": "connect_poll","title":"Koppla motion", "icon": "fa-edit", "table":"TPoll1", "link": ["8FB1E7238C2B4E45A6304D70C3712B76"]},' .. 
+   '{"id": "send_key","title":"Beam poll", "icon": "fa-broadcast-tower", "table":"TPoll1", "link": ["8049DFF5E2D1488BAF55021184F31E2C"]}' .. 
    ']') 
 end  ]]></CODE>
          </SCRIPT>
@@ -88,7 +141,11 @@ end  ]]></CODE>
       <QUERYLINK TYPENAME="children" NAME="Fråga"  DESCRIPTION="Lägg till frågor" KEY="5599795A83B546C6A8CA34197D87A047" QUERY="358497254151814E8F9273212F0CE565" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}">
          <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|10,60" />
       </QUERYLINK>
-      <QUERYLINK TYPENAME="children" NAME="Add link"  DESCRIPTION="Add link" KEY="E2328BC89E074AE48D7E70895C9F36CE" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
+      <QUERYLINK TYPENAME="children" NAME="Add link" KEY="E2328BC89E074AE48D7E70895C9F36CE" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
+      <QUERYLINK TYPENAME="children" NAME="Connect poll" KEY="8FB1E7238C2B4E45A6304D70C3712B76" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
+      <QUERYLINK TYPENAME="message" NAME="Connect poll" KEY="8049DFF5E2D1488BAF55021184F31E2C" EXPRESSION="SELECT PollK AS value, 'ToPollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}">
+         <PROPERTIES OUTPUT-COMMAND="send key" />         
+      </QUERYLINK>
    </QUERY>
    
    <QUERY ID="Frågor-visa" TITLE="Valfrågor - Visa" FLAGS="1" KEY="7DF3032022F64E52A6473C283575ACFF" DESCRIPTION="Listar frågor för motion">
@@ -121,17 +178,21 @@ if sE == "click" then
 end
             
    R:SetValue('url','[' .. 
-   '{"id": "answer","title":"Svarsalternativ - visa", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["5240B4EFCFFD47D29E43592FB488CA22zoom"]},' .. 
-   '{"id": "answer","title":"Svarsalternativ - ändra", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["70A70D58EE1048D2A174F5269E839616"]}' .. 
+   '{"id": "answer_show","title":"Svarsalternativ - visa", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["5240B4EFCFFD47D29E43592FB488CA22zoom"]},' .. 
+   '{"id": "answer_edit","title":"Svarsalternativ - ändra", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["70A70D58EE1048D2A174F5269E839616"]},' .. 
+   '{"id": "answer_limit","title":"Konfigurera regler", "icon": "fa-edit", "table":"TPollQuestion1", "link": ["87D61FC1B1D4413ABB855A0D4968D47B"]}' .. 
    ']') 
 end  ]]></CODE>
          </SCRIPT>
       </SCRIPTS>
-      <QUERYLINK TYPENAME="children" NAME="Fråga" DESCRIPTION="Svarsalternativ" KEY="5240B4EFCFFD47D29E43592FB488CA22" QUERY="80147C1CB4CC46ECAE4056BF9B2165D6" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{==TPollQuestion1}}">
+      <QUERYLINK TYPENAME="children" NAME="Svar-visa" KEY="5240B4EFCFFD47D29E43592FB488CA22" QUERY="80147C1CB4CC46ECAE4056BF9B2165D6" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{==TPollQuestion1}}">
          <PROPERTIES OUTPUT-WIDTH="800" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top|0,150" />
       </QUERYLINK>
-      <QUERYLINK TYPENAME="children" NAME="Fråga" DESCRIPTION="Svarsalternativ" KEY="70A70D58EE1048D2A174F5269E839616" QUERY="C0B3033897E2CD4EA3395F98512DD495" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{==TPollQuestion1}}">
-         <PROPERTIES OUTPUT-WIDTH="700" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      <QUERYLINK TYPENAME="children" NAME="Svar-edit" DESCRIPTION="Svarsalternativ" KEY="70A70D58EE1048D2A174F5269E839616" QUERY="C0B3033897E2CD4EA3395F98512DD495" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{==TPollQuestion1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-bottom" />
+      </QUERYLINK>
+      <QUERYLINK TYPENAME="children" NAME="Regler" DESCRIPTION="Svarsalternativ" KEY="87D61FC1B1D4413ABB855A0D4968D47B" QUERY="15669361EBFA44A4A5E5EFDE857E2BAD" EXPRESSION="SELECT PollQuestionK AS value, 'PollQuestionK' AS name, FName AS simple FROM $O{VOTE}TPollQuestion WHERE PollQuestionK={{==TPollQuestion1}}">
+         <PROPERTIES OUTPUT-WIDTH="1000" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-bottom" />
       </QUERYLINK>
    </QUERY>
    
@@ -194,11 +255,13 @@ end  ]]></CODE>
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
       <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" 
              FORMAT="ISNULL( $T.FHeader, $T.FName )" FIELDFLAGNAMES="sql_format" />
-      <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1FDescription" ALIAS="Description" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1Note" ALIAS="Article" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1CountQuestion" ALIAS="CountQuestion" TABLE="TPoll1" />
       <FIELD ID="TPoll1CountLink" ALIAS="CountLink" TABLE="TPoll1" />
       <FIELD ID="TPoll1CountMyVoterCount" ALIAS="MyCount" TABLE="TPoll1" />
       <FIELD ID="TPoll1CountIpVoterCount" ALIAS="IpCount" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CountPoll" ALIAS="CountPoll" TABLE="TPoll1" />
    </QUERY>
    
    <QUERY ID="poll_links" FLAGS="1" KEY="00000000000000000000000000000009">
@@ -213,6 +276,8 @@ end  ]]></CODE>
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1Min" ALIAS="Min" TABLE="TPollQuestion1" />
+      <FIELD ID="TPollQuestion1Max" ALIAS="Max" TABLE="TPollQuestion1" />
    </QUERY>
 
    <QUERY ID="poll_question" FLAGS="1" KEY="00000000000000000000000000000005">
@@ -241,6 +306,22 @@ end  ]]></CODE>
          <EDIT NAME="new_vote" TYPENAME="begin" DESCRIPTION="Add new vote">
             <SQL TYPENAME="insert">
                <EXPRESSION><![CDATA[
+DECLARE @iPoll BIGINT = {{=PollK}}
+DECLARE @iVoter BIGINT = {{=VoterK}}
+DECLARE @sIp VARCHAR(50) = '{#V user "@@ip"}'
+
+IF @iVoter IS NOT NULL
+BEGIN
+   IF (SELECT COUNT(*) FROM $O{VOTE}TPollVote WHERE VoterK=@iVoter AND PollQuestionK IN(SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollK=@iPoll) ) > 0
+      THROW 50001, 'Voter can not vote more than once', 1;
+END
+ELSE
+BEGIN
+   IF EXISTS (SELECT * FROM $O{VOTE}TPollVote WHERE PollQuestionK IN(SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollK=@iPoll) AND FIp=@sIp)
+      THROW 50001, 'Found vote for ip number', 2;
+END
+
+
 DROP TABLE IF EXISTS #event;            
 CREATE TABLE #event(v UNIQUEIDENTIFIER)
 INSERT INTO #event VALUES(NEWID())
@@ -256,18 +337,13 @@ DECLARE @iVoter BIGINT = {{=VoterK}}
 DECLARE @iPollAnswer BIGINT = {{=PollAnswerK}}
 DECLARE @iPollQuestion BIGINT = (SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollAnswerK=@iPollAnswer)
 DECLARE @iSelect INT = {{=FSelect}}
+DECLARE @sIp VARCHAR(50) = '{#V user "@@ip"}'
 
 IF @iSelect IS NULL
    SET @iSelect = 1
    
-IF @iVoter IS NOT NULL
-BEGIN
-   IF (SELECT COUNT(*) FROM $O{VOTE}TPollVote WHERE VoterK=@iVoter AND PollQuestionK IN(SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollK=@iPoll) ) > 0
-      THROW 50001, 'Voter can not vote more than once', 1;
-END
-
 INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, VoterK, FSelect, FIp, CreateD)
-VALUES(@iPollQuestion,@iPollAnswer,@iVoter,@iSelect,'{#V user "@@ip"}',GETDATE())
+VALUES(@iPollQuestion,@iPollAnswer,@iVoter,@iSelect,@sIp,GETDATE())
 
 DECLARE @event UNIQUEIDENTIFIER = (SELECT TOP 1 v FROM #event);
 DECLARE @iPollVote BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPollVote'));
@@ -306,6 +382,7 @@ UPDATE $O{VOTE}TPollVote SET FTie=@event WHERE PollVoteK = @iPollVote
       <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollAnswer1TypeC" ALIAS="TypeC" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1FWeight" ALIAS="Weight" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <ROWEDIT>
          <EDIT NAME="new_answer" SIMPLE="Answer" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
@@ -315,14 +392,39 @@ DECLARE @iPollQuestionK INT = {{=PollQuestionK}};
 IF @iPollQuestionK IS NOT NULL
    SET @iPoll = (SELECT PollK FROM $O{VOTE}TPollQuestion WHERE PollQuestionK=@iPollQuestionK)
 
-INSERT INTO $O{VOTE}TPollAnswer(PollK,PollQuestionK,FName,FDescription,TypeC,CreateD,UpdateD) 
-VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPollAnswer(PollK,PollQuestionK,FName,FDescription,TypeC,FWeight,CreateD,UpdateD) 
+VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},{{=FWeight}},GETDATE(),GETDATE());
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollAnswer')" />
          </EDIT>
          <EDIT NAME="delete poll" SIMPLE="Radera proposition" TYPENAME="delete_row">
             <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPollAnswer WHERE PollAnswerK={{=[0]}}' />
+         </EDIT>
+      </ROWEDIT>
+   </QUERY>
+   
+   <QUERY ID="Konfigurera fråga" KEY="15669361EBFA44A4A5E5EFDE857E2BAD">
+      <ATTRIBUTE NAME="OUTPUT-LIST">100</ATTRIBUTE>
+      <FIELD ID="TPollLimit1PollLimitK" ALIAS="ID (Answer)" TABLE="TPollLimit1"/>
+      <FIELD ID="TPollLimit1limit_type" ALIAS="Type" TABLE="TPollLimit1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollLimit1FLimitInteger" ALIAS="Integer" TABLE="TPollLimit1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollLimit1FDescription" ALIAS="Description" TABLE="TPollLimit1" FIELDFLAGNAMES="edit" />
+      <ROWEDIT>
+         <EDIT NAME="new_limit" SIMPLE="Limit" TYPENAME="new_row">
+            <SQL TYPENAME="insert" COMMAND="insert-row">
+               <EXPRESSION>
+DECLARE @iPollQuestionK BIGINT={{==PollQuestionK}};
+DECLARE @iPoll BIGINT = (SELECT PollK FROM $O{VOTE}TPollQuestion WHERE PollQuestionK=@iPollQuestionK)
+
+INSERT INTO $O{VOTE}TPollLimit(PollK,PollQuestionK,limit_type,FLimitInteger,FDescription) 
+VALUES(@iPoll, @iPollQuestionK,{{==limit_type}},{{==FLimitInteger}},{=FDescription});
+               </EXPRESSION>
+            </SQL>
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollLimit')" />
+         </EDIT>
+         <EDIT NAME="delete limit" SIMPLE="Radera regel" TYPENAME="delete_row">
+            <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPollLimit WHERE PollLimitK={{=[0]}}' />
          </EDIT>
       </ROWEDIT>
    </QUERY>
@@ -420,9 +522,13 @@ end
          <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
          <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
       </CONDITIONS>
+      <ORDER FIELD="TPoll1FBegin" DESC="1" />
+
+<!--      
       <CONDITIONS ID="Kommande">
          <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &lt; $T.$F)" CONDITIONFLAGNAMES="no_value" />
       </CONDITIONS>
+-->      
    </QUERY>
    
    

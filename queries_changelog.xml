@@ -75,7 +75,6 @@ IF @iVersion IS NOT NULL OR @iVersion &gt; 0
          <CONDITION ID="TActivity5FDone" TABLE="TActivity5" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
          <CONDITION ID="TActivity5FDeleted" TABLE="TActivity5" OPERATOR="0" SIMPLEVALUE="NO" VALUE="0" />
       </CONDITIONS>
-
       <CONDITIONS ID='{ "name": "Active", "title": "Active activities", "style": "color: #5fdba7; font-weight: bold;" }'>
          <CONDITION ID="TActivity5StateC" TABLE="TActivity5" OPERATORNAME="EQUAL" VALUE="54" SIMPLEVALUE="Active" />
       </CONDITIONS>
@@ -1407,12 +1406,12 @@ END
 
 IF LEN( @sDescription ) &gt; 2
 BEGIN
-   -- Add missing hashtags to Badge table
+   -- Add missing hash tags to Badge table
    INSERT INTO $OTBadge (FName)
    SELECT tag FROM $OPullTagsFromText( @sDescription ) LEFT JOIN $OTBadge _b ON tag = _b.FName
    WHERE _b.FName IS NULL   
 
-   -- Connect hashtags to Activity record
+   -- Connect hash tags to Activity record
    INSERT INTO $OTrXBadge (ParentK,table_number,BadgeK)
    SELECT @iActivity, @iTable, _b.BadgeK
    FROM $OTBadge _b JOIN $OPullTagsFromText( @sDescription ) ON _b.FName = tag
