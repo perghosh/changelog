@@ -804,7 +804,7 @@ UPDATE $OTNote SET FNote={=TActivity2Note} WHERE RecordK=${@TActivity2ActivityK}
    
             
    R:SetValue('url','[' .. 
-   '{"id": "edit","title":"Edit Activity", "icon": "fa-i-cursor", "table":"TActivity2", "link": ["99C02094D42F4BBF85E41F8D6EAB1CC7"]},' ..    
+   '{"id": "edit","title":"Edit Activity", "icon": "fa-i-cursor", "table":"TActivity2", "link": ["99C02094D42F4BBF85E41F8D6EAB1CC7"]},' ..
    '{"id": "remark","title":"View comments", "icon": "fa-align-justify", "table":"TActivity2", "link": ["3A3CCA0F5329204FA828CFF0730FDF5Eresult"]},' .. 
    '{"id": "remark","title":"Comments", "icon": "fa-edit", "table":"TActivity2", "link": ["3A3CCA0F5329204FA828CFF0730FDF5E"]},' .. 
    '{"id": "activity_child","title":"Add activity sub", "icon": "fa-edit", "table":"TActivity2", "link": ["4BD466822F9549D1998B16C75DC0E92E"]},' .. 
@@ -919,7 +919,7 @@ UPDATE $OTNote SET FNote={=TActivity2Note} WHERE RecordK=${@TActivity2ActivityK}
       </SELECTCONDITIONS>      
       <SCRIPTS>
          <SCRIPT TYPENAME="action" NAME="RowCommand">
-            <CODE CACHE="7e5eef96-bb7f-4025-b6f6-d87dfeda11c1"><![CDATA[ return function(g) local R, db=g.result, g.db
+            <CODE CACHE="1BEF6ECE-0F69-44C4-BC02-25AF5BA508B4"><![CDATA[ return function(g) local R, db=g.result, g.db
    local sSql = "SELECT COUNT(*) FROM $Othread WHERE FThreadId = (SELECT FThreadId FROM $Othread WHERE table_number=1110 AND FKey=".. R:GetParam("key") ..")";
    local iThreadCount = db:Ask( sSql )
    local sMenu = ""

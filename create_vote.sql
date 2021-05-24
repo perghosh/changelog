@@ -142,6 +142,7 @@ CREATE TABLE vote.TPollGroup (
    ,FName NVARCHAR(100)       -- Group name
    ,FAbbreviation NVARCHAR(100)-- abbreviation for poll group, sometimes a short name is needed
    ,FDescription NVARCHAR(1000)-- Group description if needed
+   ,FUseTie SMALLINT
    ,FIdle SMALLINT DEFAULT 0  -- group is set on idle (resting)
    ,FDeleted SMALLINT DEFAULT 0-- group is deleted
 );
@@ -175,6 +176,7 @@ CREATE TABLE vote.TPoll (
    ,FDelay INT              -- 
    ,FDelayVote FLOAT        -- Time to delay before vote is counted 
    ,FWeight INT             -- Poll weight is used for polls that are weighted.
+   ,FUseTie SMALLINT DEFAULT 1
    ,FDeleted SMALLINT DEFAULT 0 -- if poll is deleted
 );
 CREATE CLUSTERED INDEX "vote.IC_TPoll_ParentK" ON vote.TPoll (ParentK);
@@ -254,6 +256,7 @@ CREATE TABLE vote.TPollAnswer (
    ,FName NVARCHAR(500)     -- Answer name, this is used when answer is listed for voter to select
    ,FDescription NVARCHAR(MAX)-- Answer description if there is a need to describe
    ,FWeight INT             -- If answer is weighted, how much weight this answer give the voter
+   ,FScore FLOAT            -- If poll is a quiz or similar and you want to count points
    ,FCount BIGINT
    ,FOrder INT              -- order answer for question
    ,CONSTRAINT FK_TPollAnswer_PollQuestionK FOREIGN KEY (PollQuestionK) REFERENCES vote.TPollQuestion(PollQuestionK) ON DELETE CASCADE
@@ -316,6 +319,36 @@ CREATE TABLE vote.tie (
 );
 CREATE CLUSTERED INDEX IC_tie_FTie ON vote.tie (FTie);
 
+
+/**
+ * INSERT trigger for **TPollGroup**
+ */
+DROP TRIGGER IF EXISTS vote.TRIGGER_TPollGroup_INSERT; 
+GO
+CREATE TRIGGER vote.TRIGGER_TPollGroup_INSERT ON vote.TPollGroup FOR INSERT AS
+BEGIN
+   SET NOCOUNT ON;
+   DECLARE @iKey BIGINT, @iSuper BIGINT, @iThread BIGINT, @iNextId INT, @iDepth INT
+   DECLARE @iTable INT = (SELECT "number" FROM application.table_number WHERE "name" = 'TPollGroup' AND "schema" = 'vote'); 
+   SELECT @iKey = PollGroupK, @iSuper = ISNULL(SuperK,0) FROM INSERTED;
+
+   EXEC application.PROCEDURE_InsertTreeNode @iTable, @iKey, @iSuper
+END
+GO
+
+DROP TRIGGER IF EXISTS vote.TRIGGER_TPollGroup_DELETE; 
+GO
+CREATE TRIGGER vote.TRIGGER_TPollGroup_DELETE ON vote.TPollGroup FOR DELETE AS
+BEGIN
+   DECLARE @iTable INT = (SELECT "number" FROM application.table_number WHERE "name" = 'TPollGroup' AND "schema" = 'vote'); 
+   DECLARE @iKey BIGINT = (SELECT TOP 1 PollGroupK FROM DELETED) -- Get key value
+   DECLARE @sPath VARCHAR(1024) = (SELECT FPath FROM application.thread WHERE FKey = @iKey AND table_number = @iTable)
+   DECLARE @iThread INT = (SELECT TOP 1 FThreadId FROM application.thread WHERE FKey = @iKey AND table_number = @iTable);
+   IF @sPath IS NOT NULL AND @iThread IS NOT NULL
+      EXEC application.PROCEDURE_DeleteTreeNode @iTable, @iKey
+END
+GO
+
 DROP TRIGGER IF EXISTS vote.TRIGGER_TPollVote_DELETE; 
 GO
 CREATE TRIGGER vote.TRIGGER_TPollVote_DELETE ON vote.TPollVote FOR DELETE AS
@@ -328,8 +361,9 @@ BEGIN
 END
 GO
 
-
-
+/**
+ * DELETE trigger for **TPoll**
+ */
 DROP TRIGGER IF EXISTS vote.TRIGGER_TPoll_DELETE; 
 GO
 CREATE TRIGGER vote.TRIGGER_TPoll_DELETE ON vote.TPoll FOR DELETE AS

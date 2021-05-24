@@ -38,6 +38,12 @@
       <FIELD NAME="ParentK" ALIAS="Parent" TYPE="I4" CONDITION="1" />
       <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
       <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" CONDITION="1" />
+      <FIELD ID="SuperK-Name" NAME="SuperK" ALIAS="Parent name" TYPE="I4" DISPLAYTYPE="STR">
+         <EXPRESSION>(SELECT t.FName FROM $O{VOTE}PollGroup t WHERE t.PollGroupK=$T.SuperK)</EXPRESSION>
+      </FIELD>
+      <CONDITION ID="SuperK-Name" NAME="SuperK" SIMPLENAME="Parent system" TYPE="STR" NOMERGE="1" NOVALUE="1">
+         <EXPRESSION>$T.SuperK IN (SELECT t.PollGroupK FROM $O{VOTE}TPollGroup t WHERE t.FName $_condition)</EXPRESSION>
+      </CONDITION>
       <FIELD NAME="UserK" ALIAS="User" TYPE="I4" CONDITION="1" />
       <FIELD NAME="CreateD" ALIAS="Create" TYPE="ODATE">
          <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
@@ -72,8 +78,20 @@
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FAbbreviation" ALIAS="Abbreviation" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FUseTie" ALIAS="Use tie" TYPE="I2" CONDITION="1">
+         <EXPRESSION>CASE WHEN $T.$F = 0 THEN 'NO' ELSE 'YES' END</EXPRESSION>
+         <LOOKUP CACHE="yes_no" />
+      </FIELD>
       <FIELD NAME="FIdle" ALIAS="Idle" TYPE="I2" CONDITION="1" />
       <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
+      
+      <FIELD ID="FName-Indent" NAME="FName" ALIAS="Indented Name" CONDITION="1" TYPE="STR">
+         <FORMULA TYPE="HTML" />
+         <EXPRESSION>
+('&lt;span style="margin-left:' + CAST( ISNULL( (SELECT TOP 1 _t.FDepth FROM $O{}thread _t WHERE _t.FKey=$T.PollGroupK AND _t."table_number" = 11010), 0 ) AS VARCHAR(10)) + 'em;"&gt;' + $T.FName + '&lt;/span&gt;')
+         </EXPRESSION>
+      </FIELD>
+      
       
       <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
       <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
@@ -96,6 +114,9 @@
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="100" />
       <EDIT NAME="FAbbreviation" ALIAS="Abbreviation" TYPE="STR" MAX="100" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FUseTie" ALIAS="Use tie" TYPE="I2">
+         <LOOKUP CACHE="yes_no" />
+      </EDIT>
       <EDIT NAME="FIdle" ALIAS="Idle" TYPE="I2" />
       <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
    </TABLETEMPLATE>
@@ -152,6 +173,11 @@
       <FIELD NAME="FDelay" ALIAS="Delay" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FDelayVote" ALIAS="DelayVote" TYPE="R8" CONDITION="1" />
       <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FUseTie" ALIAS="Tie" TYPE="I2" CONDITION="1" />
+      <FIELD ID="UseTieName" NAME="FUseTie" ALIAS="Use tie" TYPE="I2" CONDITION="1">
+         <EXPRESSION>CASE WHEN $T.$F = 0 THEN 'NO' ELSE 'YES' END</EXPRESSION>
+         <LOOKUP CACHE="yes_no" />
+      </FIELD>
       <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
       <FIELD ID="CountQuestion" NAME="PollK" ALIAS="Count questions" SIMPLENAME="Number of questions" TYPE="INT" CONDITION="expression" DESCRIPTION="Count number questions for poll">
          <EXPRESSION>(SELECT COUNT(*) FROM $O{VOTE}TPollQuestion _pq WHERE _pq.PollK = $T.PollK)</EXPRESSION>
@@ -216,6 +242,9 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <EDIT NAME="FCount" ALIAS="Count" TYPE="I4" />
       <EDIT NAME="FDelay" ALIAS="Delay" TYPE="I4" />
       <EDIT NAME="FDelayVote" ALIAS="DelayVote" TYPE="R8" />
+      <EDIT NAME="FUseTie" ALIAS="Use tie" TYPE="I2">
+         <LOOKUP CACHE="yes_no" />
+      </EDIT>
       <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
       <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
    </TABLETEMPLATE>
