@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
+Motioner = lista över motioner med editering
 poll_overview = information about selected poll
+poll_overview_related = related polls
 poll_links = links connected to poll
 poll_question = Single question for selected poll
 poll_answer = Answers for question
@@ -56,7 +58,8 @@ VALUES(@iPoll,{{==ToPollK}},{=FDescription})
          <SCRIPT TYPENAME="action" NAME="RowCommand">
             <CODE CACHE="c47f0d5f-c280-4335-b9cf-3e49a71ffc48"><![CDATA[ return function(g) local R, db, sE=g.result, g.db, g.result:GetParam("event");
    R:SetValue('url','[' .. 
-   '{"id": "add_sub","title":"Add sub", "icon": "fa-edit", "table":"TPollGroup1", "link": ["3E4AC376CD7D4DE695B1F18A1E91A86B"]}' ..
+   '{"id": "add_sub","title":"Add sub", "icon": "fa-edit", "table":"TPollGroup1", "link": ["3E4AC376CD7D4DE695B1F18A1E91A86B"]},' ..
+   '{"id": "send","title":"Beam group", "icon": "fa-broadcast-tower", "table":"TPollGroup1", "link": ["1b0105ba3f604e95b376994901ab37d9"]}' ..
    ']') 
 end  ]]></CODE>
          </SCRIPT>
@@ -84,6 +87,9 @@ EXEC $OPROCEDURE_UpdateBadge @sDescription,'vote.TPollGroup', @iPollGroup
          </EDIT>
       </ROWEDIT>
       <QUERYLINK TYPENAME="children" NAME="Sub system"  KEY="3E4AC376CD7D4DE695B1F18A1E91A86B" EXPRESSION="SELECT PollGroupK value, 'SuperK' AS name, FName AS simple FROM $O{VOTE}TPollGroup WHERE PollGroupK={{==TPollGroup1}}" />
+      <QUERYLINK TYPENAME="message" NAME="Connect poll" KEY="1b0105ba3f604e95b376994901ab37d9" EXPRESSION="SELECT PollGroupK value, 'PollGroupK' AS name, FName AS simple FROM $O{VOTE}TPollGroup WHERE PollGroupK={{==TPollGroup1}}">
+         <PROPERTIES OUTPUT-COMMAND="send key" />         
+      </QUERYLINK>
    </QUERY>
    
    
@@ -132,8 +138,9 @@ SELECT PollGroupK, (SELECT t.FName FROM $O{VOTE}TPollGroup t WHERE t.SuperK=Poll
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1">
          <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
       </FIELD>
-      <FIELD ID="TPoll1FHeader" ALIAS="Rubrik" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1PollGroupK" ALIAS="Group" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1FHeader" ALIAS="Rubrik" TABLE="TPoll1" FIELDFLAGNAMES="edit" DESCRIPTION="Short header for poll" />
+      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" DESCRIPTION="Poll name, useable searching for polls" />
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=TPoll1FDescription}, 'vote.TPoll', ${@TPoll1PollK}","formula":"1"}</EDIT>         
       </FIELD>
@@ -161,6 +168,7 @@ UPDATE $O{}TNote SET FNote={=TPoll1Note} WHERE RecordK=${@TPoll1PollK} AND table
          <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
          <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
       </FIELD>
+      <ORDER FIELD="TPoll1FBegin" DESC="1"/>
       
       <ROWEDIT>
          <EDIT NAME="new_poll" SIMPLE="Pol" TYPENAME="new_row">
@@ -177,8 +185,8 @@ IF @Start IS NULL
 IF @End IS NULL
    SET @End = DATEADD(month,1,@Start)
    
-INSERT INTO $O{VOTE}TPoll(TypeC,FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
-VALUES({=TypeC"0"},{=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPoll(PollGroupK,TypeC,FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
+VALUES({{=PollGroupK}},{=TypeC"0"},{=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE());
 
 DECLARE @iPoll BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPoll'));
 EXEC $OPROCEDURE_UpdateBadge @sDescription,'vote.TPoll', @iPoll
@@ -252,8 +260,9 @@ SELECT PollK value, 'PollK' AS name, ISNULL(FHeader,FName) simple FROM $O{VOTE}T
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1">
          <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
       </FIELD>
-      <FIELD ID="TPoll1FHeader" ALIAS="Rubrik" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1PollGroupK" ALIAS="Group" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1FHeader" ALIAS="Heading" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1FName" ALIAS="Name" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <EDIT>{"update":"$O{}PROCEDURE_UpdateBadge {=TPoll1FDescription}, 'vote.TPoll', ${@TPoll1PollK}","formula":"1"}</EDIT>         
       </FIELD>
@@ -294,8 +303,8 @@ IF @Start IS NULL
 IF @End IS NULL
    SET @End = DATEADD(month,1,@Start)
    
-INSERT INTO $O{VOTE}TPoll(TypeC,FHeader,FName,FDescription,FBegin,FEnd,FUseTie,CreateD,UpdateD) 
-VALUES({=TypeC"0"},{=FHeader},@sName,@sDescription,@Start,@End,{{=FUseTie="0"},GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPoll(PollGroupK,TypeC,FHeader,FName,FDescription,FBegin,FEnd,FUseTie,CreateD,UpdateD) 
+VALUES({{=PollGroupK}},{=TypeC"0"},{=FHeader},@sName,@sDescription,@Start,@End,{{=FUseTie="0"},GETDATE(),GETDATE());
 
 DECLARE @iPoll BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPoll'));
 EXEC $OPROCEDURE_UpdateBadge @sDescription,'vote.TPoll', @iPoll
@@ -435,6 +444,12 @@ end  ]]></CODE>
       <FIELD ID="TPoll1CountPoll" ALIAS="CountPoll" TABLE="TPoll1" />
       <FIELD ID="TPoll1FUseTie" ALIAS="Tie" TABLE="TPoll1" />
    </QUERY>
+
+   <QUERY ID="poll_overview_related" FLAGS="1" KEY="0000000000000000000000000000000C">
+      <FIELD ID="TrPollXPoll1rPollXPollK" ALIAS="ID" TABLE="TrPollXPoll1" />
+      <FIELD ID="TrPollXPoll1ToPollK-Key" ALIAS="ID_To" TABLE="TrPollXPoll1" />
+      <FIELD ID="TrPollXPoll1ToPollK" ALIAS="Name" TABLE="TrPollXPoll1" />
+   </QUERY>
    
    <QUERY ID="poll_links" FLAGS="1" KEY="00000000000000000000000000000009">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
@@ -443,7 +458,6 @@ end  ]]></CODE>
       <FIELD ID="TLink11020FDescription" ALIAS="Description" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
    </QUERY>
    
-
    <QUERY ID="poll_question_list" FLAGS="1" KEY="00000000000000000000000000000004">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID" TABLE="TPollQuestion1" />
@@ -467,6 +481,17 @@ end  ]]></CODE>
       <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Beskrivning" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
    </QUERY>
+   
+   <!-- All answers for selected poll -->
+   <QUERY ID="poll_answer_all" FLAGS="1" KEY="0000000000000000000000000000000D">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPollAnswer1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" />
+      <FIELD ID="TPollAnswer1FDescription" ALIAS="Beskrivning" TABLE="TPollAnswer1" />
+      <ORDER FIELD="TPollAnswer1PollQuestionK" />
+   </QUERY>
+   
 
    <!-- When voter is voting this will register the vote in database -->
    <QUERY ID="poll_vote" FLAGS="1" KEY="00000000000000000000000000000007">
@@ -478,43 +503,13 @@ end  ]]></CODE>
          <EDIT NAME="prepare" TYPENAME="begin">
             <SQL TYPENAME="variable"><EXPRESSION>
 SELECT CONVERT( VARCHAR(50), CAST( NEWID() AS BINARY(16)), 1 ) AS uuid
---SELECT NEWID() AS uuid
             </EXPRESSION></SQL>
-<!--            
-            <SQL TYPENAME="insert">
-               <EXPRESSION><![CDATA[
-DECLARE @iPoll BIGINT = {{=PollK}}
-DECLARE @iVoter BIGINT = {{=VoterK}}
-DECLARE @sIp VARCHAR(50) = '{#V user "@@ip"}'
-
-IF @iVoter IS NOT NULL
-BEGIN
-   IF (SELECT COUNT(*) FROM $O{VOTE}TPollVote WHERE VoterK=@iVoter AND PollQuestionK IN(SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollK=@iPoll) ) > 0
-      THROW 50001, 'Voter can not vote more than once', 1;
-END
-ELSE
-BEGIN
-   IF EXISTS (SELECT * FROM $O{VOTE}TPollVote WHERE PollQuestionK IN(SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollK=@iPoll) AND FIp=@sIp)
-      THROW 50001, 'Found vote for ip number', 2;
-END
-
---EXEC sp_set_session_context 'uuid', NEWID
-DROP TABLE IF EXISTS #event;            
-CREATE TABLE #event(v UNIQUEIDENTIFIER)
-IF (SELECT FUseTie FROM $O{VOTE}TPoll WHERE PollK=@iPoll) = 1
-   INSERT INTO #event VALUES(NEWID())
-ELSE
-   INSERT INTO #event VALUES(NULL)
-            ]]></EXPRESSION>
-            </SQL>
-            -->
          </EDIT>
          
          <EDIT NAME="new_vote" TYPENAME="new_row" DESCRIPTION="Add new vote">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION><![CDATA[
-{{=uuid}} {=uuid}  ${@uuid} 
-/*               
+DECLARE @uuid uniqueidentifier = {{=uuid}}
 DECLARE @iPoll BIGINT = {{=PollK}}
 DECLARE @iVoter BIGINT = {{=VoterK}}
 DECLARE @iPollAnswer BIGINT = {{=PollAnswerK}}
@@ -528,15 +523,13 @@ IF @iSelect IS NULL
 INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, VoterK, FSelect, FIp, CreateD)
 VALUES(@iPollQuestion,@iPollAnswer,@iVoter,@iSelect,@sIp,GETDATE())
 
---DECLARE @event UNIQUEIDENTIFIER = CAST( SESSION_CONTEXT(N'uuid') AS UNIQUEIDENTIFIER);
-DECLARE @event UNIQUEIDENTIFIER = (SELECT TOP 1 v FROM #event);
+DECLARE @event UNIQUEIDENTIFIER = @uuid;
 IF @event IS NOT NULL
 BEGIN
    DECLARE @iPollVote BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPollVote'));
    INSERT INTO $O{VOTE}tie VALUES( @iPollVote, @event )
    UPDATE $O{VOTE}TPollVote SET FTie=@event WHERE PollVoteK = @iPollVote
 END   
-*/
             ]]></EXPRESSION>
             </SQL>
          </EDIT>

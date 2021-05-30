@@ -85,18 +85,18 @@
       <FIELD NAME="FIdle" ALIAS="Idle" TYPE="I2" CONDITION="1" />
       <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
       
-      <FIELD ID="FName-Indent" NAME="FName" ALIAS="Indented Name" CONDITION="1" TYPE="STR">
+      <FIELD ID="FName-Indent" NAME="FName" ALIAS="Indented Name" CONDITION="1" TYPE="STR" FF="v">
          <FORMULA TYPE="HTML" />
          <EXPRESSION>
 ('&lt;span style="margin-left:' + CAST( ISNULL( (SELECT TOP 1 _t.FDepth FROM $O{}thread _t WHERE _t.FKey=$T.PollGroupK AND _t."table_number" = 11010), 0 ) AS VARCHAR(10)) + 'em;"&gt;' + $T.FName + '&lt;/span&gt;')
          </EXPRESSION>
+         <EXPRESSION OUTPUT="edit">$T.FName</EXPRESSION>
       </FIELD>
       
-      
-      <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
+      <EDIT NAME="ParentK" ALIAS="Parent" TYPE="I4" />
       <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
-      <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
-      <EDIT NAME="UserK" ALIAS="UserK" TYPE="I4" />
+      <EDIT NAME="SuperK" ALIAS="Super" TYPE="I4" />
+      <EDIT NAME="UserK" ALIAS="User" TYPE="I4" />
       <EDIT NAME="CreateD" ALIAS="CreateD" TYPE="DATE" />
       <EDIT NAME="UpdateD" ALIAS="UpdateD" TYPE="DATE" />
       <EDIT NAME="TypeC" ALIAS="Type" TYPE="I4">
@@ -112,6 +112,7 @@
          <LOOKUP CACHE="pollgroup.priority.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11013 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
       </EDIT>
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="100" />
+      <EDIT ID="FName-Indent" NAME="FName" ALIAS="Name" TYPE="STR" MAX="100" />
       <EDIT NAME="FAbbreviation" ALIAS="Abbreviation" TYPE="STR" MAX="100" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
       <EDIT NAME="FUseTie" ALIAS="Use tie" TYPE="I2">
@@ -122,10 +123,14 @@
    </TABLETEMPLATE>
 
    <TABLETEMPLATE ID="vote.poll">
-      <FIELD NAME="ParentK" ALIAS="ParentK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="PollGroupK" ALIAS="Group" TYPE="INT" CONDITION="1">
+         <EXPRESSION>(SELECT t.FName FROM $OTPollGroup t WHERE t.PollGroupK=$T.PollGroupK)</EXPRESSION>
+         <EXPRESSION OUTPUT="edit">$T.PollGroupK</EXPRESSION>
+      </FIELD>
+      <FIELD NAME="ParentK" ALIAS="Parent" TYPE="INT" CONDITION="1" />
       <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
-      <FIELD NAME="SuperK" ALIAS="SuperK" TYPE="I4" CONDITION="1" />
-      <FIELD NAME="UserK" ALIAS="UserK" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="UserK" ALIAS="User" TYPE="I4" CONDITION="1" />
       <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
          <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
          <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
@@ -221,6 +226,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
          </OPERATORS>
       </CONDITION>
       
+      <EDIT NAME="PollGroupK" ALIAS="Group" TYPE="I4" />
       <EDIT NAME="ParentK" ALIAS="ParentK" TYPE="I4" />
       <EDIT NAME="table_number" ALIAS="table_number" TYPE="I4" />
       <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
@@ -703,6 +709,7 @@ $T.$F $_operator (SELECT t.FTie FROM $Otie t JOIN $OTPollVote pv ON t.FKey=pv.Po
       <FIELD NAME="PollK" ALIAS="Poll" TYPE="INT" DISPLAYTYPE="STR" CONDITION="1">
          <EXPRESSION>(SELECT p.FName FROM $OTPoll p WHERE p.PollK=$T.PollK)</EXPRESSION>
       </FIELD>
+      <FIELD ID="ToPollK-Key" NAME="ToPollK" ALIAS="ID (Related)" TYPE="INT" CONDITION="1" />
       <FIELD NAME="ToPollK" ALIAS="To poll" DISPLAYTYPE="STR" TYPE="INT" CONDITION="expression">
          <EXPRESSION>(SELECT p.FName FROM $OTPoll p WHERE p.PollK=$T.ToPollK)</EXPRESSION>
       </FIELD>
