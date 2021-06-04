@@ -123,7 +123,8 @@
    </TABLETEMPLATE>
 
    <TABLETEMPLATE ID="vote.poll">
-      <FIELD NAME="PollGroupK" ALIAS="Group" TYPE="INT" CONDITION="1">
+      <FIELD ID="PollGroupK-Id" NAME="PollGroupK" ALIAS="Group" TYPE="INT" CONDITION="1" />
+      <FIELD NAME="PollGroupK" ALIAS="Group" TYPE="INT" DISPLAYTYPE="STR" CONDITION="1">
          <EXPRESSION>(SELECT t.FName FROM $OTPollGroup t WHERE t.PollGroupK=$T.PollGroupK)</EXPRESSION>
          <EXPRESSION OUTPUT="edit">$T.PollGroupK</EXPRESSION>
       </FIELD>
@@ -403,6 +404,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
+      <FIELD NAME="FOrder" ALIAS="Order" TYPE="I4" CONDITION="1" />
       <FIELD ID="CountAnswer" NAME="PollQuestionK" ALIAS="Count answer" SIMPLENAME="Number of answer" TYPE="INT" CONDITION="expression" DESCRIPTION="Count number answers for poll">
          <EXPRESSION>(SELECT COUNT(*) FROM $O{VOTE}TPollAnswer _pa WHERE _pa.PollQuestionK = $T.PollQuestionK)</EXPRESSION>
       </FIELD>
@@ -431,6 +433,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
       <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
+      <EDIT NAME="FOrder" ALIAS="Order" TYPE="I4" />
    </TABLETEMPLATE>
 
    <TABLETEMPLATE ID="vote.pollsection">

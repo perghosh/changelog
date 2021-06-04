@@ -6,6 +6,7 @@ poll_overview_related = related polls
 poll_links = links connected to poll
 poll_question = Single question for selected poll
 poll_answer = Answers for question
+poll_search = Query used to search for polls
 
 poll_hashtags = Get hash-tags for poll's
 
@@ -382,15 +383,16 @@ end  ]]></CODE>
       <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollQuestion1"/>
       <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1FDescription" ALIAS="Description" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPollQuestion1TypeC" ALIAS="TypeC" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPollQuestion1StateC" ALIAS="StateC" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1TypeC" ALIAS="Type" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1StateC" ALIAS="State" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1FOrder" ALIAS="Order" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <ROWEDIT>
          <EDIT NAME="new_question" SIMPLE="Fråga" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
 DECLARE @iPoll INT = {{=PollK}};                  
-INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,FDescription,TypeC,StateC,CreateD,UpdateD) 
-VALUES(@iPoll,{=FName"''"},{=FDescription},{=TypeC},{=StateC},GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,FDescription,TypeC,StateC,FOrder,CreateD,UpdateD) 
+VALUES(@iPoll,{=FName"''"},{=FDescription},{=TypeC},{=StateC},{=FOrder},GETDATE(),GETDATE());
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollQuestion')" />
@@ -443,6 +445,7 @@ end  ]]></CODE>
       <FIELD ID="TPoll1CountIpVoterCount" ALIAS="IpCount" TABLE="TPoll1" />
       <FIELD ID="TPoll1CountPoll" ALIAS="CountPoll" TABLE="TPoll1" />
       <FIELD ID="TPoll1FUseTie" ALIAS="Tie" TABLE="TPoll1" />
+      <FIELD ID="TPoll1PollGroupK-Id" ALIAS="GroupId" TABLE="TPoll1" />
    </QUERY>
 
    <QUERY ID="poll_overview_related" FLAGS="1" KEY="0000000000000000000000000000000C">
@@ -464,6 +467,8 @@ end  ]]></CODE>
       <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1Min" ALIAS="Min" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1Max" ALIAS="Max" TABLE="TPollQuestion1" />
+      <ORDER FIELD="TPollQuestion1PollQuestionK" SQL="$T.FOrder" />
+      <ORDER FIELD="TPollQuestion1PollQuestionK" />
    </QUERY>
 
    <QUERY ID="poll_question" FLAGS="1" KEY="00000000000000000000000000000005">
@@ -471,6 +476,8 @@ end  ]]></CODE>
       <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollQuestion1"/>
       <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <ORDER FIELD="TPollQuestion1PollQuestionK" SQL="$T.FOrder" />
+      <ORDER FIELD="TPollQuestion1PollQuestionK" />
    </QUERY>   
    
    <!-- List answers in selected poll -->
@@ -543,6 +550,7 @@ END
       <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID_Answer" TABLE="TPollAnswer1"/>
       <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" />
       <FIELD ID="TPollAnswer1CountVote" ALIAS="Antal röster" TABLE="TPollAnswer1" />
+      <ORDER FIELD="TPollAnswer1PollQuestionK" />
    </QUERY>
    
    <!-- Calculate total number of votes for each answer -->
@@ -682,7 +690,7 @@ end
       <FIELD ID="TVoter1FName" ALIAS="Name" TABLE="TVoter1"/>
    </QUERY>   
    
-   <!-- Calculate total number of votes for each answer -->
+   <!-- Query used to search for polls -->
    <QUERY ID="poll_search" FLAGS="8" KEY="0000000000000000000000000000000B">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
@@ -693,13 +701,13 @@ end
       <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
       <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
       <CONDITION ID="TPoll1TypeC" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="Ja/Nej" VALUE="6381" />
-      <CONDITIONS ID="Alla" />
-      <CONDITIONS ID="Aktiva Ja/Nej frågor" SELECTED="1">
+      <CONDITIONS ID="all" />
+      <CONDITIONS ID="yesno" SELECTED="1">
          <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
          <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
          <CONDITION ID="TPoll1TypeC" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="Ja/Nej" VALUE="6381" />
       </CONDITIONS>
-      <CONDITIONS ID="Aktiva">
+      <CONDITIONS ID="active">
          <CONDITION ID="TPoll1FBegin" TABLE="TPoll1" OPERATORNAME="GREATEREQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(GETDATE() &gt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
          <CONDITION ID="TPoll1FEnd" TABLE="TPoll1" OPERATORNAME="LESSEQUAL" SIMPLEVALUE="to" VALUE="1" EXPRESSION="(GETDATE() &lt;= $T.$F)" CONDITIONFLAGNAMES="no_value" />
       </CONDITIONS>
