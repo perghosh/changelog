@@ -413,6 +413,7 @@ VALUES
    ,(6,0,'end_date','Poll ends')
    ,(7,0,'max_change_count','Max changes')
    ,(8,0,'delay_change_days','When voter are able to change vote')
+   ,(9,1,'comment','Allow to comment vote')
 
 
 IF OBJECT_ID('vote.verify', 'U') IS NOT NULL  DROP TABLE vote.verify;

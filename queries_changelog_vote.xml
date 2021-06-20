@@ -6,8 +6,9 @@ poll_overview_related = related polls
 poll_links = links connected to poll
 poll_question = Single question for selected poll
 poll_answer = Answers for question
+poll_vote_comment = Comments for poll
 poll_search = Query used to search for polls
-
+poll_vote = Query used for register vote
 poll_hashtags = Get hash-tags for poll's
 
 
@@ -446,6 +447,7 @@ end  ]]></CODE>
       <FIELD ID="TPoll1CountPoll" ALIAS="CountPoll" TABLE="TPoll1" />
       <FIELD ID="TPoll1FUseTie" ALIAS="Tie" TABLE="TPoll1" />
       <FIELD ID="TPoll1PollGroupK-Id" ALIAS="GroupId" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CountCommentQuestion" ALIAS="CommentEnabled" TABLE="TPoll1" />
    </QUERY>
 
    <QUERY ID="poll_overview_related" FLAGS="1" KEY="0000000000000000000000000000000C">
@@ -467,6 +469,7 @@ end  ]]></CODE>
       <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1Min" ALIAS="Min" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1Max" ALIAS="Max" TABLE="TPollQuestion1" />
+      <FIELD ID="TPollQuestion1Comment" ALIAS="Comment" TABLE="TPollQuestion1" />
       <ORDER FIELD="TPollQuestion1PollQuestionK" SQL="$T.FOrder" />
       <ORDER FIELD="TPollQuestion1PollQuestionK" />
    </QUERY>
@@ -523,12 +526,13 @@ DECLARE @iPollAnswer BIGINT = {{=PollAnswerK}}
 DECLARE @iPollQuestion BIGINT = (SELECT PollQuestionK FROM $O{VOTE}TPollAnswer WHERE PollAnswerK=@iPollAnswer)
 DECLARE @iSelect INT = {{=FSelect}}
 DECLARE @sIp VARCHAR(50) = '{#V user "@@ip"}'
+DECLARE @sComment NVARCHAR(500) = {=FComment}
 
 IF @iSelect IS NULL
    SET @iSelect = 1
    
-INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, VoterK, FSelect, FIp, CreateD)
-VALUES(@iPollQuestion,@iPollAnswer,@iVoter,@iSelect,@sIp,GETDATE())
+INSERT INTO $O{VOTE}TPollVote (PollQuestionK, PollAnswerK, VoterK, FSelect, FIp, FComment, CreateD)
+VALUES(@iPollQuestion,@iPollAnswer,@iVoter,@iSelect,@sIp,@sComment,GETDATE())
 
 DECLARE @event UNIQUEIDENTIFIER = @uuid;
 IF @event IS NOT NULL
@@ -542,6 +546,19 @@ END
          </EDIT>
       </ROWEDIT>
    </QUERY>
+   
+   <!-- When voter is voting this will register the vote in database -->
+   <QUERY ID="poll_vote_comment" FLAGS="1" KEY="0000000000000000000000000000000E">
+      <FIELD ID="TPollVote1PollVoteK" ALIAS="ID" TABLE="TPollVote1"/>
+      <FIELD ID="TPollVote1CreateD-Date" ALIAS="Date" TABLE="TPollVote1"/>
+      <FIELD ID="TPollVote1FIp" ALIAS="Ip" TABLE="TPollVote1"/>
+      <FIELD ID="PollAnswerK-FName" ALIAS="Answer" TABLE="TPollAnswer1" />
+      <FIELD ID="TPollVote1FComment" ALIAS="Comment" TABLE="TPollVote1" />
+      <CONDITION ID="TPollVote1FComment" TABLE="TPollVote1" CONDITIONFLAGNAMES="locked" OPERATORNAME="IS NOT NULL"></CONDITION>
+      <ORDER FIELD="TPollVote1FIp" />
+      <ORDER FIELD="TPollVote1CreateD" />
+   </QUERY>
+   
    
    <!-- Calculate total number of votes for each answer -->
    <QUERY ID="poll_answer_count" FLAGS="1" KEY="00000000000000000000000000000008">
