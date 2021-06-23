@@ -518,7 +518,7 @@ SELECT CONVERT( VARCHAR(50), CAST( NEWID() AS BINARY(16)), 1 ) AS uuid
          
          <EDIT NAME="new_vote" TYPENAME="new_row" DESCRIPTION="Add new vote">
             <SQL TYPENAME="insert" COMMAND="insert-row">
-               <EXPRESSION><![CDATA[
+               <EXPRESSION CACHE="191a1af1-3584-421e-8043-1b63ebd57a0c"><![CDATA[
 DECLARE @uuid uniqueidentifier = {{=uuid}}
 DECLARE @iPoll BIGINT = {{=PollK}}
 DECLARE @iVoter BIGINT = {{=VoterK}}
@@ -527,6 +527,9 @@ DECLARE @iPollQuestion BIGINT = (SELECT PollQuestionK FROM $O{VOTE}TPollAnswer W
 DECLARE @iSelect INT = {{=FSelect}}
 DECLARE @sIp VARCHAR(50) = '{#V user "@@ip"}'
 DECLARE @sComment NVARCHAR(500) = {=FComment}
+
+IF LEN( @sComment ) < 10
+	SET @sComment = NULL
 
 IF @iSelect IS NULL
    SET @iSelect = 1
@@ -557,6 +560,17 @@ END
       <CONDITION ID="TPollVote1FComment" TABLE="TPollVote1" CONDITIONFLAGNAMES="locked" OPERATORNAME="IS NOT NULL"></CONDITION>
       <ORDER FIELD="TPollVote1FIp" />
       <ORDER FIELD="TPollVote1CreateD" />
+      <CONDITIONS ID="all" />
+      <CONDITIONS ID="today">
+         <CONDITION ID="TPollVote1CreateD" TABLE="TPollVote1" OPERATORNAME="EQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(DATEDIFF(day,GETDATE(),[$T].[$F]) > -1)" CONDITIONFLAGNAMES="no_value" />
+      </CONDITIONS>
+      <CONDITIONS ID="week">
+         <CONDITION ID="TPollVote1CreateD" TABLE="TPollVote1" OPERATORNAME="EQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(DATEDIFF(day,GETDATE(),[$T].[$F]) > -7)" CONDITIONFLAGNAMES="no_value" />
+      </CONDITIONS>
+      <CONDITIONS ID="month">
+         <CONDITION ID="TPollVote1CreateD" TABLE="TPollVote1" OPERATORNAME="EQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(DATEDIFF(day,GETDATE(),[$T].[$F]) > -30)" CONDITIONFLAGNAMES="no_value" />
+      </CONDITIONS>
+      
    </QUERY>
    
    
