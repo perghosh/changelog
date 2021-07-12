@@ -248,7 +248,7 @@ SELECT PollK value, 'PollK' AS name, ISNULL(FHeader,FName) simple FROM $O{VOTE}T
          <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top|-50,0" />
       </QUERYLINK>
       <QUERYLINK TYPENAME="children" NAME="Fråga"  DESCRIPTION="Lägg till frågor" KEY="5599795A83B546C6A8CA34197D87A047" QUERY="358497254151814E8F9273212F0CE565" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}">
-         <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|10,60" />
+         <PROPERTIES OUTPUT-WIDTH="1100" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|10,60" />
       </QUERYLINK>
       <QUERYLINK TYPENAME="children" NAME="Add link" KEY="E2328BC89E074AE48D7E70895C9F36CE" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
       <QUERYLINK TYPENAME="children" NAME="Connect poll" KEY="8FB1E7238C2B4E45A6304D70C3712B76" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
@@ -383,6 +383,7 @@ end  ]]></CODE>
       <ATTRIBUTE NAME="OUTPUT-LIST">Ändra/Lägg till,100</ATTRIBUTE>
       <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollQuestion1"/>
       <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1FLabel" ALIAS="Label" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1FDescription" ALIAS="Description" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1TypeC" ALIAS="Type" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1StateC" ALIAS="State" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
@@ -392,8 +393,8 @@ end  ]]></CODE>
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
 DECLARE @iPoll INT = {{=PollK}};                  
-INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,FDescription,TypeC,StateC,FOrder,CreateD,UpdateD) 
-VALUES(@iPoll,{=FName"''"},{=FDescription},{=TypeC},{=StateC},{=FOrder},GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,FLabel,FDescription,TypeC,StateC,FOrder,CreateD,UpdateD) 
+VALUES(@iPoll,{=FName"''"},{=FLabel"''"},{=FDescription},{=TypeC},{=StateC},{=FOrder},GETDATE(),GETDATE());
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollQuestion')" />
@@ -459,14 +460,17 @@ end  ]]></CODE>
    <QUERY ID="poll_links" FLAGS="1" KEY="00000000000000000000000000000009">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TLink11020LinkK" ALIAS="ID" TABLE="TLink11020" />
-      <FIELD ID="TLink11020FUrl-Goto" ALIAS="Link" TABLE="TLink11020" />
-      <FIELD ID="TLink11020FDescription" ALIAS="Description" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TLink11020FUrl" ALIAS="Link" TABLE="TLink11020" />
+      <FIELD ID="TLink11020FName" ALIAS="Name" TABLE="TLink11020" />
+      <FIELD ID="TLink11020FImage" ALIAS="Image" TABLE="TLink11020" />
+      <FIELD ID="TLink11020TypeC" ALIAS="LinkType" TABLE="TLink11020" FORMAT="(SELECT c.type FROM $O{CODE}TCode c WHERE c.CodeK=$T.TypeC)" FIELDFLAGNAMES="sql_format" />
    </QUERY>
    
    <QUERY ID="poll_question_list" FLAGS="1" KEY="00000000000000000000000000000004">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPollQuestion1PollQuestionK" ALIAS="ID" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollQuestion1FLabel" ALIAS="Label" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1Min" ALIAS="Min" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1Max" ALIAS="Max" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1Comment" ALIAS="Comment" TABLE="TPollQuestion1" />
@@ -500,6 +504,7 @@ end  ]]></CODE>
       <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Beskrivning" TABLE="TPollAnswer1" />
       <ORDER FIELD="TPollAnswer1PollQuestionK" />
+      <ORDER FIELD="TPollAnswer1PollAnswerK" />
    </QUERY>
    
 
@@ -558,8 +563,7 @@ END
       <FIELD ID="PollAnswerK-FName" ALIAS="Answer" TABLE="TPollAnswer1" />
       <FIELD ID="TPollVote1FComment" ALIAS="Comment" TABLE="TPollVote1" />
       <CONDITION ID="TPollVote1FComment" TABLE="TPollVote1" CONDITIONFLAGNAMES="locked" OPERATORNAME="IS NOT NULL"></CONDITION>
-      <ORDER FIELD="TPollVote1FIp" />
-      <ORDER FIELD="TPollVote1CreateD" />
+      <ORDER INDEX="1" DESC="1" />
       <CONDITIONS ID="all" />
       <CONDITIONS ID="today">
          <CONDITION ID="TPollVote1CreateD" TABLE="TPollVote1" OPERATORNAME="EQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(DATEDIFF(day,GETDATE(),[$T].[$F]) > -1)" CONDITIONFLAGNAMES="no_value" />
@@ -570,7 +574,12 @@ END
       <CONDITIONS ID="month">
          <CONDITION ID="TPollVote1CreateD" TABLE="TPollVote1" OPERATORNAME="EQUAL" SIMPLEVALUE="from" VALUE="1" EXPRESSION="(DATEDIFF(day,GETDATE(),[$T].[$F]) > -30)" CONDITIONFLAGNAMES="no_value" />
       </CONDITIONS>
-      
+      <ORDERS NAME="new">
+         <ORDER FIELD="TPollVote1PollVoteK" INDEX="0" DESC="1" SQL="TPollVote1.CreateD" />
+      </ORDERS>
+      <ORDERS NAME="old">
+         <ORDER FIELD="TPollVote1PollVoteK" INDEX="0" SQL="TPollVote1.CreateD" />
+      </ORDERS>
    </QUERY>
    
    
@@ -656,14 +665,15 @@ VALUES(@iPoll, @iPollQuestionK,{{==limit_type}},{{==FLimitInteger}},{=FDescripti
       <FIELD ID="FUrl" ALIAS="Url" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
       <FIELD ID="FName" ALIAS="Name" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
       <FIELD ID="FDescription" ALIAS="Description" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
+      <FIELD ID="FImage" ALIAS="Image" TABLE="TLink11020" FIELDFLAGNAMES="edit" />
       <ROWEDIT>
          <EDIT NAME="new_link" SIMPLE="Object link" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
 DECLARE @iObject BIGINT = {{=PollK}}
 DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TPoll' AND "schema"='vote' );
-INSERT INTO $OTLink(ParentK,table_number,TypeC,FUrl,FName,FDescription,CreateD,UpdateD)
-VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FName},{=FDescription},GETDATE(),GETDATE())
+INSERT INTO $OTLink(ParentK,table_number,TypeC,FUrl,FImage,FName,FDescription,CreateD,UpdateD)
+VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FImage},{=FName},{=FDescription},GETDATE(),GETDATE())
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$OTLink')" />

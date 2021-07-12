@@ -124,7 +124,7 @@
 
    <TABLETEMPLATE ID="vote.poll">
       <FIELD ID="PollGroupK-Id" NAME="PollGroupK" ALIAS="Group" TYPE="INT" CONDITION="1" />
-      <FIELD NAME="PollGroupK" ALIAS="Group" TYPE="INT" DISPLAYTYPE="STR" CONDITION="1">
+      <FIELD NAME="PollGroupK" ALIAS="Group" TYPE="INT" DISPLAYTYPE="STR" CONDITION="expression">
          <EXPRESSION>(SELECT t.FName FROM $OTPollGroup t WHERE t.PollGroupK=$T.PollGroupK)</EXPRESSION>
          <EXPRESSION OUTPUT="edit">$T.PollGroupK</EXPRESSION>
       </FIELD>
@@ -281,6 +281,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <FIELD NAME="TypeC" ALIAS="TypeC" TYPE="I4" CONDITION="1" />
       <FIELD NAME="StateC" ALIAS="StateC" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLabel" ALIAS="Label" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FCount" ALIAS="Count" TYPE="I4" CONDITION="1" />
@@ -299,6 +300,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <EDIT NAME="TypeC" ALIAS="TypeC" TYPE="I4" />
       <EDIT NAME="StateC" ALIAS="StateC" TYPE="I4" />
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FLabel" ALIAS="Label" TYPE="STR" MAX="100" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
       <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
       <EDIT NAME="FCount" ALIAS="Count" TYPE="I4" />
@@ -405,6 +407,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
          <LOOKUP CACHE="pollquestion.state">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11051 ORDER BY 2</LOOKUP>
       </FIELD>
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FLabel" ALIAS="Label" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FOrder" ALIAS="Order" TYPE="I4" CONDITION="1" />
@@ -437,6 +440,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       </EDIT>
       <EDIT NAME="StateC" ALIAS="State" TYPE="I4" />
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
+      <EDIT NAME="FLabel" ALIAS="Label" TYPE="STR" MAX="100" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
       <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
       <EDIT NAME="FOrder" ALIAS="Order" TYPE="I4" />
@@ -461,11 +465,14 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
          <EXPRESSION>(SELECT pa.FName FROM $OTPollAnswer pa WHERE pa.PollAnswerK=$T.PollAnswerK)</EXPRESSION>
       </FIELD>
       <FIELD NAME="VoterK" ALIAS="VoterK" TYPE="I4" CONDITION="1" />
-      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+      <FIELD NAME="CreateD" ALIAS="CreateD" TYPE="ODATE" CONDITION="expression">
          <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
          <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
       </FIELD>
-      <FIELD ID="CreateD-Date" NAME="CreateD" ALIAS="CreateD" TYPE="ODATE">
+      <CONDITION NAME="CreateD" SIMPLENAME="Create" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
+         <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
+      </CONDITION>
+      <FIELD ID="CreateD-Date" NAME="CreateD" ALIAS="CreateD" TYPE="ODATE" CONDITION="expression">
          <FORMULA CODE="GD1">date.datetext( float(@this) + 2 )</FORMULA>
          <EXPRESSION>CAST( [$T].[$F] AS float )</EXPRESSION>
       </FIELD>

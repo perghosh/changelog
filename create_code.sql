@@ -372,6 +372,7 @@ VALUES
    ,( 3020, 7, 'product', 'product or asset related item')
    ,( 3020, 8, 'order', 'it is possible to order items based on code value') 
    ,( 3020, 9, 'message', 'some sort of message, like in discussion or other type of communication') 
+   ,( 3020, 10, 'image', 'some sort of image related information') 
 ;
 
 

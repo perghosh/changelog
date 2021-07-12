@@ -236,6 +236,7 @@ CREATE TABLE vote.TPollQuestion (
    ,TypeC INT               -- Type of question
    ,StateC INT              -- State of question
    ,FName NVARCHAR(500)
+   ,FLabel NVARCHAR(100)    -- Label may be used to inform voter about something, maybe hint about the comments
    ,FDescription NVARCHAR(MAX)
    ,FWeight INT             -- Poll question weight, if different answers is weighted
    ,FOrder INT              -- order question in poll
@@ -254,6 +255,7 @@ CREATE TABLE vote.TPollAnswer (
    ,TypeC INT               -- Type of answer
    ,StateC INT              -- State of answer
    ,FName NVARCHAR(500)     -- Answer name, this is used when answer is listed for voter to select
+   ,FLabel NVARCHAR(100)    -- Label may be used to inform voter about something, maybe hint about the comments
    ,FDescription NVARCHAR(MAX)-- Answer description if there is a need to describe
    ,FWeight INT             -- If answer is weighted, how much weight this answer give the voter
    ,FScore FLOAT            -- If poll is a quiz or similar and you want to count points

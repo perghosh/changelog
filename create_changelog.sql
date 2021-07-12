@@ -1203,6 +1203,7 @@ PRINT('CREATE TABLE TLink, url links connected to tables'); CREATE TABLE applica
    ,TypeC INT DEFAULT 0                -- link type
    ,DomainC INT DEFAULT 0              -- domain type as code
    ,FUrl NVARCHAR(1000)                -- link address (valid url to get to linked page)
+   ,FImage NVARCHAR(500)               -- image address (valid url to get to image)
    ,FName NVARCHAR(1000)               -- link name
    ,FDescription NVARCHAR(1000)        -- link description
    ,FDeleted SMALLINT DEFAULT 0        -- if link is deleted but kept i database

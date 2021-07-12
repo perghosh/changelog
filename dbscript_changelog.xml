@@ -1865,6 +1865,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.Ba
 CONCAT( '<a href="', $T.FUrl,'" target="_blank">',$T.FName,'</a>')
          ]]></EXPRESSION>
       </FIELD>
+      <FIELD NAME="FImage" ALIAS="Image" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" DISPLAY="0" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="BOOLEAN" CONDITION="1" />
@@ -1900,6 +1901,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $OTBadge _b JOIN $OTrXBadge _r ON _b.Ba
          <LOOKUP CACHE="link.type.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=100 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
       </EDIT>
       <EDIT NAME="FUrl" ALIAS="Url" TYPE="STR" MAX="1000" />
+      <EDIT NAME="FImage" ALIAS="Image" TYPE="STR" MAX="500" />
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="1000" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="1000" />
       <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="BOOLEAN" />
