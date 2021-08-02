@@ -283,6 +283,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FLabel" ALIAS="Label" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FOrder" ALIAS="Order" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FWeight" ALIAS="Weight" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FCount" ALIAS="Count" TYPE="I4" CONDITION="1" />
       
@@ -302,6 +303,7 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
       <EDIT NAME="FLabel" ALIAS="Label" TYPE="STR" MAX="100" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" />
+      <EDIT NAME="FOrder" ALIAS="Order" TYPE="I4" />
       <EDIT NAME="FWeight" ALIAS="Weight" TYPE="I4" />
       <EDIT NAME="FCount" ALIAS="Count" TYPE="I4" />
    </TABLETEMPLATE>
@@ -530,6 +532,8 @@ $T.$F $_operator (SELECT t.FTie FROM $Otie t JOIN $OTPollVote pv ON t.FKey=pv.Po
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FAlias" ALIAS="Alias" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FMail" ALIAS="Mail" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FMailHide" ALIAS="MailHide" TYPE="BIN" CONDITION="1" />
+      <FIELD NAME="FPassword" ALIAS="Password" TYPE="BIN" CONDITION="1" />
       <FIELD NAME="FPhone" ALIAS="Phone" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FLastVote" ALIAS="LastVote" TYPE="ODATE">
          <FORMULA CODE="GD1">date.datetimetext( float(@this) + 2 )</FORMULA>
@@ -538,6 +542,7 @@ $T.$F $_operator (SELECT t.FTie FROM $Otie t JOIN $OTPollVote pv ON t.FKey=pv.Po
       <CONDITION NAME="FLastVote" SIMPLENAME="~TVoterFLastVote FLastVote" TYPE="ODATE" DEFAULT="$${date.datetimetext( date.offsethour( 0 ) )}">
          <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
       </CONDITION>
+      <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FValidated" ALIAS="Validated" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
 
@@ -552,8 +557,11 @@ $T.$F $_operator (SELECT t.FTie FROM $Otie t JOIN $OTPollVote pv ON t.FKey=pv.Po
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="100" />
       <EDIT NAME="FAlias" ALIAS="Alias" TYPE="STR" MAX="100" />
       <EDIT NAME="FMail" ALIAS="Mail" TYPE="STR" MAX="100" />
+      <EDIT NAME="FMailHide" ALIAS="MailHide" TYPE="BIN" MAX="200" />
+      <EDIT NAME="FPassword" ALIAS="Password" TYPE="BIN" MAX="200" />
       <EDIT NAME="FPhone" ALIAS="Phone" TYPE="STR" MAX="100" />
       <EDIT NAME="FLastVote" ALIAS="LastVote" TYPE="DATE" />
+      <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="500" />
       <EDIT NAME="FValidated" ALIAS="Validated" TYPE="I4" />
       <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
    </TABLETEMPLATE>

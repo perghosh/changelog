@@ -6,6 +6,7 @@ poll_overview_related = related polls
 poll_links = links connected to poll
 poll_question = Single question for selected poll
 poll_answer = Answers for question
+poll_answer_all = All answers for selected poll
 poll_vote_comment = Comments for poll
 poll_search = Query used to search for polls
 poll_vote = Query used for register vote
@@ -504,7 +505,7 @@ end  ]]></CODE>
       <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Beskrivning" TABLE="TPollAnswer1" />
       <ORDER FIELD="TPollAnswer1PollQuestionK" />
-      <ORDER FIELD="TPollAnswer1PollAnswerK" />
+      <ORDER FIELD="TPollAnswer1PollFOrder" />
    </QUERY>
    
 
@@ -610,10 +611,12 @@ END
       <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
       <FIELD ID="TPollAnswer1FName" ALIAS="Name" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Description" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
-      <FIELD ID="TPollAnswer1TypeC" ALIAS="TypeC" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1FOrder" ALIAS="Order" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPollAnswer1TypeC" ALIAS="Type" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollAnswer1FWeight" ALIAS="Weight" TABLE="TPollAnswer1" FIELDFLAGNAMES="edit" />
       <ROWEDIT>
          <EDIT NAME="new_answer" SIMPLE="Answer" TYPENAME="new_row">
+            <PROPERTY NAME="columns">PollAnswerK,FOrder</PROPERTY>
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
 DECLARE @iPoll INT                  
@@ -621,11 +624,16 @@ DECLARE @iPollQuestionK INT = {{=PollQuestionK}};
 IF @iPollQuestionK IS NOT NULL
    SET @iPoll = (SELECT PollK FROM $O{VOTE}TPollQuestion WHERE PollQuestionK=@iPollQuestionK)
 
-INSERT INTO $O{VOTE}TPollAnswer(PollK,PollQuestionK,FName,FDescription,TypeC,FWeight,CreateD,UpdateD) 
-VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},{{=FWeight}},GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPollAnswer(PollK,PollQuestionK,FName,FDescription,TypeC,FOrder,FWeight,CreateD,UpdateD) 
+VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},{{=FOrder"0"}},{{=FWeight}},GETDATE(),GETDATE());
                </EXPRESSION>
             </SQL>
-            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollAnswer')" />
+            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollAnswer')">
+               <EXPRESSION>
+DECLARE @iAnswer BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPollAnswer'));
+SELECT @iAnswer, FOrder FROM $O{VOTE}TPollAnswer WHERE PollAnswerK = @iAnswer;
+               </EXPRESSION>
+            </SQL>
          </EDIT>
          <EDIT NAME="delete poll" SIMPLE="Radera proposition" TYPENAME="delete_row">
             <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPollAnswer WHERE PollAnswerK={{=[0]}}' />
@@ -691,6 +699,7 @@ VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FImage},{=FName},{=FDescription},G
       <FIELD ID="TVoter1FAlias" ALIAS="Användarnamn" TABLE="TVoter1"/>
       <FIELD ID="TVoter1FName" ALIAS="Namn" TABLE="TVoter1"/>
       <FIELD ID="TVoter1FMail" ALIAS="Mejladress" TABLE="TVoter1"/>
+      
       <ROWEDIT>
          <EDIT NAME="new_voter" SIMPLE="Voter" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
