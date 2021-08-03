@@ -543,6 +543,7 @@ $T.$F $_operator (SELECT t.FTie FROM $Otie t JOIN $OTPollVote pv ON t.FKey=pv.Po
          <EXPRESSION>FLOOR( CAST([$T].[$F] AS FLOAT) ) $_operator FLOOR($_value-2)</EXPRESSION>
       </CONDITION>
       <FIELD NAME="FDescription" ALIAS="Description" TYPE="STR" CONDITION="1" />
+      <FIELD NAME="FUnlock" ALIAS="Unlock" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FValidated" ALIAS="Validated" TYPE="I4" CONDITION="1" />
       <FIELD NAME="FDeleted" ALIAS="Deleted" TYPE="I2" CONDITION="1" />
 
@@ -562,6 +563,7 @@ $T.$F $_operator (SELECT t.FTie FROM $Otie t JOIN $OTPollVote pv ON t.FKey=pv.Po
       <EDIT NAME="FPhone" ALIAS="Phone" TYPE="STR" MAX="100" />
       <EDIT NAME="FLastVote" ALIAS="LastVote" TYPE="DATE" />
       <EDIT NAME="FDescription" ALIAS="Description" TYPE="STR" MAX="500" />
+      <EDIT NAME="FUnlock" ALIAS="Unlock" TYPE="STR" MAX="10" />
       <EDIT NAME="FValidated" ALIAS="Validated" TYPE="I4" />
       <EDIT NAME="FDeleted" ALIAS="Deleted" TYPE="I2" />
    </TABLETEMPLATE>

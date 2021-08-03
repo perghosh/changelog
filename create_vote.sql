@@ -56,6 +56,7 @@ CREATE TABLE vote.TVoter (
    ,FPhone NVARCHAR(100)   -- Phone number that may be used for sms or other types of feedback
    ,FLastVote DATETIME     -- Last time when voter voted
    ,FDescription NVARCHAR(500) -- Describe voter or add something to search for
+   ,FUnlock VARCHAR(10)    -- Unlock voter
    ,FValidated INT         -- Number that marks how valid this voter is
    ,FDeleted SMALLINT DEFAULT 0 -- If voter is deleted, like old
 );

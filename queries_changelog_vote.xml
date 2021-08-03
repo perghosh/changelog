@@ -706,10 +706,17 @@ VALUES(@iObject,@iTable,{=TypeC"0"},{=FUrl},{=FImage},{=FName},{=FDescription},G
                <EXPRESSION><![CDATA[
 DECLARE @iUser BIGINT = {#V user "@@user"}
 DECLARE @sAlias NVARCHAR(100) = {=FAlias}
+DECLARE @sMail NVARCHAR(100) = {=FMail}
 IF @sAlias IS NULL OR LEN(@sAlias) < 3 OR LEN(@sAlias) > 30
-   THROW 50000, 'Alias value error', 1;
-INSERT INTO $O{VOTE}TVoter(UserK,FName,FAlias,FMail,CreateD,UpdateD) 
-VALUES(@iUser,{=FName},{=FAlias},{=FMail},GETDATE(),GETDATE());
+   THROW 50000, '@@alias Alias value error', 1;
+   
+IF @sMail IS NULL OR LEN(@sMail) < 8 OR LEN(@sMail) > 90
+   THROW 50000, '@@mail Mail error', 1;
+   
+DECLARE @sUnlock VARCHAR(10) = (SELECT RIGHT( '000000' + CAST( FLOOR( RAND() * 1000000 ) AS VARCHAR(10) ), 6 ) )   
+   
+INSERT INTO $O{VOTE}TVoter(UserK,FName,FAlias,FMail,FUnlock,CreateD,UpdateD) 
+VALUES(@iUser,{=FName},{=FAlias},@sMail,@sUnlock,GETDATE(),GETDATE());
                ]]></EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TVoter')" />
