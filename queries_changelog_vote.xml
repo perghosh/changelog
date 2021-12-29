@@ -1,9 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
+Group = view groups or edit existing groups
+Group: Add sub = add subgroup to group
 Motioner = lista över motioner med editering
+poll_rotate = query to load polls that is used to rotate between some of them
 poll_overview = information about selected poll
 poll_overview_related = related polls
+poll_latest = get latest poll
 poll_links = links connected to poll
+poll_list = list polls
 poll_question = Single question for selected poll
 poll_answer = Answers for question
 poll_answer_all = All answers for selected poll
@@ -11,6 +16,10 @@ poll_vote_comment = Comments for poll
 poll_search = Query used to search for polls
 poll_vote = Query used for register vote
 poll_hashtags = Get hash-tags for poll's
+
+
+Frågor-ändra = editera valfrågor
+Konfigurera fråga = sätt egenskaper för fråga kopplad till omröstning
 
 
 -->
@@ -166,7 +175,9 @@ UPDATE $O{}TNote SET FNote={=TPoll1Note} WHERE RecordK=${@TPoll1PollK} AND table
       <FIELD ID="TPoll1FEnd" ALIAS="Slutdatum" TABLE="TPoll1" FIELDFLAGNAMES="edit">
          <ATTRIBUTES OUTPUT-INPUT="date|YYYY-MM-DD HH:mm|24" />
       </FIELD>
-      <FIELD ID="TPoll1Type" ALIAS="Type" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1TypeC" ALIAS="Type" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1StateC" ALIAS="State" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
+      <FIELD ID="TPoll1ClassC" ALIAS="Class" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPoll1CountQuestion" ALIAS="Antal frågor" TABLE="TPoll1">
          <ATTRIBUTES OUTPUT-STYLE="column|max-width: 25px;" />
          <ATTRIBUTES OUTPUT-CELLSTYLE="style='text-align: right;' class='mark_note'|/^[1-9]" />
@@ -188,8 +199,8 @@ IF @Start IS NULL
 IF @End IS NULL
    SET @End = DATEADD(month,1,@Start)
    
-INSERT INTO $O{VOTE}TPoll(PollGroupK,TypeC,FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
-VALUES({{=PollGroupK}},{=TypeC"0"},{=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE());
+INSERT INTO $O{VOTE}TPoll(PollGroupK,TypeC,StateC,ClassC,FHeader,FName,FDescription,FBegin,FEnd,CreateD,UpdateD) 
+VALUES({{=PollGroupK}},{=TypeC"0"},{=StateC"0"},{=ClassC"0"},{=FHeader},@sName,@sDescription,@Start,@End,GETDATE(),GETDATE());
 
 DECLARE @iPoll BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPoll'));
 EXEC $OPROCEDURE_UpdateBadge @sDescription,'vote.TPoll', @iPoll
@@ -199,8 +210,8 @@ VALUES(@iPoll,@iTable,{=TPoll1Note},GETDATE(),GETDATE());
 
 IF @sName IS NOT NULL
 BEGIN
-   INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,CreateD,UpdateD) 
-   VALUES(@iPoll,@sName,GETDATE(),GETDATE());
+   INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,FOrder,CreateD,UpdateD) 
+   VALUES(@iPoll,@sName,1,GETDATE(),GETDATE());
 END
                </EXPRESSION>
             </SQL>
@@ -249,7 +260,7 @@ SELECT PollK value, 'PollK' AS name, ISNULL(FHeader,FName) simple FROM $O{VOTE}T
          <PROPERTIES OUTPUT-WIDTH="900" OUTPUT-HEIGHT="500" OUTPUT-POSITION="right-top|-50,0" />
       </QUERYLINK>
       <QUERYLINK TYPENAME="children" NAME="Fråga"  DESCRIPTION="Lägg till frågor" KEY="5599795A83B546C6A8CA34197D87A047" QUERY="358497254151814E8F9273212F0CE565" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}">
-         <PROPERTIES OUTPUT-WIDTH="1100" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|10,60" />
+         <PROPERTIES OUTPUT-WIDTH="1200" OUTPUT-HEIGHT="400" OUTPUT-POSITION="left-top|10,60" />
       </QUERYLINK>
       <QUERYLINK TYPENAME="children" NAME="Add link" KEY="E2328BC89E074AE48D7E70895C9F36CE" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
       <QUERYLINK TYPENAME="children" NAME="Connect poll" KEY="8FB1E7238C2B4E45A6304D70C3712B76" EXPRESSION="SELECT PollK AS value, 'PollK' AS name, FName AS simple FROM $O{VOTE}TPoll WHERE PollK={{==TPoll1}}" />
@@ -386,6 +397,20 @@ end  ]]></CODE>
       <FIELD ID="TPollQuestion1FName" ALIAS="Name" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1FLabel" ALIAS="Label" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1FDescription" ALIAS="Description" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
+      
+      <FIELD ID="TPollQuestion1Note" ALIAS="Text" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit">
+         <ATTRIBUTES OUTPUT-FORMAT="markdown|padding: 0px; font-size: 90%; max-width: 95%; overflow-x: auto; white-space: normal;|[row]|padding-left: 100px;"
+                     OUTPUT-STYLE="column|max-width: 30px;" />
+         <EDIT>
+DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TPollQuestion' AND "schema" = 'vote' );
+IF (SELECT COUNT(*) FROM $OTNote WHERE RecordK=${@TPollQuestion1PollQuestionK} AND table_number=@iTable) = 0
+   INSERT INTO $OTNote (RecordK, table_number,CreateD) VALUES(${@TPollQuestion1PollQuestionK},@iTable,GETDATE())
+   
+UPDATE $OTNote SET FNote={=TProject1Note}, UpdateD=GETDATE() WHERE RecordK=${@TPollQuestion1PollQuestionK} AND table_number=@iTable
+         </EDIT>
+      </FIELD>
+      
+      
       <FIELD ID="TPollQuestion1TypeC" ALIAS="Type" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1StateC" ALIAS="State" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
       <FIELD ID="TPollQuestion1FOrder" ALIAS="Order" TABLE="TPollQuestion1" FIELDFLAGNAMES="edit" />
@@ -393,9 +418,20 @@ end  ]]></CODE>
          <EDIT NAME="new_question" SIMPLE="Fråga" TYPENAME="new_row">
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
-DECLARE @iPoll INT = {{=PollK}};                  
+DECLARE @iPoll INT = {{=PollK}};
+DECLARE @sComment NVARCHAR(500) = {=FComment}
+DECLARE @sText NVARCHAR(MAX) = {=TPollQuestion1Note}
+DECLARE @iOrder INT = ISNULL( {=FOrder}, (SELECT ISNULL(MAX(FOrder),0) + 1 FROM $O{VOTE}TPollQuestion WHERE PollK=@iPoll) )
 INSERT INTO $O{VOTE}TPollQuestion(PollK,FName,FLabel,FDescription,TypeC,StateC,FOrder,CreateD,UpdateD) 
-VALUES(@iPoll,{=FName"''"},{=FLabel"''"},{=FDescription},{=TypeC},{=StateC},{=FOrder},GETDATE(),GETDATE());
+VALUES(@iPoll,{=FName"''"},{=FLabel"''"},{=FDescription},{=TypeC},{=StateC},@iOrder,GETDATE(),GETDATE());
+
+IF @sText IS NOT NULL
+BEGIN
+   DECLARE @i BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPollQuestion'));
+   DECLARE @iTable INT = (SELECT number FROM $Otable_number WHERE "name" = 'TPollQuestion' AND "schema" = 'vote' );
+   INSERT INTO $OTNote(RecordK,table_number,FNote,CreateD,UpdateD)
+   VALUES(@i,@iTable,@sText,GETDATE(),GETDATE());
+END
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollQuestion')" />
@@ -433,6 +469,24 @@ end  ]]></CODE>
       <FIELD ID="TPoll1FDescription" ALIAS="Beskrivning" TABLE="TPoll1" FIELDFLAGNAMES="edit" />
       <ORDER FIELD="TPoll1PollK" DESC="1" />
    </QUERY>
+   
+   <QUERY ID="poll_latest" FLAGS="1" KEY="0000000000000000000000000000000F" DESCRIPTION="get latest poll">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" />
+      <FIELD ID="TPoll1CreateD" ALIAS="Create" TABLE="TPoll1" />
+      <ORDER FIELD="TPoll1CreateD" DESC="1" />
+   </QUERY>
+   
+   
+   <QUERY ID="poll_rotate" FLAGS="1" KEY="00000000000000000000000000000012">
+      <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
+      <FIELD ID="TPoll1PollK" ALIAS="ID" TABLE="TPoll1" />
+      <FIELD ID="TPoll1FName" ALIAS="Namn" TABLE="TPoll1" FORMAT="ISNULL( $T.FHeader, $T.FName )" FIELDFLAGNAMES="sql_format" />
+      <CONDITION ID="TPoll1DisplayC" TABLE="TPoll1" OPERATORNAME="EQUAL" SIMPLEVALUE="Rotate" VALUE="6400" />
+   </QUERY>
+
+   
 
    <!-- Stats for selected poll, used to infor voter about the poll and if user has voted or not -->
    <QUERY ID="poll_overview" FLAGS="1" KEY="00000000000000000000000000000003">
@@ -475,6 +529,7 @@ end  ]]></CODE>
       <FIELD ID="TPollQuestion1Min" ALIAS="Min" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1Max" ALIAS="Max" TABLE="TPollQuestion1" />
       <FIELD ID="TPollQuestion1Comment" ALIAS="Comment" TABLE="TPollQuestion1" />
+      <FIELD ID="TPollQuestion1FDescription" ALIAS="Description" TABLE="TPollQuestion1" />
       <ORDER FIELD="TPollQuestion1PollQuestionK" SQL="$T.FOrder" />
       <ORDER FIELD="TPollQuestion1PollQuestionK" />
    </QUERY>
@@ -501,11 +556,11 @@ end  ]]></CODE>
    <QUERY ID="poll_answer_all" FLAGS="1" KEY="0000000000000000000000000000000D">
       <ATTRIBUTE NAME="OUTPUT-LIST">System,200</ATTRIBUTE>
       <FIELD ID="TPollAnswer1PollQuestionK" ALIAS="ID (Question)" TABLE="TPollAnswer1"/>
-      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID (Answer)" TABLE="TPollAnswer1"/>
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID_Answer" TABLE="TPollAnswer1"/>
       <FIELD ID="TPollAnswer1FName" ALIAS="Alternativ" TABLE="TPollAnswer1" />
       <FIELD ID="TPollAnswer1FDescription" ALIAS="Beskrivning" TABLE="TPollAnswer1" />
       <ORDER FIELD="TPollAnswer1PollQuestionK" />
-      <ORDER FIELD="TPollAnswer1PollFOrder" />
+      <ORDER FIELD="TPollAnswer1PollQuestionK" SQL="$T.FOrder" />
    </QUERY>
    
 
@@ -518,6 +573,12 @@ end  ]]></CODE>
       <ROWEDIT>
          <EDIT NAME="prepare" TYPENAME="begin">
             <SQL TYPENAME="variable"><EXPRESSION>
+DECLARE @sIp VARCHAR(50) = '{#V user "@@ip"}'
+DECLARE @iPoll BIGINT = {{=PollK}}
+
+IF (SELECT TOP 1 PV.PollVoteK FROM $O{VOTE}TPollVote PV JOIN $O{VOTE}TPollQuestion PQ ON PV.PollQuestionK=PQ.PollQuestionK  WHERE PQ.PollK = @iPoll AND PV.FIp = @sIp) IS NOT NULL
+   THROW 50000, '%%ip%% Ip exist', 1;
+
 SELECT CONVERT( VARCHAR(50), CAST( NEWID() AS BINARY(16)), 1 ) AS uuid
             </EXPRESSION></SQL>
          </EDIT>
@@ -563,6 +624,7 @@ END
       <FIELD ID="TPollVote1FIp" ALIAS="Ip" TABLE="TPollVote1"/>
       <FIELD ID="PollAnswerK-FName" ALIAS="Answer" TABLE="TPollAnswer1" />
       <FIELD ID="TPollVote1FComment" ALIAS="Comment" TABLE="TPollVote1" />
+      <FIELD ID="TPollVote1PollQuestionK-FName" ALIAS="Question" TABLE="TPollVote1" />
       <CONDITION ID="TPollVote1FComment" TABLE="TPollVote1" CONDITIONFLAGNAMES="locked" OPERATORNAME="IS NOT NULL"></CONDITION>
       <ORDER INDEX="1" DESC="1" />
       <CONDITIONS ID="all" />
@@ -601,6 +663,7 @@ END
       <FIELD ID="TPollQuestion1FName" ALIAS="Question" TABLE="TPollQuestion1" GROUPBY="1" />
       <FIELD ID="TPollAnswer1FName" ALIAS="Answer" TABLE="TPollAnswer1" GROUPBY="1" />
       <FIELD ID="TPollVote1PollVoteK" ALIAS="Count" TABLE="TPollVote1" FORMAT="COUNT($T.$F)" FIELDFLAGNAMES="sql_format" />
+      <FIELD ID="TPollAnswer1PollAnswerK" ALIAS="ID_Answer" TABLE="TPollAnswer1" GROUPBY="1" />
       <ORDER FIELD="TPollQuestion1FName" />
       <ORDER FIELD="TPollVote1PollVoteK" DESC="1" />
    </QUERY>
@@ -623,9 +686,11 @@ DECLARE @iPoll INT
 DECLARE @iPollQuestionK INT = {{=PollQuestionK}};                  
 IF @iPollQuestionK IS NOT NULL
    SET @iPoll = (SELECT PollK FROM $O{VOTE}TPollQuestion WHERE PollQuestionK=@iPollQuestionK)
+   
+DECLARE @iOrder INT = ISNULL( {=FOrder}, (SELECT ISNULL(MAX(FOrder),0) + 1 FROM $O{VOTE}TPollAnswer WHERE PollQuestionK=@iPollQuestionK) )   
 
 INSERT INTO $O{VOTE}TPollAnswer(PollK,PollQuestionK,FName,FDescription,TypeC,FOrder,FWeight,CreateD,UpdateD) 
-VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},{{=FOrder"0"}},{{=FWeight}},GETDATE(),GETDATE());
+VALUES(@iPoll, @iPollQuestionK,{=FName"''"},{=FDescription},{=TypeC},@iOrder,{{=FWeight}},GETDATE(),GETDATE());
                </EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollAnswer')">
@@ -649,16 +714,23 @@ SELECT @iAnswer, FOrder FROM $O{VOTE}TPollAnswer WHERE PollAnswerK = @iAnswer;
       <FIELD ID="TPollLimit1FDescription" ALIAS="Description" TABLE="TPollLimit1" FIELDFLAGNAMES="edit" />
       <ROWEDIT>
          <EDIT NAME="new_limit" SIMPLE="Limit" TYPENAME="new_row">
+            <PROPERTY NAME="columns">PollLimitK,FLimitInteger</PROPERTY>
             <SQL TYPENAME="insert" COMMAND="insert-row">
                <EXPRESSION>
 DECLARE @iPollQuestionK BIGINT={{==PollQuestionK}};
+DECLARE @iLimit INT=ISNULL({{=FLimitInteger}},1);
 DECLARE @iPoll BIGINT = (SELECT PollK FROM $O{VOTE}TPollQuestion WHERE PollQuestionK=@iPollQuestionK)
 
 INSERT INTO $O{VOTE}TPollLimit(PollK,PollQuestionK,limit_type,FLimitInteger,FDescription) 
-VALUES(@iPoll, @iPollQuestionK,{{==limit_type}},{{==FLimitInteger}},{=FDescription});
+VALUES(@iPoll, @iPollQuestionK,{{==limit_type}},@iLimit,{=FDescription});
                </EXPRESSION>
             </SQL>
-            <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TPollLimit')" />
+            <SQL TYPENAME="select" COMMAND="select-key">
+               <EXPRESSION>
+DECLARE @iKey BIGINT = (SELECT IDENT_CURRENT('$O{VOTE}TPollLimit'))
+SELECT @iKey, FLimitInteger FROM $O{VOTE}TPollLimit WHERE PollLimitK=@iKey
+               </EXPRESSION>
+            </SQL>
          </EDIT>
          <EDIT NAME="delete limit" SIMPLE="Radera regel" TYPENAME="delete_row">
             <SQL TYPENAME="delete" COMMAND="delete-row" EXPRESSION='DELETE FROM $O{VOTE}TPollLimit WHERE PollLimitK={{=[0]}}' />
@@ -708,15 +780,22 @@ DECLARE @iUser BIGINT = {#V user "@@user"}
 DECLARE @sAlias NVARCHAR(100) = {=FAlias}
 DECLARE @sMail NVARCHAR(100) = {=FMail}
 IF @sAlias IS NULL OR LEN(@sAlias) < 3 OR LEN(@sAlias) > 30
-   THROW 50000, '@@alias Alias value error', 1;
+   THROW 50000, '``alias`` Alias value error', 1;
    
 IF @sMail IS NULL OR LEN(@sMail) < 8 OR LEN(@sMail) > 90
-   THROW 50000, '@@mail Mail error', 1;
+   THROW 50000, '``mail`` Mail error', 1;
    
 DECLARE @sUnlock VARCHAR(10) = (SELECT RIGHT( '000000' + CAST( FLOOR( RAND() * 1000000 ) AS VARCHAR(10) ), 6 ) )   
    
 INSERT INTO $O{VOTE}TVoter(UserK,FName,FAlias,FMail,FUnlock,CreateD,UpdateD) 
 VALUES(@iUser,{=FName},{=FAlias},@sMail,@sUnlock,GETDATE(),GETDATE());
+
+/*
+IF {{=send_mail}} = 1
+BEGIN
+   -- Send mail   
+END
+*/
                ]]></EXPRESSION>
             </SQL>
             <SQL TYPENAME="select" COMMAND="select-key" EXPRESSION="SELECT IDENT_CURRENT('$O{VOTE}TVoter')" />

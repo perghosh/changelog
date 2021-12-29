@@ -128,6 +128,12 @@
          <EXPRESSION>(SELECT t.FName FROM $OTPollGroup t WHERE t.PollGroupK=$T.PollGroupK)</EXPRESSION>
          <EXPRESSION OUTPUT="edit">$T.PollGroupK</EXPRESSION>
       </FIELD>
+      
+      <CONDITION ID="PollK-Latest" NAME="PollK" SIMPLENAME="Latest poll" TYPE="INT" NOVALUE="1">
+         <EXPRESSION>(SELECT MAX(PollK) FROM vote.TPoll WHERE PollGroupK=$_value)</EXPRESSION>
+      </CONDITION>
+      
+      
       <FIELD NAME="ParentK" ALIAS="Parent" TYPE="INT" CONDITION="1" />
       <FIELD NAME="table_number" ALIAS="table_number" TYPE="I4" CONDITION="1" />
       <FIELD NAME="SuperK" ALIAS="Super" TYPE="I4" CONDITION="1" />
@@ -153,6 +159,18 @@
       <FIELD NAME="StateC" ALIAS="State" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
          <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
          <LOOKUP CACHE="vote.poll.state">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11021 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="ClassC" ALIAS="Class" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="vote.poll.class">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11022 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="DisplayC" ALIAS="Display" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="vote.poll.display">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11023 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </FIELD>
+      <FIELD NAME="ChartC" ALIAS="Chart" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT _c.FName FROM $O{CODE}TCode _c WHERE _c.CodeK=$T.$F)</EXPRESSION>
+         <LOOKUP CACHE="vote.poll.chart">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11024 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
       </FIELD>
       <FIELD NAME="FName" ALIAS="Name" TYPE="STR" CONDITION="1" />
       <FIELD NAME="FHeader" ALIAS="Header" TYPE="STR" CONDITION="1" />
@@ -242,6 +260,15 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
       </EDIT>
       <EDIT NAME="StateC" ALIAS="State" TYPE="I4">
          <LOOKUP CACHE="vote.poll.state.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11021 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="ClassC" ALIAS="Class" TYPE="I4">
+         <LOOKUP CACHE="vote.poll.class.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11022 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="DisplayC" ALIAS="Display" TYPE="I4">
+         <LOOKUP CACHE="vote.poll.display.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11023 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
+      </EDIT>
+      <EDIT NAME="ChartC" ALIAS="Chart" TYPE="I4">
+         <LOOKUP CACHE="vote.poll.chart.edit">SELECT CodeK, FName FROM $O{CODE}TCode WHERE GroupK=11024 AND FDeleted=0 AND FIdle=0 ORDER BY 2</LOOKUP>
       </EDIT>
       <EDIT NAME="FName" ALIAS="Name" TYPE="STR" MAX="500" />
       <EDIT NAME="FHeader" ALIAS="Header" TYPE="STR" MAX="200" />
@@ -429,6 +456,10 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
          <EXPRESSION>(SELECT TOP 1 FLimitInteger FROM $OTPollLimit pl WHERE pl.PollQuestionK=$T.PollQuestionK AND pl.limit_type = 9)</EXPRESSION>
       </FIELD>
       
+      <FIELD ID="Note" NAME="FDescription" ALIAS="Note" TYPE="STR" CONDITION="expression">
+         <EXPRESSION>(SELECT TOP 1 _n.FNote FROM $O{}TNote _n WHERE _n.RecordK=$T.PollK AND _n.table_number=11050)</EXPRESSION>
+      </FIELD>
+      
       <EDIT NAME="PollK" ALIAS="PollK" TYPE="I4" />
       <EDIT NAME="SuperK" ALIAS="SuperK" TYPE="I4" />
       <EDIT NAME="PollSectionK" ALIAS="PollSectionK" TYPE="I4" />
@@ -463,6 +494,9 @@ $T.$F $_operator (SELECT _r.ParentK FROM $O{}TBadge _b JOIN $O{}TrXBadge _r ON _
    <TABLETEMPLATE ID="vote.pollvote">
       <FIELD NAME="PollQuestionK" ALIAS="PollQuestionK" TYPE="I4" CONDITION="1" />
       <FIELD NAME="PollAnswerK" ALIAS="PollAnswerK" TYPE="I4" CONDITION="1" />
+      <FIELD ID="PollQuestionK-FName" NAME="PollQuestionK" ALIAS="Question name" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
+         <EXPRESSION>(SELECT pq.FName FROM $OTPollQuestion pq WHERE pq.PollQuestionK=$T.PollQuestionK)</EXPRESSION>
+      </FIELD>
       <FIELD ID="PollAnswerK-FName" NAME="PollAnswerK" ALIAS="Answer name" TYPE="I4" DISPLAYTYPE="STR" CONDITION="1">
          <EXPRESSION>(SELECT pa.FName FROM $OTPollAnswer pa WHERE pa.PollAnswerK=$T.PollAnswerK)</EXPRESSION>
       </FIELD>

@@ -166,6 +166,9 @@ CREATE TABLE vote.TPoll (
    ,UpdateD DATETIME        -- last time poll was updated
    ,TypeC INT               -- Type of poll
    ,StateC INT              -- State of poll
+   ,ClassC INT              -- Class of poll, could be some sort of quality, level or other type of division based on similar attribute
+   ,ChartC INT              -- How to present statistics
+   ,DisplayC INT            -- How to display this poll, may be used for some temporary settings on how this poll is promoted 
    ,FName NVARCHAR(500)     -- poll name
    ,FHeader NVARCHAR(200)   -- poll header
    ,FDescription NVARCHAR(MAX)-- describe poll
